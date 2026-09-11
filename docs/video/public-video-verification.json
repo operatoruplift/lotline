@@ -1,6 +1,6 @@
 {
-  "checkedAt": "2026-09-11T18:03:10.666Z",
-  "origin": "http://127.0.0.1:3107",
+  "checkedAt": "2026-09-11T19:53:21.884Z",
+  "origin": "https://lotline-omega.vercel.app",
   "checks": [
     {
       "width": 375,
@@ -10,7 +10,7 @@
           "duration": 54,
           "width": 1920,
           "height": 1080,
-          "currentTime": 2.035404,
+          "currentTime": 2.038063,
           "paused": false,
           "muted": false,
           "error": null,
@@ -27,7 +27,7 @@
           "duration": 160,
           "width": 1920,
           "height": 1080,
-          "currentTime": 2.022501,
+          "currentTime": 2.019371,
           "paused": false,
           "muted": false,
           "error": null,
@@ -52,11 +52,11 @@
           "duration": 54,
           "width": 1920,
           "height": 1080,
-          "currentTime": 2.03289,
+          "currentTime": 2.010607,
           "paused": false,
           "muted": false,
           "error": null,
-          "audioDecodedBytes": 43728,
+          "audioDecodedBytes": 43199,
           "captions": [
             {
               "language": "en",
@@ -69,7 +69,7 @@
           "duration": 160,
           "width": 1920,
           "height": 1080,
-          "currentTime": 2.019395,
+          "currentTime": 2.013828,
           "paused": false,
           "muted": false,
           "error": null,
@@ -87,5 +87,6 @@
       "overflow": false
     }
   ],
-  "passed": true
+  "passed": true,
+  "immediateReloadPersistence": "passed"
 }
