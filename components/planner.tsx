@@ -1,0 +1,324 @@
+'use client';
+
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { isAddress } from '@solana/kit';
+import { ArrowDownToLine, ArrowRight, ArrowUpRight, Check, ChevronDown, CircleHelp, Clipboard, Clock3, ExternalLink, FlaskConical, Info, LoaderCircle, Plus, RefreshCw, ShieldCheck, Trash2, Wallet, WifiOff, X } from 'lucide-react';
+import type { Asset, Basket, CatalogResponse, HoldingsResponse, Mode, ProjectionResponse, QuotesResponse } from '@/lib/domain/types';
+import { formatUsdc, parsePercent, validatePlan } from '@/lib/domain/math';
+import { buildPlanCsv, buildPlanText } from '@/lib/domain/export';
+import { createPlanIdentity, isCurrentResponse } from '@/lib/domain/identity';
+import { loadBasket, saveBasket } from '@/lib/domain/storage';
+import { DEFAULT_BASKET, EXAMPLE_ASSETS, exampleUnits, getExampleHoldings, getExampleQuotes } from '@/lib/demo/example';
+import { SiteFooter, SiteHeader } from './site-shell';
+import { CloudPlans } from './cloud-plans';
+
+type Notice = { text: string; error?: boolean };
+const EMPTY_BASKET: Basket = { version: 1, budget: '1000', items: [] };
+const copyBasket = (basket: Basket): Basket => ({ ...basket, items: basket.items.map((item) => ({ ...item })) });
+const assetClass = (symbol: string) => ({ AAPLx: 'apple', MSFTx: 'microsoft', NVDAx: 'nvidia', TSLAx: 'tesla', SPYx: 'spy', QQQx: 'qqq' })[symbol] ?? 'apple';
+
+function displayAmount(value: string, minimumDecimals = 2): string {
+  const [whole, decimal = ''] = value.split('.');
+  const fraction = decimal.replace(/0+$/, '').padEnd(minimumDecimals, '0');
+  return `${whole.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}${fraction ? `.${fraction}` : ''}`;
+}
+
+function displayUnits(value: string): string {
+  if (!/^\d+(\.\d+)?$/.test(value)) return value;
+  return displayAmount(value, 0);
+}
+
+function AssetAvatar({ asset, small }: { asset?: Asset; small?: boolean }) {
+  return <span className={`asset-avatar ${assetClass(asset?.symbol ?? '')}${small ? ' small' : ''}`} aria-hidden="true">{asset?.symbol[0] ?? '?'}</span>;
+}
+
+function exampleView(basket: Basket) {
+  const holdings = getExampleHoldings(basket.items.map((item) => item.mint));
+  const plan = validatePlan(basket);
+  const verified = basket.items.every((item) => EXAMPLE_ASSETS.some((asset) => asset.mint === item.mint));
+  const quotes = plan.valid && verified ? getExampleQuotes(plan.allocations.filter((item) => BigInt(item.usdcRaw) > 0n)) : null;
+  const projections = quotes?.quotes.flatMap((quote) => {
+    const holding = holdings.holdings.find((item) => item.mint === quote.mint);
+    return holding?.raw !== null && holding?.raw !== undefined && quote.outRaw !== null ? [{ mint: quote.mint, units: exampleUnits(quote.mint, BigInt(holding.raw) + BigInt(quote.outRaw)) }] : [];
+  }) ?? [];
+  return { holdings, quotes, projections };
+}
+
+async function readResponse<T>(response: Response): Promise<T> {
+  const contentType = response.headers.get('content-type') ?? '';
+  if (!contentType.includes('application/json')) throw new Error('The service returned an unreadable response. Please try again.');
+  return await response.json() as T;
+}
+
+export function Planner({ initialMode, cloudEnabled = true }: { initialMode: Mode; cloudEnabled?: boolean }) {
+  const [mode, setMode] = useState<Mode>(initialMode);
+  const [basket, setBasket] = useState<Basket>(() => copyBasket(initialMode === 'example' ? DEFAULT_BASKET : EMPTY_BASKET));
+  const [hydrated, setHydrated] = useState(false);
+  const [saved, setSaved] = useState<'pending' | 'saved' | 'unavailable'>('pending');
+  const [catalog, setCatalog] = useState<CatalogResponse | null>(null);
+  const [catalogLoading, setCatalogLoading] = useState(initialMode === 'live');
+  const [catalogReload, setCatalogReload] = useState(0);
+  const [wallet, setWallet] = useState('');
+  const [holdings, setHoldings] = useState<HoldingsResponse | null>(null);
+  const [holdingsLoading, setHoldingsLoading] = useState(false);
+  const [quotes, setQuotes] = useState<QuotesResponse | null>(null);
+  const [projections, setProjections] = useState<ProjectionResponse['items']>([]);
+  const [quoteLoading, setQuoteLoading] = useState(false);
+  const [showPicker, setShowPicker] = useState(false);
+  const [notice, setNotice] = useState<Notice | null>(null);
+  const [online, setOnline] = useState(true);
+  const [now, setNow] = useState(0);
+  const revision = useRef(0);
+  const activeQuote = useRef('');
+  const quoteAbort = useRef<AbortController | null>(null);
+  const holdingsAbort = useRef<AbortController | null>(null);
+  const assets = useMemo(() => mode === 'example' ? EXAMPLE_ASSETS : catalog?.assets ?? [], [catalog, mode]);
+  const assetMap = useMemo(() => new Map(assets.map((asset) => [asset.mint, asset])), [assets]);
+  const plan = useMemo(() => validatePlan(basket), [basket]);
+  const unknownSelected = basket.items.some((item) => !assetMap.has(item.mint));
+  const canEstimate = plan.valid && !unknownSelected && !holdingsLoading && (mode === 'example' || online);
+  const totalBps = basket.items.reduce((sum, item) => { try { return sum + parsePercent(item.percent); } catch { return sum; } }, 0);
+  const quotesByMint = new Map(quotes?.quotes.map((quote) => [quote.mint, quote]));
+  const holdingsByMint = new Map(holdings?.holdings.map((holding) => [holding.mint, holding]));
+  const projectionByMint = new Map(projections.map((projection) => [projection.mint, projection]));
+  const allocationByMint = new Map(plan.allocations.map((item) => [item.mint, item]));
+  const successfulQuotes = quotes?.quotes.filter((quote) => quote.state === 'success') ?? [];
+  const stale = successfulQuotes.some((quote) => now >= Math.min(Date.parse(quote.expiresAt), Date.parse(quote.fetchedAt) + 30_000));
+  const oldestQuote = successfulQuotes.length ? Math.min(...successfulQuotes.map((quote) => Date.parse(quote.fetchedAt))) : null;
+  const ageSeconds = oldestQuote === null ? 0 : Math.max(0, Math.floor((now - oldestQuote) / 1000));
+  const walletValid = wallet.trim() !== '' && isAddress(wallet.trim());
+  const confirmedUsdc = holdings?.usdc.state === 'success' && holdings.usdc.raw !== null ? BigInt(holdings.usdc.raw) : null;
+  const allocatedTotal = plan.valid ? plan.allocations.reduce((sum, item) => sum + BigInt(item.usdcRaw), 0n) : null;
+  const insufficientUsdc = confirmedUsdc !== null && allocatedTotal !== null && confirmedUsdc < allocatedTotal;
+  const allZeroHoldings = holdings?.state === 'success' && holdings.holdings.length > 0 && holdings.holdings.every((holding) => holding.state === 'success' && holding.raw === '0');
+
+  const invalidate = useCallback((clearHoldings = false) => {
+    revision.current += 1;
+    activeQuote.current = '';
+    quoteAbort.current?.abort();
+    setQuotes(null);
+    setProjections([]);
+    setQuoteLoading(false);
+    setNotice(null);
+    if (clearHoldings) {
+      holdingsAbort.current?.abort();
+      setHoldings(null);
+      setHoldingsLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+    // Browser-only bootstrap runs after hydration. One state batch restores the
+    // draft and creates the explicitly requested Example view from that draft.
+    queueMicrotask(() => {
+      if (cancelled) return;
+      let initialBasket = copyBasket(initialMode === 'example' ? DEFAULT_BASKET : EMPTY_BASKET);
+      try { initialBasket = loadBasket(window.localStorage) ?? initialBasket; }
+      catch { /* A browser can block local storage. The planner still works. */ }
+      setBasket(initialBasket);
+      if (initialMode === 'example') {
+        const example = exampleView(initialBasket);
+        setHoldings(example.holdings);
+        setQuotes(example.quotes);
+        setProjections(example.projections);
+      }
+      setHydrated(true);
+    });
+    return () => { cancelled = true; };
+  }, [initialMode]);
+
+  useEffect(() => {
+    if (!hydrated) return;
+    const timer = window.setTimeout(() => {
+      try { setSaved(saveBasket(window.localStorage, basket) ? 'saved' : 'unavailable'); } catch { setSaved('unavailable'); }
+    }, 250);
+    return () => window.clearTimeout(timer);
+  }, [basket, hydrated]);
+
+  useEffect(() => {
+    const update = () => { setOnline(navigator.onLine); setNow(Date.now()); };
+    update();
+    window.addEventListener('online', update);
+    window.addEventListener('offline', update);
+    document.addEventListener('visibilitychange', update);
+    const timer = window.setInterval(() => { if (document.visibilityState !== 'hidden') setNow(Date.now()); }, 1000);
+    return () => { window.removeEventListener('online', update); window.removeEventListener('offline', update); document.removeEventListener('visibilitychange', update); window.clearInterval(timer); };
+  }, []);
+
+  useEffect(() => {
+    if (mode === 'example') return;
+    const controller = new AbortController();
+    fetch('/api/assets', { signal: controller.signal })
+      .then((response) => readResponse<CatalogResponse>(response))
+      .then((data) => { if (!controller.signal.aborted) setCatalog(data); })
+      .catch(() => { if (!controller.signal.aborted) setCatalog({ state: 'unavailable', assets: [], unavailable: [], message: 'The verified asset catalog could not be loaded. Check your connection and try again.' }); })
+      .finally(() => { if (!controller.signal.aborted) setCatalogLoading(false); });
+    return () => controller.abort();
+  }, [mode, catalogReload]);
+
+  useEffect(() => () => { quoteAbort.current?.abort(); holdingsAbort.current?.abort(); }, []);
+
+  function updateBasket(next: Basket, selectionChanged = false) {
+    invalidate(selectionChanged);
+    setSaved('pending');
+    setBasket(next);
+    if (selectionChanged && mode === 'example') setHoldings(getExampleHoldings(next.items.map((item) => item.mint)));
+  }
+
+  function switchMode(next: Mode) {
+    if (next === mode) return;
+    invalidate(true);
+    setWallet('');
+    setMode(next);
+    setShowPicker(false);
+    setCatalogLoading(next === 'live');
+    if (next === 'example') {
+      const nextBasket = basket.items.length === 0 || basket.items.some((item) => !EXAMPLE_ASSETS.some((asset) => asset.mint === item.mint)) ? copyBasket(DEFAULT_BASKET) : basket;
+      const example = exampleView(nextBasket);
+      setBasket(nextBasket);
+      setHoldings(example.holdings);
+      setQuotes(example.quotes);
+      setProjections(example.projections);
+      setNow(Date.now());
+    }
+    window.history.replaceState(null, '', next === 'example' ? '/app?mode=example' : '/app');
+  }
+
+  async function loadHoldings() {
+    if (mode !== 'live' || !walletValid || !basket.items.length || unknownSelected) return;
+    invalidate(true);
+    const controller = new AbortController();
+    holdingsAbort.current = controller;
+    setHoldingsLoading(true);
+    try {
+      const params = new URLSearchParams({ owner: wallet.trim(), mints: basket.items.map((item) => item.mint).join(',') });
+      const response = await fetch(`/api/holdings?${params}`, { signal: controller.signal });
+      const data = await readResponse<HoldingsResponse>(response);
+      if (controller.signal.aborted) return;
+      setHoldings(data);
+      setNotice({ text: data.state === 'success' ? 'Current wallet balances loaded. Get estimates to see your projected units.' : data.message ?? 'Some balances are unavailable. You can still plan your contribution.', error: data.state !== 'success' && data.state !== 'partial' });
+    } catch (error) {
+      if (controller.signal.aborted) return;
+      setNotice({ text: error instanceof Error ? error.message : 'Balances could not be loaded. Please try again.', error: true });
+    } finally { if (!controller.signal.aborted) setHoldingsLoading(false); }
+  }
+
+  async function getEstimates() {
+    if (!canEstimate) return;
+    quoteAbort.current?.abort();
+    const controller = new AbortController();
+    quoteAbort.current = controller;
+    const identity = createPlanIdentity(mode, basket, revision.current);
+    activeQuote.current = identity;
+    setQuoteLoading(true);
+    setQuotes(null);
+    setProjections([]);
+    setNotice(null);
+    const items = plan.allocations.filter((item) => BigInt(item.usdcRaw) > 0n).map(({ mint, usdcRaw }) => ({ mint, usdcRaw }));
+    const current = () => !controller.signal.aborted && isCurrentResponse(activeQuote.current, identity);
+    try {
+      const data = mode === 'example' ? getExampleQuotes(items) : await readResponse<QuotesResponse>(await fetch('/api/quotes', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ items }), signal: controller.signal }));
+      if (!current()) return;
+      setQuotes(data);
+      setNow(Date.now());
+      const rawProjections = data.quotes.flatMap((quote) => {
+        const holding = holdingsByMint.get(quote.mint);
+        return quote.state === 'success' && quote.outRaw !== null && holding?.state === 'success' && holding.raw !== null ? [{ mint: quote.mint, raw: (BigInt(holding.raw) + BigInt(quote.outRaw)).toString() }] : [];
+      });
+      if (rawProjections.length) {
+        if (mode === 'example') setProjections(rawProjections.map(({ mint, raw }) => ({ mint, units: exampleUnits(mint, raw) })));
+        else {
+          try {
+            const projected = await readResponse<ProjectionResponse>(await fetch('/api/units', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ items: rawProjections }), signal: controller.signal }));
+            if (!current()) return;
+            setProjections(projected.items);
+          } catch {
+            if (!current()) return;
+            setProjections(rawProjections.map(({ mint }) => ({ mint, units: null, message: 'Resulting units could not be verified. Try refreshing your estimates.' })));
+          }
+        }
+      }
+      if (current()) setNotice({ text: data.state === 'success' ? (mode === 'example' ? 'Example estimates updated. These are synthetic values.' : 'Estimates loaded. Review current amounts and fees on Jupiter.') : data.message ?? 'Some estimates are unavailable. Check the asset details and try refreshing.', error: data.state !== 'success' && data.state !== 'partial' });
+    } catch (error) {
+      if (current()) setNotice({ text: error instanceof Error ? error.message : 'Estimates could not be loaded. Please try again.', error: true });
+    } finally { if (current()) setQuoteLoading(false); }
+  }
+
+  async function copy(value: string, label: string) {
+    try { await navigator.clipboard.writeText(value); setNotice({ text: `${label} copied.` }); }
+    catch { setNotice({ text: 'Clipboard access is unavailable in this browser. Download the CSV to keep your plan.', error: true }); }
+  }
+
+  function downloadCsv() {
+    try {
+      const text = buildPlanCsv({ mode, basket, assets, quotes: quotes?.quotes ?? [] });
+      const url = URL.createObjectURL(new Blob([text], { type: 'text/csv;charset=utf-8;' }));
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `lotline-${mode}-plan-${new Date().toISOString().slice(0, 10)}.csv`;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+      setNotice({ text: 'CSV download started. Your plan includes exact amounts and estimate timestamps.' });
+    } catch { setNotice({ text: 'The CSV could not be created. Check your plan and try again.', error: true }); }
+  }
+
+  const validationMessage = !plan.valid ? plan.message : unknownSelected ? 'A selected asset is not currently verified. Remove it or retry the asset catalog.' : null;
+  const selectedAssets = basket.items.map((item) => assetMap.get(item.mint)).filter((asset): asset is Asset => !!asset);
+
+  return <><SiteHeader active="app" /><main id="main" className="planner-page page-width">
+    <div className="planner-heading"><div><p className="eyebrow">A LITTLE CLARITY. A CLEAR NEXT STEP.</p><h1>Your next contribution.</h1><p>Choose your split. See the estimates. Keep the decision yours.</p></div><div className="mode-switch" role="group" aria-label="Data mode"><button type="button" onClick={() => switchMode('live')} aria-pressed={mode === 'live'} className={mode === 'live' ? 'selected' : ''}><span className="mode-dot" />Live</button><button type="button" onClick={() => switchMode('example')} aria-pressed={mode === 'example'} className={mode === 'example' ? 'selected' : ''}><FlaskConical size={14} />Example</button></div></div>
+    {mode === 'example' && <div className="example-banner"><FlaskConical size={19} /><div><strong>A practice plan. All the clarity.</strong><p>Example mode uses synthetic balances and quote estimates, including scaled token units. No real wallet is shown.</p></div><button type="button" className="text-button" onClick={() => switchMode('live')}>Switch to Live <ArrowRight size={15} /></button></div>}
+    {!online && <div className="inline-notice warning" role="status"><WifiOff size={17} /><span>You’re offline. {mode === 'example' ? 'Example mode still works. Your local plan remains available.' : 'Live balances and estimates need a connection. Your local plan remains available.'}</span></div>}
+    <div className="workspace">
+      <div className="plan-column"><section className="panel plan-panel" aria-labelledby="plan-heading">
+        <div className="panel-kicker">01 <span /> BUILD YOUR SPLIT</div><div className="panel-title"><h2 id="plan-heading">Your plan</h2><span className="save-state">{saved === 'saved' ? <Check size={12} /> : saved === 'pending' ? <Clock3 size={12} /> : <Info size={12} />}{saved === 'saved' ? 'Saved on this device' : saved === 'pending' ? 'Saving on this device…' : 'Local saving unavailable'}</span></div>
+        <label className="field-label" htmlFor="budget">USDC budget</label><div className="budget-input-wrap"><span className="usdc-icon" aria-hidden="true">$</span><input id="budget" name="budget" aria-describedby="budget-help" autoComplete="off" inputMode="decimal" value={basket.budget} onChange={(event) => updateBasket({ ...basket, budget: event.target.value })} /><span>USDC</span></div><p id="budget-help" className="field-hint">The amount you want to contribute next.</p>
+        <div className="split-label"><span className="field-label">Contribution split</span><span>{basket.items.length} / 3 assets</span></div>
+        <div className="basket-list">
+          {basket.items.map((item, index) => { const asset = assetMap.get(item.mint); return <div className="basket-row" key={item.mint}><AssetAvatar asset={asset} /><div className="basket-asset"><strong>{asset?.symbol ?? 'Unverified asset'}</strong><span>{asset?.name ?? `${item.mint.slice(0, 5)}…${item.mint.slice(-4)}`}</span></div><div className="percent-field"><label htmlFor={`weight-${index}`} className="sr-only">{asset?.symbol ?? `Asset ${index + 1}`} percentage</label><input id={`weight-${index}`} inputMode="decimal" autoComplete="off" value={item.percent} onChange={(event) => updateBasket({ ...basket, items: basket.items.map((entry, i) => i === index ? { ...entry, percent: event.target.value } : entry) })} /><span>%</span></div><button type="button" className="icon-button remove-button" aria-label={`Remove ${asset?.symbol ?? 'unverified asset'}`} onClick={() => updateBasket({ ...basket, items: basket.items.filter((_, i) => i !== index) }, true)}><Trash2 size={15} /></button></div>; })}
+        </div>
+        {basket.items.length < 3 && <div className="asset-picker-area">{showPicker ? <div className="asset-picker"><label htmlFor="asset-picker" className="sr-only">Choose a verified xStock</label><select id="asset-picker" value="" onChange={(event) => { if (!event.target.value) return; updateBasket({ ...basket, items: [...basket.items, { mint: event.target.value, percent: basket.items.length === 0 ? '100' : '0' }] }, true); setShowPicker(false); }}><option value="" disabled>Choose a verified xStock</option>{assets.filter((asset) => !basket.items.some((item) => item.mint === asset.mint)).map((asset) => <option value={asset.mint} key={asset.mint}>{asset.symbol} · {asset.name}{asset.halted ? ' · Issuer halt reported' : ''}</option>)}</select><ChevronDown size={14} /><button type="button" className="icon-button" aria-label="Close asset picker" onClick={() => setShowPicker(false)}><X size={15} /></button></div> : <button type="button" className="add-asset-button" onClick={() => setShowPicker(true)} disabled={catalogLoading || !assets.length}><Plus size={16} />{catalogLoading ? 'Loading verified assets…' : 'Add an asset'}</button>}</div>}
+        {mode === 'live' && !catalogLoading && catalog && catalog.state !== 'success' && <div className="catalog-notice"><Info size={15} /><div><p>{catalog.message ?? 'Some issuer-verified assets are temporarily unavailable.'}</p>{catalog.unavailable.length > 0 && <p>{catalog.unavailable.map((item) => item.symbol).join(', ')} unavailable.</p>}<button type="button" onClick={() => { setCatalogLoading(true); setCatalogReload((count) => count + 1); }}>Retry catalog <RefreshCw size={12} /></button>{catalog.assets.length === 0 && <button type="button" onClick={() => switchMode('example')}>Try Example mode <ArrowRight size={12} /></button>}</div></div>}
+        {basket.items.length > 0 && <><div className="allocation-bar plan-bar" aria-hidden="true">{basket.items.map((item, index) => { let bps = 0; try { bps = parsePercent(item.percent); } catch { /* Invalid percentages have no bar width. */ } return <span key={item.mint} style={{ width: `${Math.min(100, bps / 100)}%`, background: ['var(--forest)', 'var(--sage)', 'var(--mint)'][index] }} />; })}</div><div className={`weight-total ${totalBps === 10000 ? 'valid' : 'invalid'}`}><span>{totalBps === 10000 ? <Check size={13} /> : <Info size={13} />}{displayAmount((totalBps / 100).toFixed(2), 0)}% allocated</span><span>Total must equal 100%</span></div></>}
+        <p className="split-explainer">These percentages apply to your new contribution.</p>
+        {validationMessage && !catalogLoading && <p className="validation-message" id="plan-validation"><Info size={14} /><span>{validationMessage}</span></p>}
+        <button type="button" className="button primary estimate-button" onClick={getEstimates} disabled={!canEstimate || quoteLoading} aria-describedby={validationMessage ? 'plan-validation' : undefined}>{quoteLoading ? <><LoaderCircle size={17} className="spinning" />Getting estimates…</> : quotes ? <><RefreshCw size={16} />Refresh estimates</> : <>Get estimates <ArrowRight size={17} /></>}</button>
+        <div className="plan-privacy"><ShieldCheck size={13} />{holdingsLoading ? 'Waiting for current balances to finish loading.' : 'Quote only. No transaction or signature.'}</div>
+      </section>
+      <section className="panel wallet-panel" aria-labelledby="wallet-heading"><div className="wallet-title"><Wallet size={18} /><h2 id="wallet-heading">{mode === 'example' ? 'Illustrative balances' : 'Add your wallet'}</h2><span className="optional-label">{mode === 'example' ? 'EXAMPLE' : 'OPTIONAL'}</span></div>{mode === 'example' ? <><p className="wallet-description">Synthetic holdings add context to this practice plan. Includes a non-unit token multiplier.</p><div className="wallet-balance"><span>Example USDC balance</span><strong>{holdings?.usdc.units ? displayAmount(holdings.usdc.units) : '—'} <small>USDC</small></strong></div><div className="readonly-note"><FlaskConical size={12} /> These balances do not belong to a real wallet.</div></> : <><p className="wallet-description">See your current and estimated resulting units with a public Solana address.</p><label htmlFor="wallet-address" className="field-label">Wallet address</label><input id="wallet-address" className={`wallet-input${wallet && !walletValid ? ' input-invalid' : ''}`} type="text" placeholder="Paste a Solana public address" autoComplete="off" spellCheck={false} value={wallet} aria-invalid={wallet !== '' && !walletValid} aria-describedby={wallet && !walletValid ? 'wallet-error' : 'wallet-privacy'} onChange={(event) => { invalidate(true); setWallet(event.target.value); }} />{wallet && !walletValid && <p id="wallet-error" className="field-error">Enter a valid Solana public wallet address.</p>}<button type="button" className="button secondary load-balances" onClick={loadHoldings} disabled={!walletValid || !basket.items.length || unknownSelected || holdingsLoading || !online}>{holdingsLoading ? <><LoaderCircle size={15} className="spinning" />Loading balances…</> : <>{holdings ? <RefreshCw size={14} /> : <Wallet size={14} />}{holdings ? 'Reload balances' : 'Load balances'}</>}</button>{holdings && <div className="wallet-balance"><span>Current USDC balance</span><strong>{holdings.usdc.state === 'success' && holdings.usdc.units !== null ? <>{displayAmount(holdings.usdc.units)} <small>USDC</small></> : 'Unavailable'}</strong></div>}<p id="wallet-privacy" className="readonly-note"><ShieldCheck size={12} /> Read only. Address never saved.</p></>}{holdings && holdings.state !== 'success' && <p className="field-error">{holdings.message ?? 'Some balances could not be verified. Unavailable balances are not zero.'}</p>}{allZeroHoldings && <p className="field-hint">No selected token holdings found. Confirmed balances are zero.</p>}{insufficientUsdc && <div className="balance-info"><Info size={14} /><span>Your budget exceeds this {mode === 'example' ? 'example ' : ''}USDC balance. You can still plan a future contribution.</span></div>}</section>
+      </div>
+      <div className="results-column"><section className="panel results-panel" aria-labelledby="results-heading" aria-busy={quoteLoading}>
+        <div className="results-top"><div><div className="panel-kicker">02 <span /> REVIEW YOUR CONTRIBUTION</div><h2 id="results-heading">A clear view of what comes next.</h2></div><span className="results-mode">{mode === 'example' ? <FlaskConical size={13} /> : <span className="tiny-dot" />}{mode === 'example' ? 'Example estimates' : 'Live estimates'}</span></div>
+        <div className="contribution-summary"><div><span className="summary-label">YOUR NEW CONTRIBUTION</span><p>{allocatedTotal !== null ? displayAmount(formatUsdc(allocatedTotal)) : '—'}<span>USDC</span></p></div><div className="summary-count"><span>{basket.items.length.toString().padStart(2, '0')}</span><span>{basket.items.length === 1 ? 'chosen asset' : 'chosen assets'}<br />Your own split.</span></div></div>
+        {basket.items.length > 0 ? <div className="results-table-wrap"><table className="results-table"><caption className="sr-only">Current holdings, exact USDC allocations, estimated additional units, and estimated resulting holdings</caption><thead><tr><th scope="col">Asset</th><th scope="col">Current units</th><th scope="col">USDC split</th><th scope="col">Estimated +units</th><th scope="col">Estimated after</th></tr></thead><tbody>{basket.items.map((item) => {
+          const asset = assetMap.get(item.mint);
+          const holding = holdingsByMint.get(item.mint);
+          const quote = quotesByMint.get(item.mint);
+          const projected = projectionByMint.get(item.mint);
+          const allocation = allocationByMint.get(item.mint);
+          const zero = allocation?.usdcRaw === '0';
+          const holdingText = holdingsLoading ? 'Loading…' : holding?.state === 'success' && holding.units !== null ? displayUnits(holding.units) : holding ? 'Unavailable' : mode === 'example' ? 'Unavailable' : 'Not loaded';
+          const outputText = quoteLoading && !quote ? 'Loading…' : zero ? '0' : quote?.state === 'success' ? quote.units !== null ? `+${displayUnits(quote.units)}` : 'Units unavailable' : quote ? 'Unavailable' : '—';
+          const afterText = zero && holding?.state === 'success' && holding.units !== null ? displayUnits(holding.units) : quote?.state === 'success' && holding?.state === 'success' && holding.raw !== null ? projected?.units !== undefined && projected.units !== null ? displayUnits(projected.units) : quoteLoading ? 'Loading…' : 'Units unavailable' : !holdings ? 'Add a wallet' : '—';
+          return <tr key={item.mint}><th scope="row"><div className="result-asset"><AssetAvatar asset={asset} small /><div><strong>{asset?.symbol ?? 'Unverified'}</strong><span>{item.percent}% of contribution</span></div></div></th><td data-label="Current units" className={holding?.state === 'success' ? '' : 'muted-cell'}>{holdingText}</td><td data-label="USDC split" className="allocation-cell">{allocation ? displayAmount(formatUsdc(allocation.usdcRaw), 6) : '—'}</td><td data-label="Estimated +units" className={quote?.units !== null && quote?.state === 'success' ? 'estimate-cell' : 'muted-cell'}>{outputText}</td><td data-label="Estimated after" className={projected?.units ? 'after-cell' : 'muted-cell'}>{afterText}</td></tr>;
+        })}</tbody></table></div> : <div className="results-empty"><div className="empty-mark"><span /><span /><span /></div><h3>Every good plan starts with a choice.</h3><p>Add your first xStock, choose a percentage, and set your contribution amount.</p><span><span className="empty-dot" /> Your split will appear right here.</span></div>}
+        {basket.items.length > 0 && !quotes && !quoteLoading && <div className="estimate-prompt"><CircleHelp size={16} /><p>{plan.valid ? 'Your split is ready. Get estimates to see approximately how many units your contribution could add.' : 'Complete your contribution split to see exact allocations and request estimates.'}</p></div>}
+        {quotes && <div className={`quote-freshness${stale ? ' is-stale' : ''}`} role="status"><Clock3 size={14} /><span>{successfulQuotes.length > 0 ? stale ? `Estimates are stale · retrieved ${ageSeconds}s ago` : `${mode === 'example' ? 'Synthetic estimates' : 'Estimated'} · ${ageSeconds < 2 ? 'just now' : `${ageSeconds}s ago`} · stale after 30s` : 'No estimates available. Review the asset notes below.'}</span>{stale && <button type="button" onClick={getEstimates} disabled={!canEstimate || quoteLoading}>Refresh <RefreshCw size={12} /></button>}</div>}
+        {basket.items.some((item) => quotesByMint.get(item.mint)?.message || holdingsByMint.get(item.mint)?.message || projectionByMint.get(item.mint)?.message || assetMap.get(item.mint)?.halted) && <div className="asset-notices">{basket.items.map((item) => { const messages = [...new Set([assetMap.get(item.mint)?.halted && quotesByMint.get(item.mint)?.state !== 'success' ? 'Issuer previously reported a halt. Availability is rechecked when requesting estimates.' : undefined, quotesByMint.get(item.mint)?.message, holdingsByMint.get(item.mint)?.message, projectionByMint.get(item.mint)?.message].filter(Boolean))]; return messages.length > 0 ? <p key={item.mint}><Info size={14} /><span><strong>{assetMap.get(item.mint)?.symbol ?? 'Asset'}:</strong> {messages.join(' ')}</span></p> : null; })}</div>}
+        {successfulQuotes.length > 0 && <details className="quote-details"><summary>Quote details and fees <ChevronDown size={12} /></summary><div>{successfulQuotes.map((quote) => <p key={quote.mint}><strong>{assetMap.get(quote.mint)?.symbol ?? 'Asset'}</strong><span>{quote.source ?? 'Jupiter quote'}{quote.feeBps !== undefined ? ` · Quoted fee rate ${(quote.feeBps / 100).toFixed(2)}%` : ' · Fee details not supplied'}{quote.feeMint ? ` · Fee mint ${quote.feeMint.slice(0, 4)}…${quote.feeMint.slice(-4)}` : ''}</span><time dateTime={quote.fetchedAt}>{quote.fetchedAt.replace('T', ' ').replace(/\.\d{3}Z$/, ' UTC')}</time></p>)}<p className="quote-fee-note">Future network costs may not be included. Review current amounts and fees on Jupiter.</p></div></details>}
+        <div className="results-disclaimer"><ShieldCheck size={14} /><p>{mode === 'example' ? 'Synthetic figures for exploring the tool. Live mode requests real, quote-only estimates.' : 'Estimates can change. Review current amounts and fees on Jupiter.'}<span> Resulting units include current holdings only when their raw balance is verified.</span></p></div>
+      </section>
+      <section className="panel handoff-panel" aria-labelledby="handoff-heading"><div className="handoff-top"><div><div className="panel-kicker">03 <span /> TAKE YOUR PLAN WITH YOU</div><h2 id="handoff-heading">Ready when you are.</h2></div><div className="export-actions"><button type="button" className="button secondary" disabled={!plan.valid || unknownSelected || quoteLoading} onClick={() => copy(buildPlanText({ mode, basket, assets, quotes: quotes?.quotes ?? [] }), 'Plan')}><Clipboard size={14} />Copy plan</button><button type="button" className="button secondary" disabled={!plan.valid || unknownSelected || quoteLoading} onClick={downloadCsv}><ArrowDownToLine size={14} />Download CSV</button></div></div><p className="handoff-description">Copy an asset’s mint and exact USDC amount. Open Jupiter, select the asset, enter the amount, and review the trade there.</p>
+        {selectedAssets.length > 0 && <div className="handoff-assets">{basket.items.map((item) => { const asset = assetMap.get(item.mint); const allocation = allocationByMint.get(item.mint); return asset ? <div className="handoff-row" key={item.mint}><div><AssetAvatar asset={asset} small /><strong>{asset.symbol}</strong><span className="mint-abbr" title={asset.mint}>{asset.mint.slice(0, 4)}…{asset.mint.slice(-4)}</span></div><div><button type="button" aria-label={`Copy ${asset.symbol} mint`} onClick={() => copy(asset.mint, `${asset.symbol} mint`)}>Copy mint <Clipboard size={12} /></button><button type="button" aria-label={`Copy ${asset.symbol} USDC amount`} disabled={!allocation} onClick={() => allocation && copy(formatUsdc(allocation.usdcRaw), `${asset.symbol} USDC amount`)}>Copy USDC amount <Clipboard size={12} /></button></div></div> : null; })}</div>}
+        <div className="jupiter-handoff"><div><span className="jupiter-symbol" aria-hidden="true">↗</span><div><strong>Review on Jupiter</strong><span>You decide what happens next.</span></div></div><a href="https://jup.ag/" target="_blank" rel="noopener noreferrer" className="button primary">Open Jupiter <ExternalLink size={14} /></a></div><p className="handoff-footnote">Opens the official homepage in a new tab. Lotline never signs, submits, or records a purchase.</p>
+      </section>
+      </div>
+    </div>
+    {cloudEnabled && <CloudPlans basket={basket} onLoad={next => updateBasket(next, true)} />}
+    <div className="planner-footnote"><ShieldCheck size={14} /><span>Your contribution percentages are your choice. Lotline provides calculations and estimates, not investment advice.</span><a href="/how-it-works">How it works <ArrowUpRight size={13} /></a></div>
+    <div className={`toast${notice ? ' visible' : ''}${notice?.error ? ' toast-error' : ''}`} role="status" aria-live="polite" aria-atomic="true">{notice && <>{notice.error ? <Info size={17} /> : <Check size={17} />}<span>{notice.text}</span><button type="button" aria-label="Dismiss notification" onClick={() => setNotice(null)}><X size={15} /></button></>}</div>
+  </main><SiteFooter /></>;
+}

@@ -1,0 +1,55 @@
+{
+  "verifiedAt": "2026-09-11T17:32:18.419Z",
+  "state": "passed",
+  "target": "Local production build and deployed Vercel origin with hosted Supabase",
+  "project": "uemunksopacicpbjubtg",
+  "checks": {
+    "credentialsLoadedInMemoryForExpectedProject": true,
+    "productionBuildSupabaseConfigured": true,
+    "createDisposableUser1": true,
+    "createDisposableUser2": true
+  },
+  "cleanup": {
+    "disposableUsersCreated": 2,
+    "disposableUsersDeleted": 2,
+    "allUsersRemoved": true,
+    "rowsRemovedByUserCascade": true
+  },
+  "limitations": [
+    "Test accounts were confirmed by the admin API; no signup or recovery emails were sent.",
+    "Email delivery and password recovery email callbacks are separate deployment checks."
+  ],
+  "transactionsSigned": 0,
+  "transactionsSubmitted": 0,
+  "journeys": [
+    {
+      "origin": "https://lotline-omega.vercel.app",
+      "checks": {
+        "browserPasswordSignIn": true,
+        "browserCloudSaveExactBudgetAndWeights": true,
+        "browserCloudLoadRestoresExactDraft": true,
+        "browserCloudListPersistsAcrossReload": true,
+        "secondUserPasswordSignIn": true,
+        "crossOwnerSelectRequest": true,
+        "crossOwnerSelectDeniedByRls": true,
+        "crossOwnerDeleteRequest": true,
+        "crossOwnerDeleteDeniedByRls": true,
+        "crossOwnerInsertDeniedByRls": true,
+        "databaseRejectsWalletMetadata": true,
+        "anonymousRestAccessDenied": true,
+        "apiRejectsUserIdInput": true,
+        "apiRejectsCrossOriginMutation": true,
+        "browserCloudDeletePersists": true,
+        "browserSignOutRevokesPlanAccess": true,
+        "noBrowserPageErrors": true,
+        "noTransactionRequests": true
+      }
+    }
+  ],
+  "lastSave": {
+    "status": 201,
+    "state": "success",
+    "budgetRaw": "1000000000",
+    "allocationCount": 3
+  }
+}

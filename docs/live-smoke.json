@@ -1,0 +1,121 @@
+{
+  "startedAt": "2026-09-11T15:41:22.202Z",
+  "completedAt": "2026-09-11T15:41:26.433Z",
+  "owner": "7pt9tkctJPK7PPNQJ77GKg8ZffSF6QxoMiCFYHxrtaCj",
+  "ownerSource": "AAPLx onchain mintAuthority; independently public address, not a user wallet or purchase.",
+  "rpc": "Configured SOLANA_RPC_URL (value intentionally omitted)",
+  "jupiterKeyConfigured": false,
+  "quoteRequest": {
+    "endpoint": "https://api.jup.ag/swap/v2/order",
+    "inputMint": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+    "outputMint": "XsbEhLAtcf6HdfpFZ5xEMdqW8nfAvcsP5bdudRLJzJp",
+    "amount": "10000000",
+    "takerIncluded": false
+  },
+  "catalog": {
+    "state": "success",
+    "assets": [
+      {
+        "symbol": "AAPLx",
+        "name": "Apple xStock",
+        "mint": "XsbEhLAtcf6HdfpFZ5xEMdqW8nfAvcsP5bdudRLJzJp",
+        "decimals": 8,
+        "tokenProgram": "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb",
+        "halted": false,
+        "verifiedAt": "2026-09-11T15:41:23.341Z"
+      },
+      {
+        "symbol": "MSFTx",
+        "name": "Microsoft xStock",
+        "mint": "XspzcW1PRtgf6Wj92HCiZdjzKCyFekVD8P5Ueh3dRMX",
+        "decimals": 8,
+        "tokenProgram": "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb",
+        "halted": false,
+        "verifiedAt": "2026-09-11T15:41:24.509Z"
+      },
+      {
+        "symbol": "NVDAx",
+        "name": "NVIDIA xStock",
+        "mint": "Xsc9qvGR1efVDFGLrVsmkzv3qi45LTBjeUKSPmx9qEh",
+        "decimals": 8,
+        "tokenProgram": "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb",
+        "halted": false,
+        "verifiedAt": "2026-09-11T15:41:24.876Z"
+      },
+      {
+        "symbol": "TSLAx",
+        "name": "Tesla xStock",
+        "mint": "XsDoVfqeBukxuZHWhdvWHBhgEHjGNst4MLodqsJHzoB",
+        "decimals": 8,
+        "tokenProgram": "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb",
+        "halted": false,
+        "verifiedAt": "2026-09-11T15:41:24.841Z"
+      },
+      {
+        "symbol": "SPYx",
+        "name": "SP500 xStock",
+        "mint": "XsoCS1TfEyfFhfvj8EtZ528L3CaKBDBRqRapnBbDF2W",
+        "decimals": 8,
+        "tokenProgram": "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb",
+        "halted": false,
+        "verifiedAt": "2026-09-11T15:41:25.296Z"
+      },
+      {
+        "symbol": "QQQx",
+        "name": "Nasdaq xStock",
+        "mint": "Xs8S1uUs1zvS2p7iwtsG3b6fkhpvmwz4GYU3gWAmWHZ",
+        "decimals": 8,
+        "tokenProgram": "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb",
+        "halted": false,
+        "verifiedAt": "2026-09-11T15:41:25.293Z"
+      }
+    ],
+    "unavailable": []
+  },
+  "holdings": {
+    "state": "success",
+    "holdings": [
+      {
+        "mint": "XsbEhLAtcf6HdfpFZ5xEMdqW8nfAvcsP5bdudRLJzJp",
+        "state": "success",
+        "raw": "0",
+        "units": "0"
+      }
+    ],
+    "usdc": {
+      "mint": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+      "state": "success",
+      "raw": "0",
+      "units": "0"
+    },
+    "fetchedAt": "2026-09-11T15:41:25.966Z"
+  },
+  "quotes": {
+    "state": "success",
+    "quotes": [
+      {
+        "mint": "XsbEhLAtcf6HdfpFZ5xEMdqW8nfAvcsP5bdudRLJzJp",
+        "state": "success",
+        "usdcRaw": "10000000",
+        "outRaw": "2964944",
+        "units": "0.02974636",
+        "fetchedAt": "2026-09-11T15:41:26.415Z",
+        "expiresAt": "2026-09-11T15:41:56.415Z",
+        "source": "Jupiter · metis",
+        "feeBps": 10,
+        "feeMint": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v"
+      }
+    ]
+  },
+  "projected": {
+    "state": "success",
+    "items": [
+      {
+        "mint": "XsbEhLAtcf6HdfpFZ5xEMdqW8nfAvcsP5bdudRLJzJp",
+        "units": "0.02974636"
+      }
+    ]
+  },
+  "transactionsSigned": 0,
+  "transactionsSubmitted": 0
+}

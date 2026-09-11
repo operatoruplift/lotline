@@ -1,0 +1,44 @@
+{
+  "verifiedAt": "2026-09-11T16:12:31.585Z",
+  "scope": "Running production UI, real server adapters; independently public issuer authority, not user wallet",
+  "holdings": {
+    "state": "success",
+    "holdings": [
+      {
+        "mint": "XsbEhLAtcf6HdfpFZ5xEMdqW8nfAvcsP5bdudRLJzJp",
+        "state": "success",
+        "raw": "0",
+        "units": "0"
+      }
+    ],
+    "usdc": {
+      "mint": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+      "state": "success",
+      "raw": "0",
+      "units": "0"
+    },
+    "fetchedAt": "2026-09-11T16:12:30.172Z"
+  },
+  "quotes": {
+    "state": "success",
+    "quotes": [
+      {
+        "mint": "XsbEhLAtcf6HdfpFZ5xEMdqW8nfAvcsP5bdudRLJzJp",
+        "state": "success",
+        "usdcRaw": "10000000",
+        "outRaw": "2978263",
+        "units": "0.02987999",
+        "fetchedAt": "2026-09-11T16:12:30.872Z",
+        "expiresAt": "2026-09-11T16:13:00.872Z",
+        "source": "Jupiter · metis",
+        "feeBps": 10,
+        "feeMint": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v"
+      }
+    ]
+  },
+  "rows": "Current holdings, exact USDC allocations, estimated additional units, and estimated resulting holdings\nAsset\tCurrent units\tUSDC split\tEstimated +units\tEstimated after\n\nA\nAAPLx\n100% of contribution\n\t0\t10.000000\t+0.02987999\t0.02987999",
+  "browserErrors": [],
+  "executeRequests": [],
+  "transactionsSigned": 0,
+  "transactionsSubmitted": 0
+}

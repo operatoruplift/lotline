@@ -1,0 +1,111 @@
+<item anchor="intro" title="Lotline: exact xStocks planning" text="How Lotline turns a USDC budget into precise, read-only contribution estimates."></item>
+<say lang="en" title="Lotline" text="[Lotline](#intro) turns your next contribution into an exact, reviewable plan."/>
+<item layout="cards" anchor="boundary" title="The product boundary">
+<item anchor="plan-choice" title="Choose" text="Up to three xStocks. One USDC budget."/>
+<item anchor="plan-estimate" title="Estimate" text="Read balances. Request quotes."/>
+<item anchor="plan-review" title="Review" text="Copy, export, or open Jupiter."/>
+</item>
+<say lang="en" title="A reviewable contribution" text="[Your contribution](#boundary) starts with [assets and percentages](#plan-choice). Lotline [reads balances and requests estimates](#plan-estimate), then lets you [take the plan elsewhere](#plan-review). It never assembles, signs, or submits a transaction."/>
+<item type="diagram" anchor="architecture" title="Browser, server, and verified sources"><![CDATA[flowchart TD
+  UI["Browser planner"] -->|validated inputs| API["Next.js route handlers"]
+  API -->|identity| Issuer["Official issuer metadata"]
+  API -->|accounts and clock| Solana["Solana RPC"]
+  API -->|quote only| Jupiter["Jupiter"]
+  API -->|normalized results| UI
+]]></item>
+<say lang="en" title="Architecture" text="[The browser](#architecture) sends inputs to [route handlers](#architecture:L2 'Next.js route handlers'). The server checks [issuer identity](#architecture:L3 'Official issuer metadata'), reads [chain accounts](#architecture:L4 'Solana RPC'), and requests [Jupiter quotes](#architecture:L5 'Jupiter'). Narrow responses return to the planner."/>
+<item type="code" anchor="micro-usdc" title="Money enters as strings" text="Exact excerpt from lib/domain/math.ts." language="typescript" filename="lib/domain/math.ts"><![CDATA[  const [whole, fraction = ''] = input.split('.');
+  const raw = BigInt(whole) * 1_000_000n + BigInt(fraction.padEnd(6, '0'));
+  if (raw > MAX_BUDGET_RAW) throw new Error('Enter a budget of 1,000,000 USDC or less.');
+  return raw;]]></item>
+<say lang="en" title="Exact input" text="[USDC parsing](#micro-usdc) separates [whole and fractional digits](#micro-usdc:L1 'input.split'), then creates [BigInt micro-units](#micro-usdc:L2 'BigInt(whole)'). The budget never passes through binary floating point. Percentages become integer basis points."/>
+
+<item type="code" anchor="allocate" title="Floor first; retain the remainder" text="Exact excerpt from lib/domain/math.ts." language="typescript" filename="lib/domain/math.ts"><![CDATA[  const entries = weightsBps.map((weight, index) => {
+    const product = budgetRaw * BigInt(weight);
+    return { index, amount: product / 10_000n, remainder: product % 10_000n };
+  });]]></item>
+<say lang="en" title="Largest remainder allocation" text="[Allocation](#allocate) multiplies [the raw budget by each weight](#allocate:L2 'budgetRaw * BigInt(weight)'). Integer division gives [whole micro-units](#allocate:L3 'product / 10_000n'), while the modulo preserves [the remainder](#allocate:L3 'product % 10_000n')."/>
+<item type="animation" anchor="rounding" title="One micro-unit goes to the largest remainder"><![CDATA[export function build(manim) {
+  const { Scene, Text, Circle, SurroundingRectangle, VGroup, FadeIn, FadeOut, Indicate, Transform, GREEN, YELLOW, WHITE } = manim;
+  const scene = new Scene();
+  const weights = ["50%", "30%", "20%"];
+  const values = ["5.000000", "3.000000", "2.000000"];
+  const panels = [];
+  const amounts = [];
+  for (let i = 0; i < 3; i++) {
+    const x = -4 + i * 4;
+    const label = Text(weights[i], { color: GREEN }).scale(0.55).move_to([x, 1.0, 0]);
+    const amount = Text(values[i], { color: WHITE }).scale(0.55).move_to([x, 0, 0]);
+    const box = SurroundingRectangle(amount, { buff: 0.35, color: GREEN });
+    panels.push(VGroup(label, amount, box));
+    amounts.push(amount);
+  }
+  scene.play(...panels.map(panel => FadeIn(panel)), { run_time: 1.5 });
+  const remainder = Text("1 micro-USDC left", { color: YELLOW }).scale(0.55).move_to([0, 2.5, 0]);
+  const unit = Circle({ radius: 0.13, color: YELLOW, fill_opacity: 1 }).move_to([0, 1.8, 0]);
+  scene.play(FadeIn(remainder), FadeIn(unit), { run_time: 1.5 });
+  scene.play(unit.animate.move_to([-4, 0.55, 0]), { run_time: 2.0 });
+  scene.play(Indicate(panels[0]), { run_time: 1.0 });
+  const exact = Text("5.000001", { color: YELLOW }).scale(0.55).move_to(amounts[0].get_center());
+  scene.play(Transform(amounts[0], exact), FadeOut(unit), FadeOut(remainder), { run_time: 1.5 });
+  const total = Text("Total: 10.000001 USDC", { color: GREEN }).scale(0.6).move_to([0, -1.8, 0]);
+  scene.play(FadeIn(total), { run_time: 1.5 });
+  scene.wait(0.5);
+  return scene;
+}]]></item>
+<say lang="en" title="An exact split" text="[Ten point zero zero zero zero zero one USDC](#rounding), split fifty, thirty, twenty, leaves one micro-unit after flooring. The fifty-percent allocation has the largest remainder, so it receives that unit. The total stays exact. Equal remainders use basket order."/>
+<item layout="ol" anchor="identity" title="Verify before converting">
+<item anchor="issuer-step" title="Issuer deployment" text="Resolve the official Solana mint."/>
+<item anchor="mint-step" title="Mint validation" text="Check token program and scaled extension."/>
+<item anchor="accounts-step" title="All token accounts" text="Sum raw holdings with BigInt."/>
+<item anchor="scale-step" title="Mint plus chain clock" text="Select the active scaled multiplier."/>
+</item>
+<say lang="en" title="Verified identity" text="[Asset identity](#identity) comes from [official deployments](#issuer-step), followed by [mint validation](#mint-step). Wallet reads sum [every matching token account](#accounts-step). Scaling then uses [the mint and chain clock](#scale-step), including scheduled multiplier activation."/>
+<item type="code" anchor="scaled-units" title="Use the official conversion helper" text="Exact excerpt from lib/server/solana.ts." language="typescript" filename="lib/server/solana.ts"><![CDATA[    const units = await amountToUiAmountForMintWithoutSimulation(rpc, address(mint), BigInt(raw));
+    if (!/^\d+(\.\d+)?$/.test(units)) throw new Error();
+    return units;]]></item>
+<say lang="en" title="Scaled units" text="[Scaled units](#scaled-units) use [the official conversion helper](#scaled-units:L1 'amountToUiAmountForMintWithoutSimulation'). For projected holdings, the application adds raw holdings and raw quote output before conversion. Missing scaling data produces unavailable units; it never assumes a multiplier of one."/>
+
+<item type="code" anchor="quote-only" title="Jupiter receives three quote inputs" text="Exact excerpt from lib/server/quotes.ts." language="typescript" filename="lib/server/quotes.ts"><![CDATA[    const params = new URLSearchParams({ inputMint: USDC_MINT, outputMint: asset.mint, amount: usdcRaw });
+    const apiKey = process.env.JUPITER_API_KEY?.trim();
+    // Only these three parameters are sent. No wallet/taker, transaction, or execute call exists.
+    await reserveProviderSlot('jupiter');]]></item>
+<say lang="en" title="Quote-only requests" text="[Jupiter requests](#quote-only) contain [input mint, output mint, and raw amount](#quote-only:L1 'new URLSearchParams'). The taker is omitted. Returned mint identities and amounts are validated. An optional API key stays on the server, and there is no execute call."/>
+<item type="code" anchor="freshness" title="A quote has a short, explicit lifetime" text="Exact excerpt from lib/domain/identity.ts." language="typescript" filename="lib/domain/identity.ts"><![CDATA[export function isQuoteStale(fetchedAt: string, expiresAt: string, now = Date.now()): boolean {
+  const fetched = Date.parse(fetchedAt);
+  const expires = Date.parse(expiresAt);
+  return !Number.isFinite(fetched) || !Number.isFinite(expires) || now >= Math.min(fetched + 30_000, expires);
+}]]></item>
+<say lang="en" title="Freshness and request identity" text="[Freshness](#freshness) is bounded by [thirty seconds or the earlier provider expiry](#freshness:L4 'Math.min(fetched + 30_000, expires)'). Editing a plan invalidates results. A revision-based request identity prevents late responses from overwriting the newer plan."/>
+<item layout="cards" anchor="cloud" title="Cloud plans belong to their owner">
+<item anchor="verified-user" title="Verified session" text="Supabase getUser checks the session."/>
+<item anchor="owner-rows" title="Owner-only rows" text="RLS: auth.uid() equals user_id."/>
+<item anchor="explicit-save" title="Explicit save" text="Budget and split only. No wallet address."/>
+</item>
+<say lang="en" title="Account boundaries" text="[Cloud plans](#cloud) require a [verified session](#verified-user) and [owner-scoped database policies](#owner-rows). [Saving is explicit](#explicit-save); signing in never uploads the guest draft. Hosted accounts still require a configured project, migrations, and working email delivery."/>
+<item layout="cards" anchor="limits" title="Coordinate provider traffic across servers">
+<item anchor="server-limit" title="Server-side credential" text="Secret key never reaches the browser."/>
+<item anchor="database-limit" title="Shared start slots" text="Database lock reserves bounded provider capacity."/>
+</item>
+<say lang="en" title="Shared limits" text="[Multiple server instances](#limits) coordinate through [shared database slots](#database-limit). A [server-only secret](#server-limit) authorizes that function. Busy services return an explicit unavailable state instead of building an unlimited backlog."/>
+<item layout="cards" anchor="pwa" title="Offline Example; network-only Live">
+<item anchor="offline-example" title="Offline Example" text="Public synthetic data and static assets."/>
+<item anchor="network-private" title="Always network-only" text="Live APIs, accounts, authentication, private documents."/>
+</item>
+<say lang="en" title="The PWA boundary" text="[The installable PWA](#pwa) keeps [a synthetic Example](#offline-example) available offline after preparation. [Live and private requests](#network-private) stay out of Cache Storage. An offline page never presents yesterday’s market response as a fresh quote."/>
+<item anchor="evidence" title="Observed evidence and fixture coverage" text="Recorded observations are separate from current market prices.">
+| Check | Evidence |
+| --- | --- |
+| Exact math and failure states | Deterministic tests |
+| Owner isolation and constraints | PostgreSQL-compatible RLS tests |
+| Real quote and scaling | 2026-09-11, 16:12 UTC |
+| Live balance limitation | Confirmed zero holdings |
+</item>
+<say lang="en" title="Verification scope" text="[Verification](#evidence) separates deterministic edge cases from live observations. A dated production-UI smoke requested a real ten-USDC quote and converted scaled units. Its public test address had confirmed zero holdings. Those recorded amounts are historical evidence, never current prices."/>
+<item layout="cards" anchor="handoff" title="A plan you can inspect and take with you">
+<item anchor="exports" title="Copy and CSV" text="Exact allocations and estimate timestamps."/>
+<item anchor="source" title="Source and evidence" text="github.com/operatoruplift/lotline"/>
+</item>
+<say lang="en" title="Review and handoff" text="[The handoff](#handoff) includes [copy and CSV exports](#exports), plus [source and verification records](#source). Users review any purchase independently on Jupiter. Lotline cannot observe a completed purchase. No transactions were signed or submitted."/>
+<followup prompt="How does largest-remainder allocation preserve an exact money total?"/>
+<followup prompt="How do Supabase row-level policies stop cross-user plan access?"/>

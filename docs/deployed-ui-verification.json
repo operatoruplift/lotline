@@ -1,0 +1,332 @@
+{
+  "origin": "https://lotline-omega.vercel.app",
+  "checkedAt": "2026-09-11T17:25:07.029Z",
+  "browser": "Playwright Chromium",
+  "scope": "Unauthenticated deployed presentation and Example UI; no account submission, Live quote, holdings, or transaction request.",
+  "pages": [
+    {
+      "name": "home",
+      "route": "/",
+      "viewport": {
+        "width": 375,
+        "height": 812
+      },
+      "status": 200,
+      "horizontalOverflow": {
+        "viewport": 375,
+        "scrollWidth": 375,
+        "passes": true
+      },
+      "seriousCriticalViolations": [],
+      "allAccessibilityViolations": [],
+      "screenshot": "docs/screenshots/deployed-home-375.png",
+      "pageErrors": [],
+      "passed": true
+    },
+    {
+      "name": "app-example",
+      "route": "/app?mode=example",
+      "viewport": {
+        "width": 375,
+        "height": 812
+      },
+      "status": 200,
+      "horizontalOverflow": {
+        "viewport": 375,
+        "scrollWidth": 375,
+        "passes": true
+      },
+      "seriousCriticalViolations": [],
+      "allAccessibilityViolations": [],
+      "screenshot": "docs/screenshots/deployed-app-example-375.png",
+      "pageErrors": [],
+      "passed": true
+    },
+    {
+      "name": "sign-in",
+      "route": "/sign-in",
+      "viewport": {
+        "width": 375,
+        "height": 812
+      },
+      "status": 200,
+      "horizontalOverflow": {
+        "viewport": 375,
+        "scrollWidth": 375,
+        "passes": true
+      },
+      "seriousCriticalViolations": [],
+      "allAccessibilityViolations": [],
+      "screenshot": "docs/screenshots/deployed-sign-in-375.png",
+      "pageErrors": [],
+      "authFormConfigured": true,
+      "passed": true
+    },
+    {
+      "name": "sign-up",
+      "route": "/sign-up",
+      "viewport": {
+        "width": 375,
+        "height": 812
+      },
+      "status": 200,
+      "horizontalOverflow": {
+        "viewport": 375,
+        "scrollWidth": 375,
+        "passes": true
+      },
+      "seriousCriticalViolations": [],
+      "allAccessibilityViolations": [],
+      "screenshot": "docs/screenshots/deployed-sign-up-375.png",
+      "pageErrors": [],
+      "authFormConfigured": true,
+      "passed": true
+    },
+    {
+      "name": "reset-password",
+      "route": "/auth/reset-password",
+      "viewport": {
+        "width": 375,
+        "height": 812
+      },
+      "status": 200,
+      "horizontalOverflow": {
+        "viewport": 375,
+        "scrollWidth": 375,
+        "passes": true
+      },
+      "seriousCriticalViolations": [],
+      "allAccessibilityViolations": [],
+      "screenshot": "docs/screenshots/deployed-reset-password-375.png",
+      "pageErrors": [],
+      "authFormConfigured": true,
+      "passed": true
+    },
+    {
+      "name": "demo",
+      "route": "/demo",
+      "viewport": {
+        "width": 375,
+        "height": 812
+      },
+      "status": 200,
+      "horizontalOverflow": {
+        "viewport": 375,
+        "scrollWidth": 375,
+        "passes": true
+      },
+      "seriousCriticalViolations": [],
+      "allAccessibilityViolations": [],
+      "screenshot": "docs/screenshots/deployed-demo-375.png",
+      "pageErrors": [],
+      "passed": true
+    },
+    {
+      "name": "home",
+      "route": "/",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "status": 200,
+      "horizontalOverflow": {
+        "viewport": 1440,
+        "scrollWidth": 1440,
+        "passes": true
+      },
+      "seriousCriticalViolations": [],
+      "allAccessibilityViolations": [],
+      "screenshot": "docs/screenshots/deployed-home-1440.png",
+      "pageErrors": [],
+      "passed": true
+    },
+    {
+      "name": "app-example",
+      "route": "/app?mode=example",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "status": 200,
+      "horizontalOverflow": {
+        "viewport": 1440,
+        "scrollWidth": 1440,
+        "passes": true
+      },
+      "seriousCriticalViolations": [],
+      "allAccessibilityViolations": [],
+      "screenshot": "docs/screenshots/deployed-app-example-1440.png",
+      "pageErrors": [],
+      "passed": true
+    },
+    {
+      "name": "sign-in",
+      "route": "/sign-in",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "status": 200,
+      "horizontalOverflow": {
+        "viewport": 1440,
+        "scrollWidth": 1440,
+        "passes": true
+      },
+      "seriousCriticalViolations": [],
+      "allAccessibilityViolations": [],
+      "screenshot": "docs/screenshots/deployed-sign-in-1440.png",
+      "pageErrors": [],
+      "authFormConfigured": true,
+      "passed": true
+    },
+    {
+      "name": "sign-up",
+      "route": "/sign-up",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "status": 200,
+      "horizontalOverflow": {
+        "viewport": 1440,
+        "scrollWidth": 1440,
+        "passes": true
+      },
+      "seriousCriticalViolations": [],
+      "allAccessibilityViolations": [],
+      "screenshot": "docs/screenshots/deployed-sign-up-1440.png",
+      "pageErrors": [],
+      "authFormConfigured": true,
+      "passed": true
+    },
+    {
+      "name": "reset-password",
+      "route": "/auth/reset-password",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "status": 200,
+      "horizontalOverflow": {
+        "viewport": 1440,
+        "scrollWidth": 1440,
+        "passes": true
+      },
+      "seriousCriticalViolations": [],
+      "allAccessibilityViolations": [],
+      "screenshot": "docs/screenshots/deployed-reset-password-1440.png",
+      "pageErrors": [],
+      "authFormConfigured": true,
+      "passed": true
+    },
+    {
+      "name": "demo",
+      "route": "/demo",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "status": 200,
+      "horizontalOverflow": {
+        "viewport": 1440,
+        "scrollWidth": 1440,
+        "passes": true
+      },
+      "seriousCriticalViolations": [],
+      "allAccessibilityViolations": [],
+      "screenshot": "docs/screenshots/deployed-demo-1440.png",
+      "pageErrors": [],
+      "passed": true
+    }
+  ],
+  "video": [
+    {
+      "viewportWidth": 375,
+      "metadata": {
+        "duration": 54.004688,
+        "videoWidth": 1920,
+        "videoHeight": 1080,
+        "readyState": 4,
+        "error": null,
+        "controls": true,
+        "playsInline": true,
+        "tracks": [
+          {
+            "kind": "captions",
+            "language": "en",
+            "mode": "showing",
+            "cueCount": 7
+          }
+        ]
+      },
+      "before": 0,
+      "after": {
+        "currentTime": 1.030993,
+        "paused": false,
+        "error": null
+      },
+      "advances": true
+    },
+    {
+      "viewportWidth": 1440,
+      "metadata": {
+        "duration": 54.004688,
+        "videoWidth": 1920,
+        "videoHeight": 1080,
+        "readyState": 4,
+        "error": null,
+        "controls": true,
+        "playsInline": true,
+        "tracks": [
+          {
+            "kind": "captions",
+            "language": "en",
+            "mode": "showing",
+            "cueCount": 7
+          }
+        ]
+      },
+      "before": 0,
+      "after": {
+        "currentTime": 1.030902,
+        "paused": false,
+        "error": null
+      },
+      "advances": true
+    }
+  ],
+  "preventedLiveRequests": [],
+  "pageErrors": [],
+  "complete": true,
+  "passed": true,
+  "pwa": {
+    "checkedAt": "2026-09-11T17:27:10.902Z",
+    "viewport": {
+      "width": 375,
+      "height": 812
+    },
+    "cacheReady": true,
+    "cachePublicOnly": true,
+    "offlineReload": true,
+    "csvExport": true,
+    "exactAllocations": true,
+    "pageErrors": [],
+    "preventedLiveRequests": [],
+    "passed": true,
+    "cache": {
+      "cacheCount": 1,
+      "assetCount": 20,
+      "hasOfflineDocument": true,
+      "publicOnly": true
+    },
+    "cloudPanelAbsentOffline": true,
+    "exportedFilename": "lotline-example-plan-2026-09-11.csv",
+    "horizontalOverflow": {
+      "scrollWidth": 375,
+      "viewport": 375,
+      "passes": true
+    },
+    "screenshot": "docs/screenshots/deployed-offline-375.png"
+  },
+  "checkedThrough": "2026-09-11T17:27:16.617Z"
+}

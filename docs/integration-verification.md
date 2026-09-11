@@ -1,0 +1,80 @@
+# Verification record
+
+Verified September 11–12, 2026. The original chain and quote observations retain their September 11 UTC timestamps. See [live integration detail](live-integration.md), the exact [normalized live observations](live-smoke.json), and the separate [production-build UI observation](ui-live-smoke.json).
+
+[Deployed website](https://lotline-omega.vercel.app) · [Example planner](https://lotline-omega.vercel.app/app?mode=example) · [Demo](https://lotline-omega.vercel.app/demo) · [Public repository](https://github.com/operatoruplift/lotline)
+
+## Completed build checks
+
+- Lint, TypeScript checking, and the Next.js production build passed.
+- A fresh full unit-test run passed all **106 deterministic tests** in 5.06 seconds. The single opt-in live test is skipped in ordinary unit runs; live evidence is recorded separately.
+- **21 distinct browser scenarios** passed against a local production build, including the core planner, responsive and accessibility checks, PWA/offline flows, and two cloud-plan account-change scenarios.
+- A scan of 153 source and built-client files found no matches for the configured server-secret values. The public Supabase project URL and publishable key are intentionally exposed; privileged keys remain server-side.
+
+Counts describe the completed checkpoint above. Hosted browser and account-flow checks are recorded separately below as they finish; a passed local test does not imply every deployed integration was exercised.
+
+## Chain and quote integration
+
+The opt-in live adapter smoke passed: six official issuer deployments resolved, their mainnet Token-2022 mints and scaling were decoded, a public issuer-authority address returned confirmed zero AAPLx/USDC holdings, and a real keyless Jupiter quote for 10 USDC returned usable raw output and mint-aware scaled units. The request omitted `taker`. The resulting-unit path converted the raw balance plus quote output. No signatures or transactions were submitted.
+
+The live check used a zero-balance public address. Nonzero holdings, multiple accounts for one mint, scheduled multiplier changes, and partial RPC failures are covered by deterministic tests; they are not claimed as observed on that live wallet. Public endpoints may throttle access, and live prices are not permanently guaranteed. The original observation times are preserved in the evidence file.
+
+The separate UI observation exercised actual balances, a real quote, and scaled estimated resulting units through the production-build browser interface, with no browser errors or transaction-execution requests. It is dated evidence, not a permanent quote or a claim about a nonzero wallet balance.
+
+The deployed Vercel site also passed a Live smoke on September 11, 2026, from 17:23:50 to 17:24:04 UTC: six verified assets, confirmed zero AAPLx/USDC holdings, and a real keyless Jupiter quote for 10 USDC. All observed API responses returned HTTP 200. See [deployed Live observations](deployed-live-smoke.json).
+
+## Supabase and deployment
+
+The hosted Supabase project has both migrations applied: shared provider start-time reservations and owner-restricted contribution plans. Hosted database tests checked grants, row-level isolation, malformed plan rejection, and the 20-plan quota using synthetic fixtures inside a transaction that was rolled back. No test accounts or plans from that SQL transaction were retained.
+
+Auth configuration has been pushed and checked with zero managed differences: the site URL uses the deployed Vercel origin, callback redirects are exact, email confirmation is enabled, and the minimum password length is 12. The Supabase public configuration and server secret are set in local configuration and the Vercel development, preview, and production environments. The Git-connected Vercel deployment reached Ready at the linked public URL.
+
+Actual production browser checks passed password sign-in, explicit cloud save, exact plan load, persistence after reload, delete, and sign-out. Real authenticated Data API requests confirmed cross-owner reads/deletes cannot access another user's rows, ownership spoofing is rejected, and anonymous access is denied. Two disposable confirmed users were created without sending emails, then removed with their plan data. See [hosted authentication evidence](hosted-auth-verification.json).
+
+The real local-browser check exposed Next.js normalizing loopback IPs to `localhost`, causing a same-origin save to return 403. The reviewed fix restores only an explicit validated loopback Host with a matching port; arbitrary and forwarded hosts remain untrusted. Focused regression tests cover IPv4, IPv6, hostname substitution, ports, protocols, and callback destinations. The two cloud-plan race scenarios separately use controlled responses to verify account changes and delayed list requests.
+
+**Remaining email limitation:** a custom SMTP sender is still needed for unrestricted public confirmation and password-reset delivery. Supabase's default email service is restricted. The app retains email confirmation and leaves guest planning available; unrestricted public signup delivery is not claimed.
+
+## PWA coverage
+
+The deployed UI passed 12 page-and-viewport checks across six routes at 375 px and 1440 px, with HTTP 200 responses, no detected accessibility violations, no page errors, and no horizontal overflow. The demo's 54-second, 1080p pitch video loaded and advanced during playback, and its seven caption cues were present. See [deployed UI verification](deployed-ui-verification.json).
+
+The installable web app includes standalone metadata, original app icons, platform-specific installation instructions, and safe-area support. Automated checks cover icon dimensions, credential-free public precaching, cache exclusions, failed-refresh preservation, install-prompt handling, and a disconnected reload that calculates and exports the real synthetic Example plan. Live and account data remain online-only.
+
+The deployed PWA was also checked for public-only cache contents, disconnected reload, exact Example allocations, and a downloaded CSV export. These deployed observations are included in the same verification record above.
+
+This is a browser PWA across mobile and desktop. The checks do not claim a physical iPhone installation, native operating-system package, or App Store/Play Store distribution. Service workers are tested against a production build because they are intentionally disabled in development mode.
+
+## Implementation checks
+
+- Exact BigInt budget parsing, basis points, largest-remainder allocation, and tie-breaking.
+- All raw token accounts are aggregated; confirmed zero differs from unavailable. Real package encoders build fixtures that exercise the installed official scaling helper before and at activation time.
+- Strict request bounds, issuer identity validation, trusted output mints, normalized service errors, missing RPC configuration, optional Jupiter key, no-route failures, and credential-safe errors.
+- Versioned local basket storage, including corrupt data and intentionally cleared baskets. Wallet addresses are excluded from local persistence and cloud plans.
+- CSV formula-injection protection and actual browser clipboard/download verification.
+- Obsolete quote response completion cannot replace a newer budget. Provider expiry and offline states remain visible.
+- Optional account requests validate sessions, enforce same-origin writes, and use owner filters and database access policies. Saved plans contain no balances or quote results.
+- Shared Supabase provider reservations bound aggregate request starts across Vercel instances; coordination failures produce explicit unavailable states.
+
+Code, TypeScript, and database reviews examined the service adapters, arithmetic, React request lifecycle, account boundaries, input validation, caching, and persistence, including their security behavior. Material findings were fixed and covered by regressions where appropriate. These are implementation reviews, not an independent security certification.
+
+## Running checks
+
+```sh
+npm run lint
+npm run typecheck
+npm test
+npm run build
+npx playwright install chromium
+npm run test:e2e
+```
+
+The live smoke runs only when explicitly opted in:
+
+```sh
+SOLANA_RPC_URL=https://api.mainnet-beta.solana.com LOTLINE_LIVE_SMOKE=1 npx vitest run tests/server-live.test.ts
+```
+
+Screenshots in [screenshots](screenshots/) show the running application with Example mode clearly labeled. They are not trading receipts. The [dependency note](dependencies.md) explains package-version compatibility, and the [Stocklana check](stocklana-check.md) distinguishes public information from unverified submission rules.
+
+No transactions were signed or submitted. Publishing the website and source is separate from a hackathon submission; no submission or organizer endorsement is claimed.

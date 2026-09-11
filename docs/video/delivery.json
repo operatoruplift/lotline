@@ -1,0 +1,35 @@
+{
+  "product": "Lotline",
+  "kind": "pitch visual cut",
+  "createdDate": "2026-09-11",
+  "engine": "Higgsedit 0.14.0 native CPU renderer",
+  "video": {
+    "mediaId": "a669773a-6a53-4db3-9797-172a20bd3ab4",
+    "url": "https://d2ol7oe51mr4n9.cloudfront.net/user_316WRAwjtWmpOAHb5tUQ2Grs4QP/a669773a-6a53-4db3-9797-172a20bd3ab4.mp4",
+    "width": 1920,
+    "height": 1080,
+    "fps": 30,
+    "frames": 1620,
+    "timelineSeconds": 54,
+    "containerSeconds": 54.005,
+    "codec": "h264",
+    "bytes": 4796565,
+    "audio": false
+  },
+  "project": {
+    "mediaId": "95e4d4b9-8eeb-4ef4-ba98-264206f9539b",
+    "url": "https://d2ol7oe51mr4n9.cloudfront.net/user_316WRAwjtWmpOAHb5tUQ2Grs4QP/95e4d4b9-8eeb-4ef4-ba98-264206f9539b.zip"
+  },
+  "contactSheet": {
+    "mediaId": "0e0dcb3a-5385-48d9-a21c-4a4baa7a23ae",
+    "url": "https://d2ol7oe51mr4n9.cloudfront.net/user_316WRAwjtWmpOAHb5tUQ2Grs4QP/0e0dcb3a-5385-48d9-a21c-4a4baa7a23ae.png"
+  },
+  "renderDiagnostics": [],
+  "renderFallbacks": [],
+  "sourceCommit": "233b9d2",
+  "liveFootage": false,
+  "exampleLabels": true,
+  "narrationStatus": "Pending exact voice_id and voice_type selection",
+  "transactionsSigned": 0,
+  "transactionsSubmitted": 0
+}

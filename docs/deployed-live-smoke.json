@@ -1,0 +1,123 @@
+{
+  "startedAt": "2026-09-11T17:23:50.721Z",
+  "origin": "https://lotline-omega.vercel.app",
+  "transactionsSigned": 0,
+  "transactionsSubmitted": 0,
+  "catalog": {
+    "status": 200,
+    "data": {
+      "state": "success",
+      "assets": [
+        {
+          "symbol": "AAPLx",
+          "name": "Apple xStock",
+          "mint": "XsbEhLAtcf6HdfpFZ5xEMdqW8nfAvcsP5bdudRLJzJp",
+          "decimals": 8,
+          "tokenProgram": "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb",
+          "halted": false,
+          "verifiedAt": "2026-09-11T17:23:53.805Z"
+        },
+        {
+          "symbol": "MSFTx",
+          "name": "Microsoft xStock",
+          "mint": "XspzcW1PRtgf6Wj92HCiZdjzKCyFekVD8P5Ueh3dRMX",
+          "decimals": 8,
+          "tokenProgram": "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb",
+          "halted": false,
+          "verifiedAt": "2026-09-11T17:23:53.821Z"
+        },
+        {
+          "symbol": "NVDAx",
+          "name": "NVIDIA xStock",
+          "mint": "Xsc9qvGR1efVDFGLrVsmkzv3qi45LTBjeUKSPmx9qEh",
+          "decimals": 8,
+          "tokenProgram": "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb",
+          "halted": false,
+          "verifiedAt": "2026-09-11T17:23:55.219Z"
+        },
+        {
+          "symbol": "TSLAx",
+          "name": "Tesla xStock",
+          "mint": "XsDoVfqeBukxuZHWhdvWHBhgEHjGNst4MLodqsJHzoB",
+          "decimals": 8,
+          "tokenProgram": "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb",
+          "halted": false,
+          "verifiedAt": "2026-09-11T17:23:55.221Z"
+        },
+        {
+          "symbol": "SPYx",
+          "name": "SP500 xStock",
+          "mint": "XsoCS1TfEyfFhfvj8EtZ528L3CaKBDBRqRapnBbDF2W",
+          "decimals": 8,
+          "tokenProgram": "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb",
+          "halted": false,
+          "verifiedAt": "2026-09-11T17:23:55.804Z"
+        },
+        {
+          "symbol": "QQQx",
+          "name": "Nasdaq xStock",
+          "mint": "Xs8S1uUs1zvS2p7iwtsG3b6fkhpvmwz4GYU3gWAmWHZ",
+          "decimals": 8,
+          "tokenProgram": "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb",
+          "halted": false,
+          "verifiedAt": "2026-09-11T17:23:55.808Z"
+        }
+      ],
+      "unavailable": []
+    }
+  },
+  "holdings": {
+    "status": 200,
+    "data": {
+      "state": "success",
+      "holdings": [
+        {
+          "mint": "XsbEhLAtcf6HdfpFZ5xEMdqW8nfAvcsP5bdudRLJzJp",
+          "state": "success",
+          "raw": "0",
+          "units": "0"
+        }
+      ],
+      "usdc": {
+        "mint": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+        "state": "success",
+        "raw": "0",
+        "units": "0"
+      },
+      "fetchedAt": "2026-09-11T17:23:58.704Z"
+    }
+  },
+  "quotes": {
+    "status": 200,
+    "data": {
+      "state": "success",
+      "quotes": [
+        {
+          "mint": "XsbEhLAtcf6HdfpFZ5xEMdqW8nfAvcsP5bdudRLJzJp",
+          "state": "success",
+          "usdcRaw": "10000000",
+          "outRaw": "2981684",
+          "units": "0.02991431",
+          "fetchedAt": "2026-09-11T17:24:01.704Z",
+          "expiresAt": "2026-09-11T17:24:31.704Z",
+          "source": "Jupiter · metis",
+          "feeBps": 10,
+          "feeMint": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v"
+        }
+      ]
+    }
+  },
+  "units": {
+    "status": 200,
+    "data": {
+      "state": "success",
+      "items": [
+        {
+          "mint": "XsbEhLAtcf6HdfpFZ5xEMdqW8nfAvcsP5bdudRLJzJp",
+          "units": "0.02991431"
+        }
+      ]
+    }
+  },
+  "completedAt": "2026-09-11T17:24:04.463Z"
+}
