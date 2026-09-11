@@ -24,7 +24,7 @@ test('uses the browser install prompt and hides install UI after installation', 
     window.dispatchEvent(event);
   });
   await page.getByRole('button', { name: 'Install Lotline', exact: true }).click();
-  await expect(page.getByRole('status')).toContainText('Installation accepted');
+  await expect(page.getByRole('status').filter({ hasText: 'Installation accepted' })).toBeVisible();
   await page.evaluate(() => window.dispatchEvent(new Event('appinstalled')));
   await expect(page.getByRole('button', { name: 'Install Lotline', exact: true })).toHaveCount(0);
 });
