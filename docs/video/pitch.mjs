@@ -9,6 +9,50 @@ async function buildPitch({ project, frame, text, rect, media }) {
   const c = await p.add("../media/handoff-crop.png");
   const d = await p.add("../media/planner-crop.png");
   const e = await p.add("../media/mobile-crop.png");
+  // User-selected Ainsley voice, generated at neutral speed in Higgsfield.
+  // Scene takes are placed at natural speed; only the fifth take's trailing silence is trimmed.
+  const narrationTakes = [
+    {
+      "file": "voice01.wav",
+      "at": 0.6,
+      "from": 0,
+      "duration": 8.47
+    },
+    {
+      "file": "voice02.wav",
+      "at": 12,
+      "from": 0,
+      "duration": 8.18
+    },
+    {
+      "file": "voice03.wav",
+      "at": 22.5,
+      "from": 0,
+      "duration": 8.18
+    },
+    {
+      "file": "voice04.wav",
+      "at": 32.4,
+      "from": 0,
+      "duration": 8.18
+    },
+    {
+      "file": "voice05.wav",
+      "at": 41.7,
+      "from": 0,
+      "duration": 5.65
+    },
+    {
+      "file": "voice06.wav",
+      "at": 48.8,
+      "from": 0,
+      "duration": 4.4
+    }
+  ];
+  for (const take of narrationTakes) {
+    const voice = await p.add("../voices/" + take.file);
+    p.cut(voice, { at: take.at, from: take.from, dur: take.duration });
+  }
   const t = (s,x,y,w,size=48,color=C.ink,extra={}) => text(s,{x,y,width:w,height:size*1.5,fontFamily:"Inter",fontSize:size,fontWeight:600,color,...extra});
   const mono = (s,x,y,w,size=62,color=C.green,extra={}) => t(s,x,y,w,size,color,{fontFamily:"JetBrains Mono",fontWeight:700,...extra});
   const line = (x,y,w,color=C.line) => rect({x,y,width:w,height:2,fill:color});

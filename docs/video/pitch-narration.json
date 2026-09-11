@@ -1,0 +1,94 @@
+{
+  "voice": {
+    "name": "Ainsley",
+    "voice_id": "731b4ffe-e95e-59f4-8c00-81608936091f",
+    "voice_type": "preset",
+    "model": "seed_audio",
+    "speech_rate": 0,
+    "pitch_rate": 0
+  },
+  "timelineSeconds": 54,
+  "timeStretch": false,
+  "takes": [
+    {
+      "index": 1,
+      "job_id": "4b06653b-93a3-4087-87e2-ef9765b9e829",
+      "status": "completed",
+      "type": "audio",
+      "model": "seed_audio",
+      "result_url": "https://d8j0ntlcm91z4.cloudfront.net/user_316WRAwjtWmpOAHb5tUQ2Grs4QP/hf_20260911_174720_4b06653b-93a3-4087-87e2-ef9765b9e829.wav",
+      "text": "Your next contribution deserves a clear plan. Lotline helps you split USDC across the Solana xStocks you choose.",
+      "file": "voice01.wav",
+      "at": 0.6,
+      "from": 0,
+      "duration": 8.47
+    },
+    {
+      "index": 2,
+      "job_id": "83825331-5fb9-4510-a949-dc0a91657bc7",
+      "status": "completed",
+      "type": "audio",
+      "model": "seed_audio",
+      "result_url": "https://d8j0ntlcm91z4.cloudfront.net/user_316WRAwjtWmpOAHb5tUQ2Grs4QP/hf_20260911_174719_83825331-5fb9-4510-a949-dc0a91657bc7.wav",
+      "text": "Choose up to three verified assets. Set your percentages. Every micro USDC is accounted for.",
+      "file": "voice02.wav",
+      "at": 12,
+      "from": 0,
+      "duration": 8.18
+    },
+    {
+      "index": 3,
+      "job_id": "cbe5719c-74aa-4e4f-bd4a-244a7d7d1dfd",
+      "status": "completed",
+      "type": "audio",
+      "model": "seed_audio",
+      "result_url": "https://d8j0ntlcm91z4.cloudfront.net/user_316WRAwjtWmpOAHb5tUQ2Grs4QP/hf_20260911_174719_cbe5719c-74aa-4e4f-bd4a-244a7d7d1dfd.wav",
+      "text": "Add a public wallet to read your balances, then see estimated units with xStocks' onchain scaling.",
+      "file": "voice03.wav",
+      "at": 22.5,
+      "from": 0,
+      "duration": 8.18
+    },
+    {
+      "index": 4,
+      "job_id": "b7d6df99-9a0f-43bb-b9df-6d7088c37454",
+      "status": "completed",
+      "type": "audio",
+      "model": "seed_audio",
+      "result_url": "https://d8j0ntlcm91z4.cloudfront.net/user_316WRAwjtWmpOAHb5tUQ2Grs4QP/hf_20260911_174719_b7d6df99-9a0f-43bb-b9df-6d7088c37454.wav",
+      "text": "Copy your plan or download a CSV. Review current amounts and fees independently on Jupiter.",
+      "file": "voice04.wav",
+      "at": 32.4,
+      "from": 0,
+      "duration": 8.18
+    },
+    {
+      "index": 5,
+      "job_id": "514e5a5e-3a21-47f6-b10c-5d885ad5e3b1",
+      "status": "completed",
+      "type": "audio",
+      "model": "seed_audio",
+      "result_url": "https://d8j0ntlcm91z4.cloudfront.net/user_316WRAwjtWmpOAHb5tUQ2Grs4QP/hf_20260911_174719_514e5a5e-3a21-47f6-b10c-5d885ad5e3b1.wav",
+      "text": "A focused workspace for mobile and desktop. Start without an account.",
+      "file": "voice05.wav",
+      "at": 41.7,
+      "from": 0,
+      "duration": 5.65
+    },
+    {
+      "index": 6,
+      "job_id": "440b7403-8dac-45ee-bc3c-9d5ab93d93bf",
+      "status": "completed",
+      "type": "audio",
+      "model": "seed_audio",
+      "result_url": "https://d8j0ntlcm91z4.cloudfront.net/user_316WRAwjtWmpOAHb5tUQ2Grs4QP/hf_20260911_174720_440b7403-8dac-45ee-bc3c-9d5ab93d93bf.wav",
+      "text": "Lotline. A clear plan for your next xStocks contribution.",
+      "file": "voice06.wav",
+      "at": 48.8,
+      "from": 0,
+      "duration": 4.4
+    }
+  ],
+  "captions": "pitch.en.vtt",
+  "captionAlignment": "Whisper word timestamps checked against authored speech; scene offsets applied."
+}

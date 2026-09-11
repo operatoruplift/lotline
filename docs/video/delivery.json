@@ -1,35 +1,154 @@
 {
   "product": "Lotline",
-  "kind": "pitch visual cut",
+  "kind": "narrated pitch",
   "createdDate": "2026-09-11",
   "engine": "Higgsedit 0.14.0 native CPU renderer",
   "video": {
-    "mediaId": "a669773a-6a53-4db3-9797-172a20bd3ab4",
-    "url": "https://d2ol7oe51mr4n9.cloudfront.net/user_316WRAwjtWmpOAHb5tUQ2Grs4QP/a669773a-6a53-4db3-9797-172a20bd3ab4.mp4",
+    "mediaId": "b87047f8-d625-4416-b6f7-485f4c92b73e",
+    "url": "https://d2ol7oe51mr4n9.cloudfront.net/user_316WRAwjtWmpOAHb5tUQ2Grs4QP/b87047f8-d625-4416-b6f7-485f4c92b73e.mp4",
     "width": 1920,
     "height": 1080,
     "fps": 30,
     "frames": 1620,
     "timelineSeconds": 54,
-    "containerSeconds": 54.005,
+    "containerSeconds": 54,
     "codec": "h264",
-    "bytes": 4796565,
-    "audio": false
+    "bytes": 3126071,
+    "audio": true,
+    "audioCodec": "aac",
+    "sampleRate": 48000,
+    "audioChannels": 2,
+    "sha256": "f834939bcb4be63de6c083eb9ac93e9f086e851461824fb49117c59b0b0b5025",
+    "audioMaxVolumeDb": -1.7
   },
   "project": {
-    "mediaId": "95e4d4b9-8eeb-4ef4-ba98-264206f9539b",
-    "url": "https://d2ol7oe51mr4n9.cloudfront.net/user_316WRAwjtWmpOAHb5tUQ2Grs4QP/95e4d4b9-8eeb-4ef4-ba98-264206f9539b.zip"
+    "mediaId": "9d753b4b-a7b5-4198-8907-1c43ce559ee9",
+    "url": "https://d2ol7oe51mr4n9.cloudfront.net/user_316WRAwjtWmpOAHb5tUQ2Grs4QP/9d753b4b-a7b5-4198-8907-1c43ce559ee9.zip"
   },
   "contactSheet": {
     "mediaId": "0e0dcb3a-5385-48d9-a21c-4a4baa7a23ae",
-    "url": "https://d2ol7oe51mr4n9.cloudfront.net/user_316WRAwjtWmpOAHb5tUQ2Grs4QP/0e0dcb3a-5385-48d9-a21c-4a4baa7a23ae.png"
+    "url": "https://d2ol7oe51mr4n9.cloudfront.net/user_316WRAwjtWmpOAHb5tUQ2Grs4QP/0e0dcb3a-5385-48d9-a21c-4a4baa7a23ae.png",
+    "note": "Visual composition unchanged from reviewed visual cut."
   },
   "renderDiagnostics": [],
   "renderFallbacks": [],
   "sourceCommit": "233b9d2",
   "liveFootage": false,
   "exampleLabels": true,
-  "narrationStatus": "Pending exact voice_id and voice_type selection",
+  "narrationStatus": "Complete — user-selected Ainsley, all six audio jobs completed and wording verified with Whisper.",
+  "voice": {
+    "name": "Ainsley",
+    "voice_id": "731b4ffe-e95e-59f4-8c00-81608936091f",
+    "voice_type": "preset",
+    "model": "seed_audio",
+    "speech_rate": 0,
+    "pitch_rate": 0
+  },
+  "narrationLedger": "pitch-narration.json",
+  "speechMetrics": [
+    {
+      "index": 1,
+      "metrics": {
+        "file": "voice01.wav",
+        "duration": 8.47,
+        "speech_start": 0.325,
+        "speech_end": 8.47,
+        "speech": 8.145,
+        "pauses": 0,
+        "longest_pause": 0,
+        "words": 18,
+        "wps": 2.21,
+        "rate": "ok"
+      }
+    },
+    {
+      "index": 2,
+      "metrics": {
+        "file": "voice02.wav",
+        "duration": 8.18,
+        "speech_start": 0,
+        "speech_end": 8.18,
+        "speech": 8.18,
+        "pauses": 0,
+        "longest_pause": 0,
+        "words": 15,
+        "wps": 1.83,
+        "rate": "SLOW"
+      }
+    },
+    {
+      "index": 3,
+      "metrics": {
+        "file": "voice03.wav",
+        "duration": 8.18,
+        "speech_start": 0,
+        "speech_end": 8.18,
+        "speech": 8.18,
+        "pauses": 0,
+        "longest_pause": 0,
+        "words": 16,
+        "wps": 1.96,
+        "rate": "SLOW"
+      }
+    },
+    {
+      "index": 4,
+      "metrics": {
+        "file": "voice04.wav",
+        "duration": 8.18,
+        "speech_start": 0.265,
+        "speech_end": 8.18,
+        "speech": 7.915,
+        "pauses": 0,
+        "longest_pause": 0,
+        "words": 15,
+        "wps": 1.9,
+        "rate": "SLOW"
+      }
+    },
+    {
+      "index": 5,
+      "metrics": {
+        "file": "voice05.wav",
+        "duration": 7.3,
+        "speech_start": 0.499,
+        "speech_end": 5.337,
+        "speech": 4.838,
+        "pauses": 0,
+        "longest_pause": 0,
+        "words": 11,
+        "wps": 2.27,
+        "rate": "ok"
+      }
+    },
+    {
+      "index": 6,
+      "metrics": {
+        "file": "voice06.wav",
+        "duration": 4.4,
+        "speech_start": 0.356,
+        "speech_end": 4.4,
+        "speech": 4.044,
+        "pauses": 0,
+        "longest_pause": 0,
+        "words": 9,
+        "wps": 2.23,
+        "rate": "ok"
+      }
+    }
+  ],
+  "captionTrack": "public/videos/pitch.en.vtt",
+  "captionCues": 13,
+  "captionAlignment": "Whisper word timestamps with scene placement offsets; wording checked against authored speech.",
+  "timeStretch": false,
+  "narrationTrim": "Only take 5 trailing silence is cut, at 5.65s; speech_end was measured at 5.337s.",
+  "validation": {
+    "nativeProjectCheck": "clean",
+    "eslint": "passed",
+    "sourceReview": "Approved: six non-overlapping placements within 54 seconds and 13 matching caption cues within the spoken take windows.",
+    "audioWords": "All six take transcripts match authored speech, including USDC, xStocks, CSV, and Jupiter.",
+    "browserPlayback": "Passed in Chromium at 375px and 1440px: final media identity, 54-second 1080p playback advancing, unmuted decoded AAC audio, all 13 English captions, no page errors, accessibility violations, or horizontal overflow. See public-video-verification.json."
+  },
   "transactionsSigned": 0,
   "transactionsSubmitted": 0
 }

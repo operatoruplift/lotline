@@ -1,5 +1,5 @@
 {
-  "verifiedAt": "2026-09-11T17:32:18.419Z",
+  "verifiedAt": "2026-09-11T17:37:33.458Z",
   "state": "passed",
   "target": "Local production build and deployed Vercel origin with hosted Supabase",
   "project": "uemunksopacicpbjubtg",
@@ -22,6 +22,29 @@
   "transactionsSigned": 0,
   "transactionsSubmitted": 0,
   "journeys": [
+    {
+      "origin": "http://127.0.0.1:3103",
+      "checks": {
+        "browserPasswordSignIn": true,
+        "browserCloudSaveExactBudgetAndWeights": true,
+        "browserCloudLoadRestoresExactDraft": true,
+        "browserCloudListPersistsAcrossReload": true,
+        "secondUserPasswordSignIn": true,
+        "crossOwnerSelectRequest": true,
+        "crossOwnerSelectDeniedByRls": true,
+        "crossOwnerDeleteRequest": true,
+        "crossOwnerDeleteDeniedByRls": true,
+        "crossOwnerInsertDeniedByRls": true,
+        "databaseRejectsWalletMetadata": true,
+        "anonymousRestAccessDenied": true,
+        "apiRejectsUserIdInput": true,
+        "apiRejectsCrossOriginMutation": true,
+        "browserCloudDeletePersists": true,
+        "browserSignOutRevokesPlanAccess": true,
+        "noBrowserPageErrors": true,
+        "noTransactionRequests": true
+      }
+    },
     {
       "origin": "https://lotline-omega.vercel.app",
       "checks": {

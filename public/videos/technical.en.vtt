@@ -1,0 +1,61 @@
+WEBVTT
+
+1
+00:00:00.000 --> 00:00:12.000
+Exact planning. Read-only by design.
+Choose assets, percentages, and a USDC budget. Lotline reads balances and requests estimates without assembling, signing, or submitting transactions.
+
+2
+00:00:12.000 --> 00:00:24.000
+A small, explicit trust boundary.
+Next.js route handlers validate inputs and verify issuer metadata, Solana accounts, and Jupiter responses before returning normalized results.
+
+3
+00:00:24.000 --> 00:00:36.000
+Money enters as strings.
+USDC becomes BigInt micro-units. Percentages become integer basis points totaling 10,000, without binary floating-point money calculations.
+
+4
+00:00:36.000 --> 00:00:50.000
+Largest remainder keeps the total exact.
+10.000001 USDC at 50, 30, and 20 percent becomes 5.000001, 3.000000, and 2.000000. Equal remainders use stable basket order.
+
+5
+00:00:50.000 --> 00:01:04.000
+Verify identity before counting units.
+Resolve the official issuer mint, validate its token program and scaling extension, sum every matching token account, and read the chain clock.
+
+6
+00:01:04.000 --> 00:01:17.000
+Raw units are not displayed holdings.
+The official Token-2022 helper converts raw holdings plus raw quote output using the mint configuration and active scaled multiplier.
+
+7
+00:01:17.000 --> 00:01:30.000
+Jupiter receives three quote inputs.
+Only input mint, output mint, and allocated raw amount are sent. No taker or execute call. Quotes expire after at most 30 seconds.
+
+8
+00:01:30.000 --> 00:01:43.000
+Old responses cannot become a new plan.
+Edits invalidate estimates. Obsolete responses cannot overwrite a current plan. Provider failures and unavailable data remain explicit.
+
+9
+00:01:43.000 --> 00:01:56.000
+Optional accounts save explicit plans.
+Verified sessions and row-level ownership protect up to 20 saved plans. Wallet addresses, balances, and quotes are excluded. Public email delivery still requires custom SMTP.
+
+10
+00:01:56.000 --> 00:02:11.000
+Installed web app; fresh data stays online.
+The public offline Example can calculate and export. Live and private APIs stay online. Supabase coordinates bounded provider requests across Vercel instances.
+
+11
+00:02:11.000 --> 00:02:26.000
+Evidence separates fixtures from live results.
+Tests cover failure and isolation paths. A dated deployed Live smoke observed six verified assets, confirmed zero balances, and a real quote. It is not current pricing.
+
+12
+00:02:26.000 --> 00:02:40.000
+Take the plan. Keep the choice.
+Copy the plan, export CSV, or review independently on Jupiter. Explore the app at lotline-omega.vercel.app and source at github.com/operatoruplift/lotline.

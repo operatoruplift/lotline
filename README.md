@@ -101,6 +101,14 @@ A static export is not supported because Live and account features need server r
 
 No hackathon submission is claimed. The [Stocklana check](docs/stocklana-check.md) records currently visible official information without assuming judging criteria or organizer approval.
 
+## Product materials
+
+- [Short and full Markdown descriptions](docs/product-description.md)
+- [MotionSites component recommendations and Dribbble references](docs/design-direction.md)
+- [Higgsfield pitch video, editable source, and delivery record](docs/video/README.md)
+- [Technical walkthrough and source](docs/technical-video.md)
+- [Screenshots of the deployed mobile and desktop experience](docs/screenshots/)
+
 ## Structure
 
 - `app/`: website, planner, demo, authentication, privacy, offline page, and narrow API routes.

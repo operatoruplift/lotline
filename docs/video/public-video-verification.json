@@ -1,0 +1,91 @@
+{
+  "checkedAt": "2026-09-11T18:03:10.666Z",
+  "origin": "http://127.0.0.1:3107",
+  "checks": [
+    {
+      "width": 375,
+      "videos": [
+        {
+          "source": "https://d2ol7oe51mr4n9.cloudfront.net/user_316WRAwjtWmpOAHb5tUQ2Grs4QP/b87047f8-d625-4416-b6f7-485f4c92b73e.mp4",
+          "duration": 54,
+          "width": 1920,
+          "height": 1080,
+          "currentTime": 2.035404,
+          "paused": false,
+          "muted": false,
+          "error": null,
+          "audioDecodedBytes": 43728,
+          "captions": [
+            {
+              "language": "en",
+              "cues": 13
+            }
+          ]
+        },
+        {
+          "source": "https://d2ol7oe51mr4n9.cloudfront.net/user_316WRAwjtWmpOAHb5tUQ2Grs4QP/73bd8c85-4fb7-4ba5-8b07-dd9eab8db488.mp4",
+          "duration": 160,
+          "width": 1920,
+          "height": 1080,
+          "currentTime": 2.022501,
+          "paused": false,
+          "muted": false,
+          "error": null,
+          "audioDecodedBytes": 0,
+          "captions": [
+            {
+              "language": "en",
+              "cues": 12
+            }
+          ]
+        }
+      ],
+      "errors": [],
+      "violations": [],
+      "overflow": false
+    },
+    {
+      "width": 1440,
+      "videos": [
+        {
+          "source": "https://d2ol7oe51mr4n9.cloudfront.net/user_316WRAwjtWmpOAHb5tUQ2Grs4QP/b87047f8-d625-4416-b6f7-485f4c92b73e.mp4",
+          "duration": 54,
+          "width": 1920,
+          "height": 1080,
+          "currentTime": 2.03289,
+          "paused": false,
+          "muted": false,
+          "error": null,
+          "audioDecodedBytes": 43728,
+          "captions": [
+            {
+              "language": "en",
+              "cues": 13
+            }
+          ]
+        },
+        {
+          "source": "https://d2ol7oe51mr4n9.cloudfront.net/user_316WRAwjtWmpOAHb5tUQ2Grs4QP/73bd8c85-4fb7-4ba5-8b07-dd9eab8db488.mp4",
+          "duration": 160,
+          "width": 1920,
+          "height": 1080,
+          "currentTime": 2.019395,
+          "paused": false,
+          "muted": false,
+          "error": null,
+          "audioDecodedBytes": 0,
+          "captions": [
+            {
+              "language": "en",
+              "cues": 12
+            }
+          ]
+        }
+      ],
+      "errors": [],
+      "violations": [],
+      "overflow": false
+    }
+  ],
+  "passed": true
+}

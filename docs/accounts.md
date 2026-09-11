@@ -22,6 +22,8 @@ Supabase’s default SMTP service is limited and is not a substitute for a produ
 
 The browser Supabase client uses the official `@supabase/ssr` cookie integration. Both public credentials are intended for browser use. Responses containing account or cloud-plan data are `no-store`; state-changing plan requests also require a same-origin browser request.
 
+Next.js normalizes loopback IP URLs to `localhost`. Lotline restores the actual local cookie origin only when the incoming Host is an explicit loopback host with the same protocol and port. Remote hosts and forwarded-host headers cannot widen the origin check. The same bounded rule preserves local email-callback redirect hosts.
+
 ## Stored data
 
 Each row contains the authenticated user ID, a generated plan ID, a name, exact integer micro-USDC as text, up to three issuer-confirmed mint IDs with basis-point weights as text, and a creation timestamp. The database checks canonical decimal strings, the maximum budget of 1,000,000 USDC, mint allowlisting, unique assets, and weights totaling 10,000 basis points. Wallet addresses, token balances, quotes, and projections are never uploaded to this table.
@@ -35,6 +37,14 @@ Each account can keep 20 plans. A per-user transaction lock serializes the count
 `tests/e2e/cloud-plans.spec.ts` verifies that an account change removes the previous owner's names before the new list finishes loading, including when the new list request fails. Its session and plan responses are controlled fixtures, not evidence of a live Supabase connection.
 
 `supabase/tests/plans_rls.sql` is a database verification script intended to run as an administrator against a development project. It creates synthetic users and rows in a transaction, checks grants and cross-user isolation, exercises database input checks and the 20-plan limit, then rolls every fixture back. It sends no email. Running unit tests alone does not establish that a deployed database has the migration or policies applied; run the SQL verification after deployment too.
+
+### Observed hosted verification
+
+[Hosted auth evidence](hosted-auth-verification.json) records successful real browser journeys on the local production build at `127.0.0.1:3103` and [the deployed site](https://lotline-omega.vercel.app), both using the hosted Supabase project. The checks covered password sign-in, an exact 1,000-USDC three-asset save, loading that draft, persistence after reload, deletion, sign-out, and denied access after sign-out. Independent authenticated REST requests verified cross-owner read, insert, and delete restrictions; anonymous access and extra wallet metadata were rejected. API checks also rejected owner spoofing and cross-origin mutation requests. No browser errors or transaction requests were observed.
+
+The same two disposable test users were used for both origins, then deleted with their rows removed through the owner foreign key. Credentials were kept in memory and excluded from public artifacts. The users were confirmed through the admin API, so this test sent no emails and does **not** establish signup-confirmation or recovery-email delivery. A configured production SMTP sender remains necessary for unrestricted public email flows.
+
+The focused auth suite passed 37 checks. Two cloud-plan browser regressions also passed, covering account isolation while a request is pending and mutation blocking during a held refresh. A completed refresh cannot overwrite a newly saved or deleted plan because those mutations remain disabled until the refresh settles.
 
 ## Primary references
 

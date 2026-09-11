@@ -8,7 +8,7 @@ Verified September 11–12, 2026. The original chain and quote observations reta
 
 - Lint, TypeScript checking, and the Next.js production build passed.
 - A fresh full unit-test run passed all **106 deterministic tests** in 5.06 seconds. The single opt-in live test is skipped in ordinary unit runs; live evidence is recorded separately.
-- **21 distinct browser scenarios** passed against a local production build, including the core planner, responsive and accessibility checks, PWA/offline flows, and two cloud-plan account-change scenarios.
+- **23 distinct browser scenarios** passed against a fresh local production build in 2.7 minutes, including the core planner, responsive and accessibility checks, PWA/offline flows, two cloud-plan account-change scenarios, and immediate-reload/blocked-storage regressions.
 - A scan of 153 source and built-client files found no matches for the configured server-secret values. The public Supabase project URL and publishable key are intentionally exposed; privileged keys remain server-side.
 
 Counts describe the completed checkpoint above. Hosted browser and account-flow checks are recorded separately below as they finish; a passed local test does not imply every deployed integration was exercised.
@@ -31,13 +31,15 @@ Auth configuration has been pushed and checked with zero managed differences: th
 
 Actual production browser checks passed password sign-in, explicit cloud save, exact plan load, persistence after reload, delete, and sign-out. Real authenticated Data API requests confirmed cross-owner reads/deletes cannot access another user's rows, ownership spoofing is rejected, and anonymous access is denied. Two disposable confirmed users were created without sending emails, then removed with their plan data. See [hosted authentication evidence](hosted-auth-verification.json).
 
-The real local-browser check exposed Next.js normalizing loopback IPs to `localhost`, causing a same-origin save to return 403. The reviewed fix restores only an explicit validated loopback Host with a matching port; arbitrary and forwarded hosts remain untrusted. Focused regression tests cover IPv4, IPv6, hostname substitution, ports, protocols, and callback destinations. The two cloud-plan race scenarios separately use controlled responses to verify account changes and delayed list requests.
+The real local-browser check exposed Next.js normalizing loopback IPs to `localhost`, causing a same-origin save to return 403. The reviewed fix restores only an explicit validated loopback Host with a matching port; arbitrary and forwarded hosts remain untrusted. Focused regression tests cover IPv4, IPv6, hostname substitution, ports, protocols, and callback destinations. Actual account CRUD passed on both the local loopback and deployed production origins. The two cloud-plan race scenarios separately use controlled responses to verify account changes and delayed list requests.
+
+The first GitHub browser run exposed a draft-saving debounce race during immediate reload. Basket edits now persist synchronously. A regression freezes browser timers, edits a restored draft, and reloads before any deferred save can run. A separate blocked-storage scenario confirms calculation and export remain available with explicit storage feedback.
 
 **Remaining email limitation:** a custom SMTP sender is still needed for unrestricted public confirmation and password-reset delivery. Supabase's default email service is restricted. The app retains email confirmation and leaves guest planning available; unrestricted public signup delivery is not claimed.
 
 ## PWA coverage
 
-The deployed UI passed 12 page-and-viewport checks across six routes at 375 px and 1440 px, with HTTP 200 responses, no detected accessibility violations, no page errors, and no horizontal overflow. The demo's 54-second, 1080p pitch video loaded and advanced during playback, and its seven caption cues were present. See [deployed UI verification](deployed-ui-verification.json).
+The deployed UI passed 12 page-and-viewport checks across six routes at 375 px and 1440 px, with HTTP 200 responses, no detected accessibility violations, no page errors, and no horizontal overflow. The initial visual pitch cut also played; see the dated [deployed UI verification](deployed-ui-verification.json). The final Ainsley-narrated pitch has 13 speech-aligned caption cues, and the public 160-second technical walkthrough has 12 scene captions. Separate [video verification](video/public-video-verification.json) records playback checks for the delivered files.
 
 The installable web app includes standalone metadata, original app icons, platform-specific installation instructions, and safe-area support. Automated checks cover icon dimensions, credential-free public precaching, cache exclusions, failed-refresh preservation, install-prompt handling, and a disconnected reload that calculates and exports the real synthetic Example plan. Live and account data remain online-only.
 

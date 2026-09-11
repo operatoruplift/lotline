@@ -53,7 +53,6 @@ async function readResponse<T>(response: Response): Promise<T> {
 export function Planner({ initialMode, cloudEnabled = true }: { initialMode: Mode; cloudEnabled?: boolean }) {
   const [mode, setMode] = useState<Mode>(initialMode);
   const [basket, setBasket] = useState<Basket>(() => copyBasket(initialMode === 'example' ? DEFAULT_BASKET : EMPTY_BASKET));
-  const [hydrated, setHydrated] = useState(false);
   const [saved, setSaved] = useState<'pending' | 'saved' | 'unavailable'>('pending');
   const [catalog, setCatalog] = useState<CatalogResponse | null>(null);
   const [catalogLoading, setCatalogLoading] = useState(initialMode === 'live');
@@ -92,6 +91,13 @@ export function Planner({ initialMode, cloudEnabled = true }: { initialMode: Mod
   const insufficientUsdc = confirmedUsdc !== null && allocatedTotal !== null && confirmedUsdc < allocatedTotal;
   const allZeroHoldings = holdings?.state === 'success' && holdings.holdings.length > 0 && holdings.holdings.every((holding) => holding.state === 'success' && holding.raw === '0');
 
+  const persistBasket = useCallback((next: Basket) => {
+    // The bounded, three-asset draft is small enough to save during the edit.
+    // A deferred write can be lost if the user reloads or navigates away.
+    try { setSaved(saveBasket(window.localStorage, next) ? 'saved' : 'unavailable'); }
+    catch { setSaved('unavailable'); }
+  }, []);
+
   const invalidate = useCallback((clearHoldings = false) => {
     revision.current += 1;
     activeQuote.current = '';
@@ -117,24 +123,16 @@ export function Planner({ initialMode, cloudEnabled = true }: { initialMode: Mod
       try { initialBasket = loadBasket(window.localStorage) ?? initialBasket; }
       catch { /* A browser can block local storage. The planner still works. */ }
       setBasket(initialBasket);
+      persistBasket(initialBasket);
       if (initialMode === 'example') {
         const example = exampleView(initialBasket);
         setHoldings(example.holdings);
         setQuotes(example.quotes);
         setProjections(example.projections);
       }
-      setHydrated(true);
     });
     return () => { cancelled = true; };
-  }, [initialMode]);
-
-  useEffect(() => {
-    if (!hydrated) return;
-    const timer = window.setTimeout(() => {
-      try { setSaved(saveBasket(window.localStorage, basket) ? 'saved' : 'unavailable'); } catch { setSaved('unavailable'); }
-    }, 250);
-    return () => window.clearTimeout(timer);
-  }, [basket, hydrated]);
+  }, [initialMode, persistBasket]);
 
   useEffect(() => {
     const update = () => { setOnline(navigator.onLine); setNow(Date.now()); };
@@ -161,8 +159,8 @@ export function Planner({ initialMode, cloudEnabled = true }: { initialMode: Mod
 
   function updateBasket(next: Basket, selectionChanged = false) {
     invalidate(selectionChanged);
-    setSaved('pending');
     setBasket(next);
+    persistBasket(next);
     if (selectionChanged && mode === 'example') setHoldings(getExampleHoldings(next.items.map((item) => item.mint)));
   }
 
@@ -177,6 +175,7 @@ export function Planner({ initialMode, cloudEnabled = true }: { initialMode: Mod
       const nextBasket = basket.items.length === 0 || basket.items.some((item) => !EXAMPLE_ASSETS.some((asset) => asset.mint === item.mint)) ? copyBasket(DEFAULT_BASKET) : basket;
       const example = exampleView(nextBasket);
       setBasket(nextBasket);
+      persistBasket(nextBasket);
       setHoldings(example.holdings);
       setQuotes(example.quotes);
       setProjections(example.projections);

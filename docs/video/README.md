@@ -4,13 +4,13 @@ The pitch uses a native Higgsedit 0.14.0 timeline, original Lotline graphics, an
 
 ## Source and previews
 
-- [Watch the 54-second pitch visual cut](https://d2ol7oe51mr4n9.cloudfront.net/user_316WRAwjtWmpOAHb5tUQ2Grs4QP/a669773a-6a53-4db3-9797-172a20bd3ab4.mp4)
+- [Watch the narrated 54-second pitch](https://d2ol7oe51mr4n9.cloudfront.net/user_316WRAwjtWmpOAHb5tUQ2Grs4QP/b87047f8-d625-4416-b6f7-485f4c92b73e.mp4)
 - [Native edit source](pitch.mjs)
 - [54-second storyboard](../pitch-storyboard.md)
-- [Editable Higgsedit project ZIP](https://d2ol7oe51mr4n9.cloudfront.net/user_316WRAwjtWmpOAHb5tUQ2Grs4QP/95e4d4b9-8eeb-4ef4-ba98-264206f9539b.zip)
+- [Editable Higgsedit project ZIP](https://d2ol7oe51mr4n9.cloudfront.net/user_316WRAwjtWmpOAHb5tUQ2Grs4QP/9d753b4b-a7b5-4198-8907-1c43ce559ee9.zip)
 - [Rendered contact sheet](https://d2ol7oe51mr4n9.cloudfront.net/user_316WRAwjtWmpOAHb5tUQ2Grs4QP/0e0dcb3a-5385-48d9-a21c-4a4baa7a23ae.png)
 
-The archive contains the native `project.json`, imported media, original screenshots, cropped screen assets, and `pitch.mjs`. It is an editable file-backed project, not a hosted editor link. Use a compatible Higgsedit installation to open it.
+The archive contains the native `project.json`, imported media, original screenshots, cropped screen assets, six Ainsley narration takes, captions, the narration ledger, and `pitch.mjs`. Use a compatible Higgsedit installation to open this editable file-backed project.
 
 ```sh
 higgsedit check project
@@ -27,7 +27,9 @@ The UI assets come from the public repository at commit `233b9d2`. The exact all
 
 ## Narration status
 
-Voice selection is pending. The current edit is a visual cut with readable explanatory text. A Higgsfield voice picker was requested; spoken narration can be generated only after the exact voice ID and voice type are selected. The storyboard supplies the intended narration.
+Narration is complete in the user-selected **Ainsley** preset voice. Higgsfield generated six Seed Audio takes at neutral speech and pitch settings. Every take's wording was checked using Whisper, and measured speech fits the original scene windows. The 54-second visual timeline is preserved; no audio was accelerated or time-stretched. Only trailing silence in the fifth take was trimmed.
+
+The final MP4 includes stereo AAC audio at 48 kHz, with a measured peak of −1.7 dB. Thirteen English caption cues follow the spoken phrases using measured word timestamps and timeline offsets. The exact voice pair, generation IDs, text, and placements are recorded in [pitch-narration.json](pitch-narration.json); file metadata and verification are in [delivery.json](delivery.json).
 
 ## Visual review
 

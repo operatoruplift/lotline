@@ -1,0 +1,127 @@
+{
+  "title": "Lotline technical walkthrough",
+  "status": "rendered_uploaded_confirmed",
+  "format": "Silent native motion graphics with full on-screen explanations",
+  "durationSeconds": 160,
+  "width": 1920,
+  "height": 1080,
+  "fps": 30,
+  "frames": 4800,
+  "videoCodec": "h264",
+  "audioStreams": 0,
+  "sizeBytes": 5384569,
+  "sha256": "a9fd66bdee6ae1d83ecdf8af4cd3a8d0c33281a8984be593a615bdc21d8bef1e",
+  "renderer": "Higgsedit 0.14.0 native CPU compositor in Higgsfield sandbox",
+  "diagnostics": [],
+  "fallbacks": [],
+  "videoUrl": "https://d2ol7oe51mr4n9.cloudfront.net/user_316WRAwjtWmpOAHb5tUQ2Grs4QP/73bd8c85-4fb7-4ba5-8b07-dd9eab8db488.mp4",
+  "projectZipUrl": "https://d2ol7oe51mr4n9.cloudfront.net/user_316WRAwjtWmpOAHb5tUQ2Grs4QP/470178d4-2c27-4b87-99b4-98904698449f.zip",
+  "contactSheetUrl": "https://d2ol7oe51mr4n9.cloudfront.net/user_316WRAwjtWmpOAHb5tUQ2Grs4QP/194ecde7-127b-4e0f-9634-92ff16ab3ab8.png",
+  "uploads": [
+    {
+      "type": "video",
+      "mediaId": "73bd8c85-4fb7-4ba5-8b07-dd9eab8db488",
+      "confirmed": true
+    },
+    {
+      "type": "file",
+      "mediaId": "470178d4-2c27-4b87-99b4-98904698449f",
+      "confirmed": true
+    },
+    {
+      "type": "image",
+      "mediaId": "194ecde7-127b-4e0f-9634-92ff16ab3ab8",
+      "confirmed": true
+    }
+  ],
+  "source": "docs/video/technical.mjs",
+  "captions": "public/videos/technical.en.vtt",
+  "sourceReview": "Source excerpts and claims match app; recommended connector/text correction applied before final render.",
+  "validation": {
+    "nativeProjectCheck": "clean",
+    "eslint": "passed",
+    "timeline": "12 contiguous scenes, 160 seconds",
+    "probe": "H.264 1920x1080 30fps, 4800 frames, 160 seconds",
+    "browserPlayback": "Passed in production build at375px and1440px:160s1080p video advances,12English cues,zeroaxe violations/pageerrors/overflow. Evidence:public-video-verification.json"
+  },
+  "chapters": [
+    {
+      "start": 0,
+      "end": 12,
+      "title": "Exact planning. Read-only by design.",
+      "summary": "Choose assets, percentages, and a USDC budget. Lotline reads balances and requests estimates without assembling, signing, or submitting transactions."
+    },
+    {
+      "start": 12,
+      "end": 24,
+      "title": "A small, explicit trust boundary.",
+      "summary": "Next.js route handlers validate inputs and verify issuer metadata, Solana accounts, and Jupiter responses before returning normalized results."
+    },
+    {
+      "start": 24,
+      "end": 36,
+      "title": "Money enters as strings.",
+      "summary": "USDC becomes BigInt micro-units. Percentages become integer basis points totaling 10,000, without binary floating-point money calculations."
+    },
+    {
+      "start": 36,
+      "end": 50,
+      "title": "Largest remainder keeps the total exact.",
+      "summary": "10.000001 USDC at 50, 30, and 20 percent becomes 5.000001, 3.000000, and 2.000000. Equal remainders use stable basket order."
+    },
+    {
+      "start": 50,
+      "end": 64,
+      "title": "Verify identity before counting units.",
+      "summary": "Resolve the official issuer mint, validate its token program and scaling extension, sum every matching token account, and read the chain clock."
+    },
+    {
+      "start": 64,
+      "end": 77,
+      "title": "Raw units are not displayed holdings.",
+      "summary": "The official Token-2022 helper converts raw holdings plus raw quote output using the mint configuration and active scaled multiplier."
+    },
+    {
+      "start": 77,
+      "end": 90,
+      "title": "Jupiter receives three quote inputs.",
+      "summary": "Only input mint, output mint, and allocated raw amount are sent. No taker or execute call. Quotes expire after at most 30 seconds."
+    },
+    {
+      "start": 90,
+      "end": 103,
+      "title": "Old responses cannot become a new plan.",
+      "summary": "Edits invalidate estimates. Obsolete responses cannot overwrite a current plan. Provider failures and unavailable data remain explicit."
+    },
+    {
+      "start": 103,
+      "end": 116,
+      "title": "Optional accounts save explicit plans.",
+      "summary": "Verified sessions and row-level ownership protect up to 20 saved plans. Wallet addresses, balances, and quotes are excluded. Public email delivery still requires custom SMTP."
+    },
+    {
+      "start": 116,
+      "end": 131,
+      "title": "Installed web app; fresh data stays online.",
+      "summary": "The public offline Example can calculate and export. Live and private APIs stay online. Supabase coordinates bounded provider requests across Vercel instances."
+    },
+    {
+      "start": 131,
+      "end": 146,
+      "title": "Evidence separates fixtures from live results.",
+      "summary": "Tests cover failure and isolation paths. A dated deployed Live smoke observed six verified assets, confirmed zero balances, and a real quote. It is not current pricing."
+    },
+    {
+      "start": 146,
+      "end": 160,
+      "title": "Take the plan. Keep the choice.",
+      "summary": "Copy the plan, export CSV, or review independently on Jupiter. Explore the app at lotline-omega.vercel.app and source at github.com/operatoruplift/lotline."
+    }
+  ],
+  "notes": [
+    "All UI captures show synthetic Example mode.",
+    "Live observation is explicitly dated 2026-09-11 17:23–17:24 UTC.",
+    "This public MP4 contains no owner-claim token and requires no account.",
+    "The separate narrated Scrimba guide's ownership-token URL is not committed."
+  ]
+}
