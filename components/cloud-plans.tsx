@@ -6,6 +6,7 @@ import { Cloud, LoaderCircle, Plus } from 'lucide-react';
 import type { Basket } from '@/lib/domain/types';
 import { formatUsdc } from '@/lib/domain/math';
 import { browserSupabase } from '@/lib/supabase/client';
+import { authEmailEnabled } from '@/lib/supabase/config';
 import { basketToCloudPlan, cloudPlanRecord, cloudPlanToBasket, type CloudPlan } from '@/lib/supabase/plans';
 import styles from './auth.module.css';
 
@@ -117,7 +118,7 @@ export function CloudPlans({ basket, onLoad }: { basket: Basket; onLoad: (basket
     {session.state === 'loading' ? <p role="status"><LoaderCircle className={styles.spin} size={14} /> Checking account…</p>
       : session.state === 'configuration-required' ? <div className={styles.cloudLinks}><p>Accounts are not available on this deployment yet. Your draft is saved on this device.</p></div>
         : session.state === 'unavailable' ? <><p>Cloud plans are temporarily unavailable. You can keep planning locally.</p><button className={styles.textButton} disabled={busy || refreshing} onClick={() => void refresh()}>Retry account connection</button></>
-          : session.state === 'guest' ? <div className={styles.cloudLinks}><Link href="/sign-in">Sign in to save plans</Link><Link href="/sign-up">Create an account</Link></div>
+          : session.state === 'guest' ? <div className={styles.cloudLinks}><Link href="/sign-in">Sign in to save plans</Link>{authEmailEnabled() ? <Link href="/sign-up">Create an account</Link> : <span className={styles.emailPending}>New account email is being set up.</span>}</div>
             : <>
               <div className={styles.cloudHeading}><p className={styles.accountEmail}>Signed in as {session.user?.email ?? 'your account'}</p><button className={styles.textButton} onClick={signOut} disabled={busy || refreshing}>Sign out</button></div>
               <form onSubmit={save} className={styles.saveForm}><label htmlFor="cloud-plan-name">Plan name<input id="cloud-plan-name" value={name} onChange={event => setName(event.target.value)} maxLength={60} required disabled={busy || refreshing} /></label><button className={styles.primary} type="submit" disabled={busy || refreshing || !body || plans.length >= 20}>{busy || refreshing ? <LoaderCircle size={16} className={styles.spin} /> : <Plus size={16} />}Save this plan</button></form>

@@ -7,8 +7,8 @@ Verified September 11–12, 2026. The original chain and quote observations reta
 ## Completed build checks
 
 - Lint, TypeScript checking, and the Next.js production build passed.
-- A fresh full unit-test run passed all **106 deterministic tests** in 5.06 seconds. The single opt-in live test is skipped in ordinary unit runs; live evidence is recorded separately.
-- **23 distinct browser scenarios** passed against a fresh local production build in 2.7 minutes, including the core planner, responsive and accessibility checks, PWA/offline flows, two cloud-plan account-change scenarios, and immediate-reload/blocked-storage regressions.
+- A fresh full unit-test run passed all **149 deterministic tests**; the single opt-in live test is skipped in ordinary unit runs and live evidence is recorded separately.
+- **35 distinct browser scenarios** passed against the fresh local production build, including the core planner, responsive and accessibility checks, PWA/offline flows, two cloud-plan account-change scenarios, immediate-reload/blocked-storage regressions, four judge-readiness flows, and eight strict share-link journeys. The first pass also caught and fixed the mobile test selector race; the final focused production runs passed all four judge flows and all eight share-link flows.
 - A scan of 153 source and built-client files found no matches for the configured server-secret values. The public Supabase project URL and publishable key are intentionally exposed; privileged keys remain server-side.
 
 Counts describe the completed checkpoint above. Hosted browser and account-flow checks are recorded separately below as they finish; a passed local test does not imply every deployed integration was exercised.
@@ -21,13 +21,13 @@ The live check used a zero-balance public address. Nonzero holdings, multiple ac
 
 The separate UI observation exercised actual balances, a real quote, and scaled estimated resulting units through the production-build browser interface, with no browser errors or transaction-execution requests. It is dated evidence, not a permanent quote or a claim about a nonzero wallet balance.
 
-The deployed Vercel site also passed a Live smoke on September 11, 2026, from 17:23:50 to 17:24:04 UTC: six verified assets, confirmed zero AAPLx/USDC holdings, and a real keyless Jupiter quote for 10 USDC. All observed API responses returned HTTP 200. See [deployed Live observations](deployed-live-smoke.json).
+The deployed Vercel site also passed a Live smoke on September 11, 2026, from 17:23:50 to 17:24:04 UTC: six verified assets, confirmed zero AAPLx/USDC holdings, and a real keyless Jupiter quote for 10 USDC. All observed API responses returned HTTP 200. A separate judge audit requested one real no-wallet AAPLx estimate, which returned approximately `+0.02997652` units for `10.000001` USDC; this remains a dated quote, not a guaranteed price. See [deployed Live observations](deployed-live-smoke.json).
 
 ## Supabase and deployment
 
 The hosted Supabase project has both migrations applied: shared provider start-time reservations and owner-restricted contribution plans. Hosted database tests checked grants, row-level isolation, malformed plan rejection, and the 20-plan quota using synthetic fixtures inside a transaction that was rolled back. No test accounts or plans from that SQL transaction were retained.
 
-Auth configuration has been pushed and checked with zero managed differences: the site URL uses the deployed Vercel origin, callback redirects are exact, email confirmation is enabled, and the minimum password length is 12. The Supabase public configuration and server secret are set in local configuration and the Vercel development, preview, and production environments. The Git-connected Vercel deployment reached Ready at the linked public URL.
+Auth configuration has been pushed and checked with zero managed differences: the site URL uses the deployed Vercel origin, callback redirects are exact, email confirmation is enabled, and the minimum password length is 12. The Supabase public configuration, server secret, and explicit `NEXT_PUBLIC_AUTH_EMAIL_ENABLED=false` readiness flag are set in local configuration and the Vercel development, preview, and production environments. The Git-connected Vercel deployment reached Ready at the linked public URL.
 
 Actual production browser checks passed password sign-in, explicit cloud save, exact plan load, persistence after reload, delete, and sign-out. Real authenticated Data API requests confirmed cross-owner reads/deletes cannot access another user's rows, ownership spoofing is rejected, and anonymous access is denied. Two disposable confirmed users were created without sending emails, then removed with their plan data. See [hosted authentication evidence](hosted-auth-verification.json).
 
@@ -35,11 +35,13 @@ The real local-browser check exposed Next.js normalizing loopback IPs to `localh
 
 The first GitHub browser run exposed a draft-saving debounce race during immediate reload. Basket edits now persist synchronously. A regression freezes browser timers, edits a restored draft, and reloads before any deferred save can run. A separate blocked-storage scenario confirms calculation and export remain available with explicit storage feedback.
 
+The judge-readiness pass fixed four presentation issues found by testing the public journey: an empty saved Live draft could blank the linked Example, a mobile estimate left the numeric results below the viewport, replacing a full basket required deletion and re-entry, and an asset's verification evidence was hidden. Example entry now falls back to its complete deterministic split unless a shared link is awaiting consent; Get estimates scrolls to the results on narrow screens; assets can be replaced in place; and **Verify this plan** exposes exact allocation, issuer metadata, mint, token program, quote source, retrieval time, and freshness. A share link is reviewed in a dialog and never triggers balances or quotes.
+
 **Remaining email limitation:** a custom SMTP sender is still needed for unrestricted public confirmation and password-reset delivery. Supabase's default email service is restricted. The app retains email confirmation and leaves guest planning available; unrestricted public signup delivery is not claimed.
 
 ## PWA coverage
 
-The deployed UI passed 12 page-and-viewport checks across six routes at 375 px and 1440 px, with HTTP 200 responses, no detected accessibility violations, no page errors, and no horizontal overflow. The initial visual pitch cut also played; see the dated [deployed UI verification](deployed-ui-verification.json). The final Ainsley-narrated pitch has 13 speech-aligned caption cues, and the public 160-second technical walkthrough has 12 scene captions. Separate [video verification](video/public-video-verification.json) records playback checks for the delivered files.
+The deployed UI passed 12 page-and-viewport checks across six routes at 375 px and 1440 px, with HTTP 200 responses, no detected accessibility violations, no page errors, and no horizontal overflow. The initial visual pitch cut also played; see the dated [deployed UI verification](deployed-ui-verification.json). The final Ainsley-narrated pitch has 13 speech-aligned caption cues, and the public 160-second technical walkthrough has 12 scene captions. Separate [video verification](video/public-video-verification.json) records playback checks for the delivered files. The final source additionally includes responsive judge-readiness and share-link checks described above.
 
 The installable web app includes standalone metadata, original app icons, platform-specific installation instructions, and safe-area support. Automated checks cover icon dimensions, credential-free public precaching, cache exclusions, failed-refresh preservation, install-prompt handling, and a disconnected reload that calculates and exports the real synthetic Example plan. Live and account data remain online-only.
 

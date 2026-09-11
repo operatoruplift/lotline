@@ -4,7 +4,7 @@
 
 [Live website](https://lotline-omega.vercel.app) · [Try the example](https://lotline-omega.vercel.app/app?mode=example) · [Demo](https://lotline-omega.vercel.app/demo) · [Public source](https://github.com/operatoruplift/lotline)
 
-Lotline is a contribution calculator. It does not recommend allocations, rebalance holdings, value portfolios, custody funds, construct transactions, request signatures, or submit trades. Guest planning is available without an account. Optional Supabase accounts support named plans across devices.
+Lotline is a contribution calculator. It does not recommend allocations, rebalance holdings, value portfolios, custody funds, construct transactions, request signatures, or submit trades. Guest planning is available without an account. Optional Supabase accounts support named plans across devices when email delivery is configured; the launch deployment keeps new signup and recovery forms gated until its SMTP sender is verified.
 
 ## Run locally
 
@@ -30,6 +30,7 @@ npm run dev
 | `JUPITER_API_KEY` | Server only | Optional while documented keyless access remains supported. |
 | `NEXT_PUBLIC_SUPABASE_URL` | Public, build time | Hosted Supabase URL for accounts and shared provider coordination. |
 | `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | Public, build time | Current `sb_publishable_` key for optional authentication and owner-scoped cloud plans. |
+| `NEXT_PUBLIC_AUTH_EMAIL_ENABLED` | Public, build time | Set to the exact string `true` only after testing custom SMTP signup and recovery delivery. The launch deployment uses `false`; existing users can still sign in. |
 | `SUPABASE_SECRET_KEY` | Server only | Current `sb_secret_` key for shared provider request coordination; required on Vercel. Account and cloud-plan paths do not use this privileged key. |
 | `LOTLINE_SHARED_LIMITS` | Server only | Set to `true` to require the shared limiter locally. Vercel requires it automatically. |
 
@@ -43,7 +44,9 @@ Missing configuration or failed upstream calls produce explicit unavailable stat
 2. Optionally load a public wallet's selected-token and USDC balances.
 3. Choose **Get estimates**. The results show exact USDC allocation, estimated received units, and estimated resulting units when balances are available.
 4. Copy the plan or download its CSV. To review a trade independently, copy the mint and exact USDC amount, open Jupiter, select that asset, and enter the amount there.
-5. Optionally sign in and choose **Save this plan** to keep a named plan across devices. Signing in alone does not upload the current draft.
+5. Optionally sign in and choose **Save this plan** to keep a named plan across devices. Signing in alone does not upload the current draft. New signup and recovery email forms appear only after `NEXT_PUBLIC_AUTH_EMAIL_ENABLED=true` is set following a real SMTP delivery test.
+
+You can also choose **Split evenly** for a deterministic equal distribution, replace an asset without rebuilding the basket, or use **Copy plan link**. A link carries only the mode, budget, verified-mint choices, and percentages in a URL fragment. The recipient reviews it in a dialog before applying it; wallet addresses, balances, quotes, and account data never enter the link.
 
 The external link opens only `https://jup.ag/`. Lotline cannot observe or confirm a purchase. A later holdings reload is a fresh wallet read, not evidence of a specific trade.
 
@@ -87,13 +90,13 @@ The type-check command generates Next.js route types before running TypeScript, 
 
 ## Supabase and Vercel deployment
 
-The hosted Supabase project and Git-connected Vercel project are configured, both database migrations have been applied, and required Supabase public and secret values are set in development, preview, and production environments. The live site is linked above. See the [deployment configuration](docs/deployment.md) and [integration verification](docs/integration-verification.md) for dated checks and remaining limitations.
+The hosted Supabase project and Git-connected Vercel project are configured, both database migrations have been applied, and required Supabase public and secret values are set in development, preview, and production environments. The live site is linked above. See the [deployment configuration](docs/deployment.md) and [integration verification](docs/integration-verification.md) for dated checks and remaining limitations. The launch `NEXT_PUBLIC_AUTH_EMAIL_ENABLED=false` flag makes the signup and recovery state explicit to judges while preserving existing-user sign-in and owner-scoped cloud plans.
 
 For a separate deployment:
 
 1. Create a Supabase project and apply both versioned migrations in `supabase/migrations/`. With the Supabase CLI, link your project and run `supabase db push`.
 2. Enable email/password authentication with confirmation and a minimum password length of 12. Set the correct site origin and allow its `/auth/callback` and `/auth/callback?next=/auth/update-password` redirects. Preserve existing settings when sharing a project.
-3. Configure a custom SMTP sender for public signup and password-reset delivery. Supabase's default SMTP is restricted; unrestricted delivery has not been established for this launch. Email verification stays enabled, and guest planning remains available.
+3. Configure a custom SMTP sender for public signup and password-reset delivery. Supabase's default SMTP is restricted; unrestricted delivery has not been established for this launch. Email verification stays enabled, guest planning remains available, and only after a real confirmation and recovery delivery test should you set `NEXT_PUBLIC_AUTH_EMAIL_ENABLED=true` and rebuild.
 4. Import the repository into Vercel with the Next.js preset and Node 22 or newer. Set the variables above in every intended environment before building; public Supabase values must exist at build time.
 5. Deploy, then check Example, Live data, sign-in, saved-plan isolation, and production PWA behavior using that deployment's actual configuration.
 
@@ -113,7 +116,7 @@ No hackathon submission is claimed. The [Stocklana check](docs/stocklana-check.m
 
 - `app/`: website, planner, demo, authentication, privacy, offline page, and narrow API routes.
 - `components/`: responsive planner, account controls, installation UI, and shared visual components.
-- `lib/domain/`: pure exact math, plan identity, storage schema, text/CSV exports.
+- `lib/domain/`: pure exact math, plan identity, bounded share-link encoding, storage schema, text/CSV exports.
 - `lib/server/`: verified catalog, read-only Solana data, quote-only Jupiter adapter, and shared provider limits.
 - `lib/supabase/`: public/browser and server clients plus cloud-plan validation.
 - `supabase/`: versioned migrations and database isolation verification.

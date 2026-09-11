@@ -10,3 +10,8 @@ export function supabaseConfig() {
     return { url: parsed.origin, key };
   } catch { return null; }
 }
+
+/** Enable only after signup and recovery email delivery has been verified. */
+export function authEmailEnabled(): boolean {
+  return process.env.NEXT_PUBLIC_AUTH_EMAIL_ENABLED === 'true';
+}

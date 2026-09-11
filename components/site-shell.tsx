@@ -2,13 +2,13 @@ import Link from 'next/link';
 import { ArrowUpRight } from 'lucide-react';
 import { Brand } from './brand';
 
-export function SiteHeader({ active }: { active?: 'app' | 'how' }) {
+export function SiteHeader({ active, dataMode }: { active?: 'app' | 'how'; dataMode?: 'example' | 'live' }) {
   return <header className="site-header"><div className="header-inner">
     <Brand />
     <nav aria-label="Main navigation">
       <Link href="/how-it-works" className={active === 'how' ? 'nav-link active' : 'nav-link'} aria-current={active === 'how' ? 'page' : undefined}>How it works</Link>
       <Link href="/sign-in" className="nav-link account-link">Sign in</Link>
-      {active === 'app' ? <span className="network-badge"><span />Solana mainnet</span> : <Link className="header-cta" href="/app">Make a plan <ArrowUpRight size={15} /></Link>}
+      {active === 'app' ? <span className={`network-badge${dataMode === 'example' ? ' network-example' : ''}`}><span />{dataMode === 'example' ? 'Synthetic example' : 'Solana mainnet'}</span> : <Link className="header-cta" href="/app">Make a plan <ArrowUpRight size={15} /></Link>}
     </nav>
   </div></header>;
 }

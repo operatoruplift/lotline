@@ -30,6 +30,10 @@
 .notice strong { font-size:14px; }
 .notice p { margin-top:8px; }
 .notice a { display:flex; gap:8px; align-items:center; font-weight:600; margin-top:12px; text-decoration:underline; text-underline-offset:3px; }
+.readiness { padding:22px; }
+.readiness > svg { display:block; margin-bottom:14px; }
+.readiness strong { display:block; line-height:1.5; }
+.readiness a { min-height:44px; }
 .success { display:flex; align-items:flex-start; gap:8px; }
 .success svg { flex-shrink:0; margin-top:2px; }
 .error { color:#8b3430; background:#fff2ec; border:1px solid #edd5c8; }
@@ -42,6 +46,7 @@
 .cloud button,.cloud a { min-height:44px; }
 .cloudLinks { display:flex; gap:16px; margin-top:12px; flex-wrap:wrap; }
 .cloudLinks a { display:inline-flex; align-items:center; color:#345b3c; font-size:12px; font-weight:600; text-decoration:underline; text-underline-offset:3px; }
+.emailPending { display:inline-flex; align-items:center; color:#697465; font-size:11px; }
 .textButton { color:#45613f; background:transparent; border:0; cursor:pointer; font-size:12px; font-weight:600; padding:8px 0; white-space:nowrap; }
 .saveForm { display:flex; gap:12px; align-items:flex-end; margin-top:18px; }
 .saveForm label { display:grid; flex:1; min-width:0; gap:8px; font-size:12px; color:#485b41; }

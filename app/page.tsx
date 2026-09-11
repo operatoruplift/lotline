@@ -45,7 +45,7 @@ export default function Home() {
       <div className="section-heading"><div><p className="eyebrow">BUILT AROUND YOUR NEXT STEP</p><h2>Small details.<br />A clearer plan.</h2></div><p>Everything you need to plan with care, wherever you are.</p></div>
       <div className="everyday-grid">
         <article><span className="feature-kicker">01 / PRECISION</span><h3>Every micro-USDC has a place.</h3><p>Your percentages become exact allocations. Mint-aware estimates account for how xStocks display units on Solana.</p><div className="precision-example"><span>10.000001 USDC</span><strong>5.000001 + 3 + 2</strong><small>Example split · 50 / 30 / 20</small></div></article>
-        <article><span className="feature-kicker">02 / CONTINUITY</span><h3>Pick up where you left off.</h3><p>Your plan saves on this device. With an optional account, deliberately save named plans and load them on another device.</p><Link href="/sign-up" className="text-button">Create an account <ArrowRight size={16} /></Link></article>
+        <article><span className="feature-kicker">02 / CONTINUITY</span><h3>A plan you can pass along.</h3><p>Your draft saves on this device. Copy a plan link to open the same exact budget and split on another screen. No account needed.</p><Link href="/app?mode=example" className="text-button">Try a shareable plan <ArrowRight size={16} /></Link></article>
         <article><span className="feature-kicker">03 / EVERYDAY ACCESS</span><h3>At home on your home screen.</h3><p>Install Lotline on your phone or desktop. Explore the labeled Example offline; reconnect for fresh estimates and account sync.</p><a href="#install-lotline" className="text-button">Install Lotline <ArrowRight size={16} /></a></article>
       </div>
     </section>

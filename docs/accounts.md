@@ -8,7 +8,7 @@ Set `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` at bui
 
 Apply `supabase/migrations/20260911163838_contribution_plans.sql`. It creates `public.lotline_contribution_plans` and two helpers in the non-exposed `lotline_private` schema. The API needs explicit SELECT, INSERT, and DELETE grants for the authenticated role; the migration supplies them together with forced row-level security. There is no UPDATE permission. No existing table grants are changed.
 
-Enable email/password authentication and keep email confirmation enabled. Add the deployed origin’s `/auth/callback` and `/auth/callback?next=/auth/update-password` to the Auth redirect allowlist. Add equivalent local URLs only for development. On a shared project preserve the existing Site URL and existing allowlist entries.
+Enable email/password authentication and keep email confirmation enabled. Add the deployed origin’s `/auth/callback` and `/auth/callback?next=/auth/update-password` to the Auth redirect allowlist. Add equivalent local URLs only for development. On a shared project preserve the existing Site URL and existing allowlist entries. Set `NEXT_PUBLIC_AUTH_EMAIL_ENABLED=true` only after a custom SMTP sender has delivered both a confirmation and a recovery message. Until then, `/sign-up` and `/auth/reset-password` deliberately explain that guest planning is ready while existing-user sign-in remains available.
 
 Supabase’s default SMTP service is limited and is not a substitute for a production email provider. Configure a real custom SMTP sender for unrestricted public signup and password-reset delivery. If sending fails, Lotline reports the failure and leaves guest planning available. It does not bypass email verification. No OAuth provider is advertised before it is configured.
 
@@ -44,7 +44,7 @@ Each account can keep 20 plans. A per-user transaction lock serializes the count
 
 The same two disposable test users were used for both origins, then deleted with their rows removed through the owner foreign key. Credentials were kept in memory and excluded from public artifacts. The users were confirmed through the admin API, so this test sent no emails and does **not** establish signup-confirmation or recovery-email delivery. A configured production SMTP sender remains necessary for unrestricted public email flows.
 
-The focused auth suite passed 37 checks. Two cloud-plan browser regressions also passed, covering account isolation while a request is pending and mutation blocking during a held refresh. A completed refresh cannot overwrite a newly saved or deleted plan because those mutations remain disabled until the refresh settles.
+The focused auth suite passed 42 checks after adding the explicit email-readiness gate and provider-error priority. Two cloud-plan browser regressions also passed, covering account isolation while a request is pending and mutation blocking during a held refresh. A completed refresh cannot overwrite a newly saved or deleted plan because those mutations remain disabled until the refresh settles. Share-link unit and browser checks cover strict fragments, consent, malformed payloads, private-data exclusion, and no automatic provider requests.
 
 ## Primary references
 
