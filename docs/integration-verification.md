@@ -2,7 +2,7 @@
 
 Verified September 11–12, 2026. The original chain and quote observations retain their September 11 UTC timestamps. See [live integration detail](live-integration.md), the exact [normalized live observations](live-smoke.json), and the separate [production-build UI observation](ui-live-smoke.json).
 
-[Deployed website](https://lotline-omega.vercel.app) · [Example planner](https://lotline-omega.vercel.app/app?mode=example) · [Demo](https://lotline-omega.vercel.app/demo) · [Public repository](https://github.com/operatoruplift/lotline)
+[Deployed website](https://lotlinesolana.vercel.app) · [Example planner](https://lotlinesolana.vercel.app/app?mode=example) · [Demo](https://lotlinesolana.vercel.app/demo) · [Public repository](https://github.com/operatoruplift/lotline)
 
 ## Completed build checks
 

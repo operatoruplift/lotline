@@ -2,9 +2,9 @@
 
 Verified September 12, 2026 (Asia/Ho_Chi_Minh; evidence timestamps use UTC).
 
-- Production website: https://lotline-omega.vercel.app
-- Interactive Example: https://lotline-omega.vercel.app/app?mode=example
-- Demo and pitch: https://lotline-omega.vercel.app/demo
+- Production website: https://lotlinesolana.vercel.app
+- Interactive Example: https://lotlinesolana.vercel.app/app?mode=example
+- Demo and pitch: https://lotlinesolana.vercel.app/demo
 - Public source: https://github.com/operatoruplift/lotline
 - Vercel project: `lotline`, connected to the public source repository, Next.js framework, Node 22, `npm ci` installation.
 - Dedicated Supabase project: `uemunksopacicpbjubtg`, named Lotline, region `us-east-1`, in operatoruplift's Org. Provisioned after the user approved the tool's $10/month project quote.

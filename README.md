@@ -2,7 +2,7 @@
 
 **A clear plan for your next xStocks contribution.** Choose up to three issuer-verified Solana xStocks, set your contribution percentages, enter a USDC budget, and request estimated units. Optionally read a public wallet's balances, then copy or export the plan for independent review on Jupiter.
 
-[Live website](https://lotline-omega.vercel.app) · [Try the example](https://lotline-omega.vercel.app/app?mode=example) · [Demo](https://lotline-omega.vercel.app/demo) · [Public source](https://github.com/operatoruplift/lotline)
+[Live website](https://lotlinesolana.vercel.app) · [Try the example](https://lotlinesolana.vercel.app/app?mode=example) · [Demo](https://lotlinesolana.vercel.app/demo) · [Public source](https://github.com/operatoruplift/lotline)
 
 Lotline is a contribution calculator. It does not recommend allocations, rebalance holdings, value portfolios, custody funds, construct transactions, request signatures, or submit trades. Guest planning is available without an account. Optional Supabase accounts support named plans across devices when email delivery is configured; the launch deployment keeps new signup and recovery forms gated until its SMTP sender is verified.
 
@@ -61,7 +61,7 @@ The external link opens only `https://jup.ag/`. Lotline cannot observe or confir
 
 ## Storage and services
 
-Guest basket settings and budget are saved in versioned localStorage on the current browser/device, with safe recovery from corrupt values. Supabase handles optional email/password authentication and session cookies. An explicit cloud save stores a plan name, verified mints, basis-point weights, and exact budget under the signed-in owner. Wallet addresses, balances, quotes, and projections are excluded. The database enforces owner access with forced row-level security, validates plan content, and limits each account to 20 plans. Users can load or delete their saved plans. See [accounts](docs/accounts.md) and [privacy and storage](https://lotline-omega.vercel.app/privacy).
+Guest basket settings and budget are saved in versioned localStorage on the current browser/device, with safe recovery from corrupt values. Supabase handles optional email/password authentication and session cookies. An explicit cloud save stores a plan name, verified mints, basis-point weights, and exact budget under the signed-in owner. Wallet addresses, balances, quotes, and projections are excluded. The database enforces owner access with forced row-level security, validates plan content, and limits each account to 20 plans. Users can load or delete their saved plans. See [accounts](docs/accounts.md) and [privacy and storage](https://lotlinesolana.vercel.app/privacy).
 
 Browser calls go only to narrow same-origin handlers. Server adapters validate issuer, Solana RPC, and Jupiter response data and expose normalized fields. RPC URLs, API keys, and raw provider errors are not returned. Catalog caching is approximately one hour; holdings approximately 15 seconds; identical quotes only briefly within freshness. Requests have timeouts, queue bounds, and a user-driven retry path.
 
