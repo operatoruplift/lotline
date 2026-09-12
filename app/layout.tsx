@@ -3,8 +3,25 @@ import { PwaSupport } from '@/components/pwa';
 import './globals.css';
 
 export const metadata: Metadata = {
+  metadataBase: new URL('https://lotlineonsolana.vercel.app'),
   title: { default: 'Lotline — Your next contribution, clearly.', template: '%s · Lotline' },
   description: 'A clear plan for your next xStocks contribution. Choose your split, get read-only estimates, and take your plan with you.',
+  alternates: { canonical: '/' },
+  openGraph: {
+    title: 'Lotline — Your next contribution, clearly.',
+    description: 'Plan your next xStocks contribution with exact USDC splits, read-only estimates, and a clear path to Jupiter.',
+    url: '/',
+    siteName: 'Lotline',
+    locale: 'en_US',
+    type: 'website',
+    images: [{ url: '/icons/icon-512.png', width: 512, height: 512, alt: 'Lotline mark' }],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Lotline — Your next contribution, clearly.',
+    description: 'Plan your next xStocks contribution with exact USDC splits and read-only estimates.',
+    images: ['/icons/icon-512.png'],
+  },
   icons: { icon: '/brand/favicon.svg', apple: '/icons/apple-touch-icon.png' },
   appleWebApp: { capable: true, title: 'Lotline', statusBarStyle: 'default' },
   applicationName: 'Lotline',

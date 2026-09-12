@@ -221,6 +221,6 @@ async function buildTechnical({ project, frame, text, rect, media }) {
       tx("Your next decision.",30,343,595,34),
       tx("Source, setup, and evidence included.",30,444,595,24,C.muted)
     ],.2)
-  ],"lotlinesolana.vercel.app · github.com/operatoruplift/lotline · Example screen shown");
+  ],"lotlineonsolana.vercel.app · github.com/operatoruplift/lotline · Example screen shown");
 }
 export default buildTechnical;

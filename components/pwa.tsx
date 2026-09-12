@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useLayoutEffect, useState } from 'react';
 import { Download, WifiOff } from 'lucide-react';
 import styles from './pwa.module.css';
 
@@ -9,8 +9,20 @@ interface InstallPromptEvent extends Event {
   userChoice: Promise<{ outcome: 'accepted' | 'dismissed' }>;
 }
 
+// The browser can dispatch beforeinstallprompt before React finishes hydrating
+// the support panel. Capture it at module load so the install action never
+// loses a prompt during that short handoff window.
+let pendingInstallPrompt: InstallPromptEvent | null = null;
+if (typeof window !== 'undefined') {
+  window.addEventListener('beforeinstallprompt', (event) => {
+    event.preventDefault();
+    pendingInstallPrompt = event as InstallPromptEvent;
+    window.dispatchEvent(new Event('lotline-install-prompt'));
+  });
+}
+
 export function PwaSupport() {
-  const [installPrompt, setInstallPrompt] = useState<InstallPromptEvent | null>(null);
+  const [installPrompt, setInstallPrompt] = useState<InstallPromptEvent | null>(() => pendingInstallPrompt);
   const [installed, setInstalled] = useState(false);
   const [isIos, setIsIos] = useState(false);
   const [offline, setOffline] = useState(false);
@@ -19,7 +31,7 @@ export function PwaSupport() {
   const [message, setMessage] = useState('');
   const [cacheState, setCacheState] = useState<'pending' | 'ready' | 'unavailable'>('pending');
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     let active = true;
     let expectedWorker: ServiceWorker | null = null;
     let preparationTimer: ReturnType<typeof setTimeout> | undefined;
@@ -29,8 +41,9 @@ export function PwaSupport() {
       setOffline(!navigator.onLine);
       if (navigator.onLine) expectedWorker?.postMessage({ type: 'LOTLINE_PREPARE_OFFLINE' });
     };
-    const onPrompt = (event: Event) => { event.preventDefault(); setInstallPrompt(event as InstallPromptEvent); };
-    const onInstalled = () => { setInstalled(true); setInstallPrompt(null); setInstructions(false); };
+    const onPrompt = (event: Event) => { event.preventDefault(); pendingInstallPrompt = event as InstallPromptEvent; setInstallPrompt(pendingInstallPrompt); };
+    const onPromptCaptured = () => { if (pendingInstallPrompt) setInstallPrompt(pendingInstallPrompt); };
+    const onInstalled = () => { setInstalled(true); pendingInstallPrompt = null; setInstallPrompt(null); setInstructions(false); };
     const onWorkerMessage = (event: MessageEvent) => {
       // A just-activated worker can answer before clients.claim() triggers the
       // first controllerchange event. Accept that exact registered worker too.
@@ -66,6 +79,7 @@ export function PwaSupport() {
         });
     });
     window.addEventListener('beforeinstallprompt', onPrompt);
+    window.addEventListener('lotline-install-prompt', onPromptCaptured);
     window.addEventListener('appinstalled', onInstalled);
     window.addEventListener('online', updateNetwork);
     window.addEventListener('offline', updateNetwork);
@@ -75,6 +89,7 @@ export function PwaSupport() {
       active = false;
       clearTimeout(preparationTimer);
       window.removeEventListener('beforeinstallprompt', onPrompt);
+      window.removeEventListener('lotline-install-prompt', onPromptCaptured);
       window.removeEventListener('appinstalled', onInstalled);
       window.removeEventListener('online', updateNetwork);
       window.removeEventListener('offline', updateNetwork);
@@ -90,6 +105,7 @@ export function PwaSupport() {
       await installPrompt.prompt();
       const choice = await installPrompt.userChoice;
       setMessage(choice.outcome === 'accepted' ? 'Installation accepted. Look for Lotline on your device.' : 'You can install Lotline later from your browser menu.');
+      pendingInstallPrompt = null;
       setInstallPrompt(null);
     } catch { setInstructions(true); setMessage('Use your browser menu to install Lotline.'); }
     finally { setInstalling(false); }

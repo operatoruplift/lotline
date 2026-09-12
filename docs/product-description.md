@@ -52,7 +52,7 @@ Lotline is a contribution calculator. It does not provide investment recommendat
 
 The application uses Next.js, TypeScript, React, and Tailwind, with narrow server-side adapters for issuer metadata, Solana RPC, and Jupiter. Supabase provides optional accounts, owner-scoped saved plans, and shared provider request coordination across Vercel instances. Exact allocation math is separately testable. Quote identity, response validation, bounded requests, and explicit failure states support a dependable planning workflow.
 
-[Make a plan](https://lotlinesolana.vercel.app/app) · [Try the example](https://lotlinesolana.vercel.app/app?mode=example) · [Watch the demo](https://lotlinesolana.vercel.app/demo) · [Explore the source](https://github.com/operatoruplift/lotline).
+[Make a plan](https://lotlineonsolana.vercel.app/app) · [Try the example](https://lotlineonsolana.vercel.app/app?mode=example) · [Watch the demo](https://lotlineonsolana.vercel.app/demo) · [Explore the source](https://github.com/operatoruplift/lotline).
 
 ---
 
