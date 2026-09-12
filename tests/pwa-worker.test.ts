@@ -25,7 +25,7 @@ function worker() {
   const caches = {
     open: vi.fn(async () => cache),
     match: cache.match,
-    keys: vi.fn(async () => ['lotline-public-example-v0', 'lotline-public-example-v1', 'unrelated-cache']),
+    keys: vi.fn(async () => ['lotline-public-example-v0', 'lotline-public-example-v1', 'lotline-public-example-v2', 'unrelated-cache']),
     delete: vi.fn(async () => true),
   };
   const fetch = vi.fn<(input: string | { url: string }, options?: RequestInit) => Promise<Response>>(async (input) => {
@@ -98,7 +98,11 @@ describe('public offline cache boundary', () => {
   it('does not store an online live page and only removes its own outdated caches', async () => {
     const w = worker();
     await w.dispatch('activate').waiting;
-    expect(w.caches.delete).toHaveBeenCalledExactlyOnceWith('lotline-public-example-v0');
+    expect(w.caches.delete).toHaveBeenCalledTimes(2);
+    expect(w.caches.delete).toHaveBeenCalledWith('lotline-public-example-v0');
+    expect(w.caches.delete).toHaveBeenCalledWith('lotline-public-example-v1');
+    expect(w.caches.delete).not.toHaveBeenCalledWith('lotline-public-example-v2');
+    expect(w.caches.delete).not.toHaveBeenCalledWith('unrelated-cache');
     const { response } = w.dispatch('fetch', { request: { url: `${w.origin}/app`, method: 'GET', mode: 'navigate' } });
     expect((await response)?.ok).toBe(true);
     expect(w.stored.size).toBe(0);
@@ -113,7 +117,8 @@ it('provides installable manifest dimensions and a maskable icon with a stable a
   expect(value.start_url).toBe('/app');
   expect(value.icons?.some(icon => icon.purpose === 'maskable')).toBe(true);
   for (const icon of value.icons ?? []) {
-    const png = readFileSync(new URL(`../public${icon.src}`, import.meta.url));
+    const pathname = new URL(icon.src, 'https://lotline.example').pathname;
+    const png = readFileSync(new URL(`../public${pathname}`, import.meta.url));
     expect(png.subarray(1, 4).toString()).toBe('PNG');
     const expected = Number(icon.sizes?.split('x')[0]);
     expect(png.readUInt32BE(16)).toBe(expected);
