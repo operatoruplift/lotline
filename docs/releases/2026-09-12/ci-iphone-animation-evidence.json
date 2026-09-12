@@ -1,0 +1,87 @@
+{
+  "version": 1,
+  "verifiedAt": "2026-09-12T16:48:02.807827+00:00",
+  "scope": "Test-only readiness wait before the iPhone PWA accessibility audit. Application code, animations, deployment and production configuration are unchanged.",
+  "ci": {
+    "runId": 34705712372,
+    "url": "https://github.com/operatoruplift/lotline/actions/runs/34705712372",
+    "resultBeforeRepair": {
+      "passed": 66,
+      "failed": 1,
+      "total": 67
+    },
+    "failedTest": "tests/e2e/pwa.spec.ts: iPhone viewport explains Safari installation without pretending to install",
+    "rule": "color-contrast",
+    "fullRerun": "Required after the test fix is committed; not established by the focused checks below."
+  },
+  "diagnosis": {
+    "element": "Footer paragraph: Made for Solana. Planning only. You review every trade.",
+    "ciObservation": {
+      "foreground": "#6b7a6d",
+      "background": "#f4f1e8",
+      "contrastRatio": 4.01,
+      "requiredRatio": 4.5
+    },
+    "cause": "The install button scroll brought the footer into view and started its entrance animation. Axe sampled the partially transparent ancestor during that fade, before its final colors.",
+    "traceEvidence": "The downloaded CI trace shows the target footer Reveal at data-seen=false immediately before clicking Install Lotline. The CSS defines a 240ms delay followed by a 720ms opacity animation.",
+    "localFrameEvidence": {
+      "paragraphComputedColorThroughout": "rgb(53, 75, 60) / #354B3C",
+      "ancestorOpacitySamples": [
+        "0",
+        "0.495701",
+        "0.907069",
+        "0.985925",
+        "0.999385",
+        "1"
+      ],
+      "finalAnimationState": "finished",
+      "finalAnimationCurrentTimeMs": 960
+    },
+    "steadyStateConclusion": "The existing steady-state text color was not the reported failing blended color. The full unchanged accessibility audit passed after actual animation completion."
+  },
+  "repair": {
+    "file": "tests/e2e/pwa.spec.ts",
+    "target": "Visible footer [data-reveal=\"footer\"] containing the exact Made for Solana paragraph text.",
+    "conditions": [
+      "data-seen is true",
+      "At least one actual CSS animation exists and all target animations report playState=finished",
+      "Computed ancestor opacity equals 1"
+    ],
+    "preserved": [
+      "Normal motion remains enabled",
+      "No arbitrary sleep",
+      "No hidden elements or excluded contrast checks",
+      "All existing WCAG 2 A, WCAG 2 AA and WCAG 2.1 AA Axe rules remain enabled"
+    ]
+  },
+  "focusedVerification": [
+    {
+      "origin": "http://127.0.0.1:3111",
+      "kind": "Local production build",
+      "test": "iPhone viewport explains Safari installation without pretending to install",
+      "passed": 1,
+      "failed": 0,
+      "runDurationSeconds": 10.3
+    },
+    {
+      "origin": "https://lotlineonsolana.vercel.app",
+      "kind": "Currently hosted production",
+      "test": "iPhone viewport explains Safari installation without pretending to install",
+      "passed": 1,
+      "failed": 0,
+      "runDurationSeconds": 11.0
+    }
+  ],
+  "checks": {
+    "focusedEslint": "passed",
+    "independentTypecheck": "passed",
+    "independentEslint": "passed",
+    "diffCheck": "passed"
+  },
+  "independentReview": {
+    "role": "TypeScript reviewer",
+    "verdict": "approved",
+    "findings": [],
+    "reason": "The one-way reveal observation and finite CSS animation with fill-mode both provide an observable finished state. The selected paragraph has no focusable descendant that would cancel the animation. The full contrast audit is preserved."
+  }
+}

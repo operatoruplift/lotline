@@ -24,6 +24,7 @@ The nine approved decorative videos remain unchanged. Their hashes and full-fram
 - The full **67-test browser suite** initially passed 66 and exposed one selector matching a hidden Next streaming subtree. The test was corrected to use the single accessible banner; all three affected responsive checks then passed at 375/768/1440 pixels. No application change was needed.
 - The two new video checks verify actual decoded video and audio, time advancement, midpoint seeking, all caption ranges, matching transcripts, native controls, mobile/desktop layout and Axe accessibility.
 - Independent code, TypeScript, Python-source and security review found no material issue. Final type/lint and diff checks passed after test-only repairs.
+- The first published CI run passed 66/67 browser checks and caught the iPhone installation audit sampling a footer fade before it finished. The test now waits for the actual animation to complete with normal motion intact, then runs unchanged Axe rules. Targeted local and hosted checks plus independent review passed. [CI animation diagnosis](releases/2026-09-12/ci-iphone-animation-evidence.json) records the first run and repair; the new commit receives a complete CI rerun.
 
 Local logs are retained in the workspace at `work/deploy-video-release/local-verify.log`, `local-browser.log`, `responsive-check.log` and `decorative-media.log`. They are excluded from Vercel uploads. GitHub CI runs the same complete production verification on the published source; its eventual status is separate from these local records.
 

@@ -37,6 +37,15 @@ test('iPhone viewport explains Safari installation without pretending to install
     await page.getByRole('button', { name: 'Install Lotline', exact: true }).click();
     await expect(page.getByText(/On iPhone or iPad, open this site in Safari/)).toBeVisible();
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
+    // Scrolling to install triggers the footer entrance. Audit its completed
+    // colors rather than a transient opacity blend, with normal motion intact.
+    const footerReveal = page.locator('footer:visible [data-reveal="footer"]').filter({ hasText: 'Made for Solana. Planning only.' });
+    await expect(footerReveal).toHaveAttribute('data-seen', 'true');
+    await expect.poll(() => footerReveal.evaluate(node => {
+      const animations = node.getAnimations();
+      return animations.length > 0 && animations.every(animation => animation.playState === 'finished');
+    })).toBe(true);
+    await expect(footerReveal).toHaveCSS('opacity', '1');
     expect((await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21aa']).analyze()).violations).toEqual([]);
   } finally { await context.close(); }
 });
