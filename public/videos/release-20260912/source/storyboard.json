@@ -1,0 +1,27 @@
+{
+  "product": {
+    "duration": 97.6,
+    "chapters": [
+      {"at":0,"until":11.68,"clip":"home","from":6,"title":"Your next contribution. Clearly.","kicker":"LOTLINE / PRODUCT FILM","number":"01","headline":"Your assets.\nYour split.","body":"An exact plan for each new\nUSDC contribution.","tag":"Current application · September 2026"},
+      {"at":11.68,"until":21.54,"clip":"catalog","from":6,"title":"More room to explore.","kicker":"PRACTICE WITHOUT AN ACCOUNT","number":"02","headline":"832 assets.\nUp to 10 per plan.","body":"Bundled asset identities.\nSynthetic practice estimates.\nNever market prices.","tag":"Example mode · synthetic data"},
+      {"at":21.54,"until":34.24,"clip":"plan","from":3.5,"title":"Every micro-USDC, assigned.","kicker":"SET YOUR CONTRIBUTION SPLIT","number":"03","headline":"50 / 30 / 20","body":"10.000001 USDC\n\n5.000001 + 3.000000\n+ 2.000000\n\nNothing lost to rounding.","tag":"Example mode · synthetic data"},
+      {"at":34.24,"until":45.32,"clip":"verify","from":5.5,"title":"A calculation you can inspect.","kicker":"VERIFY · COPY · EXPORT","number":"04","headline":"Clear amounts.\nVisible evidence.","body":"Inspect the exact split.\nKeep the verified identity.\nExport source and expiry.","tag":"Example mode · synthetic data"},
+      {"at":45.32,"until":68.58,"clip":"live","from":2.5,"title":"Live facts. Visible sources.","kicker":"SOLANA + JUPITER","number":"05","headline":"Read. Verify.\nEstimate.","body":"Issuer and mint verification.\nRaw-to-display conversion.\nAmount-specific quotes.\n\nFresh for at most 30 seconds.","tag":"Live capture · 12 Sep 2026 · quotes expire"},
+      {"at":68.58,"until":82.96,"clip":"repeat","from":2,"title":"A plan for next time.","kicker":"RETURN · CHANGE THE AMOUNT","number":"06","headline":"Keep your split.\nStart fresh.","body":"Budget and split saved here.\nEdits clear old estimates.\n\nOptional named cloud plans.\nInstallable web app.","tag":"Example mode · synthetic data"},
+      {"at":82.96,"until":97.6,"clip":"handoff","from":1.5,"title":"Review on your terms.","kicker":"THE DECISION STAYS YOURS","number":"07","headline":"Plan in Lotline.\nReview on Jupiter.","body":"Copy the exact amount\nand verified mint.\n\nNo signing or execution\ninside Lotline.","tag":"Example handoff UI · independent Jupiter review"}
+    ]
+  },
+  "technical": {
+    "duration":164.5,
+    "chapters":[
+      {"at":0,"until":17.9,"clip":"plan","from":3.5,"title":"A focused contribution planner.","kicker":"LOTLINE / TECHNICAL WALKTHROUGH","number":"01","headline":"832 identities.\n10 assets per plan.","body":"One next contribution.\nUser-chosen percentages.\nExact USDC allocations.","tag":"Example mode · synthetic data"},
+      {"at":17.9,"until":38.1,"clip":"verify","from":5.5,"title":"Exact integer arithmetic.","kicker":"FINANCIAL CALCULATION BOUNDARY","number":"02","headline":"BigInt.\nBasis points.\nLargest remainder.","body":"10.000001 USDC\n= 5.000001 + 3.000000\n+ 2.000000\n\nInvalid fields cannot pass.","tag":"Example mode · synthetic data"},
+      {"at":38.1,"until":54.6,"clip":"catalog","from":6,"title":"Example stays isolated.","kicker":"A CLEAR PRACTICE BOUNDARY","number":"03","headline":"Real identities.\nSynthetic values.","body":"Original six fixtures preserved.\n826 extra practice identities.\nZero illustrative holdings.\n\nUnsupported drafts stay visible.","tag":"Example mode · synthetic data"},
+      {"at":54.6,"until":73.5,"clip":"live","from":11,"title":"Why Solana verification matters.","kicker":"ISSUER → MINT → DISPLAY UNITS","number":"04","headline":"Raw amounts\nneed context.","body":"Mint + token program checks.\nToken-2022 scaled UI amounts.\nMint configuration + chain time.\n\nDecimal formatting is not enough.","tag":"Live capture · 12 Sep 2026 · quotes expire"},
+      {"at":73.5,"until":97.02,"clip":"live","from":2.5,"title":"Bounded quotes. Honest freshness.","kicker":"READ-ONLY JUPITER REQUESTS","number":"05","headline":"Batches of 3.\nAt most 30 seconds.","body":"Amount-specific quote requests.\nIndependent source timestamps.\nExplicit unavailable routes.\n\nNo transaction or signing wallet.","tag":"Live capture · 12 Sep 2026 · quotes expire"},
+      {"at":97.02,"until":118.94,"clip":"verify","from":7,"title":"Exports carry their evidence.","kicker":"QUOTE STATE AT EXPORT TIME","number":"06","headline":"Copying never\nrefreshes a quote.","body":"Exact allocations and mints.\nQuote source and expiry.\nFresh or stale at export.\n\nChanged input clears estimates.","tag":"Example mode · synthetic data"},
+      {"at":118.94,"until":145.1,"clip":"account","from":1.5,"title":"Local first. Cloud by choice.","kicker":"DRAFTS · SUPABASE · OFFLINE","number":"07","headline":"Save the plan.\nProtect the account.","body":"Device budget and split.\nOptional named cloud plans.\nRow level security.\nNo private API response caching.\n\nEmail needs a configured sender.","tag":"Sign-in UI · no account or email action"},
+      {"at":145.1,"until":164.5,"clip":"handoff","from":1.5,"title":"The execution boundary stays clear.","kicker":"INSTALLABLE WEB APP","number":"08","headline":"Repeatable plans.\nIndependent review.","body":"Mobile and desktop browsers.\nExample calculations offline.\nLive estimates online.\n\nNo brokerage or auto-trading.","tag":"Example handoff UI · independent Jupiter review"}
+    ]
+  }
+}

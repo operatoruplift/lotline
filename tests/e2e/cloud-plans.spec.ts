@@ -87,3 +87,39 @@ test('a held plan refresh blocks mutations, then a saved plan survives the next 
     expect(reads).toBe(3);
   } finally { releasePlans!(); }
 });
+
+for (const action of ['refresh', 'save', 'delete'] as const) {
+  test(`an expired session during ${action} clears private plans and preserves the local draft`, async ({ page }) => {
+    const privateName = 'Private plan before expiry';
+    let planReads = 0;
+    await page.route('**/api/auth/session', route => route.fulfill({ json: { state: 'signed-in', user: { id: 'expiring-owner', email: 'owner@example.test' } } }));
+    await page.route(/\/api\/plans(?:\?|$)/, route => {
+      if (route.request().method() === 'GET' && ++planReads === 1) {
+        return route.fulfill({ json: { state: 'success', plans: [{
+          id: 'ccf2689b-66a7-45c0-8d7f-ebdf84c7e2e7', name: privateName, budget_raw: '10000001',
+          allocations: [{ mint: 'XsbEhLAtcf6HdfpFZ5xEMdqW8nfAvcsP5bdudRLJzJp', bps: '10000' }], created_at: '2026-09-11T16:00:00Z',
+        }] } });
+      }
+      // An authentication failure remains authoritative even without a JSON body.
+      return route.fulfill({ status: 401, contentType: 'text/plain', body: 'Session expired' });
+    });
+    await page.goto('/app?mode=example');
+    const cloud = page.getByRole('region', { name: 'Keep a plan for later' });
+    await expect(cloud.getByText(privateName, { exact: true })).toBeVisible();
+    await page.getByLabel('USDC budget').fill('125.000001');
+    await cloud.getByLabel('Plan name', { exact: true }).fill('Unsaved account name');
+    if (action === 'refresh') await cloud.getByRole('button', { name: 'Refresh saved plans', exact: true }).click();
+    if (action === 'save') await cloud.getByRole('button', { name: 'Save this plan', exact: true }).click();
+    if (action === 'delete') await cloud.getByRole('button', { name: `Delete ${privateName}`, exact: true }).click();
+    await expect(cloud.getByRole('alert')).toContainText('Your account session ended.');
+    await expect(cloud.getByRole('link', { name: 'Sign in to save plans', exact: true })).toBeVisible();
+    await expect(cloud.getByText(privateName, { exact: true })).toHaveCount(0);
+    await expect(cloud.getByText('Signed in as owner@example.test')).toHaveCount(0);
+    await expect(cloud.getByLabel('Plan name', { exact: true })).toHaveCount(0);
+    await expect(cloud.getByRole('button', { name: /^(Load|Delete|Save this plan|Sign out)/ })).toHaveCount(0);
+    await expect(page.getByLabel('USDC budget')).toHaveValue('125.000001');
+    await expect(page.getByRole('button', { name: 'Get estimates', exact: true })).toBeEnabled();
+    await page.getByRole('button', { name: 'Get estimates', exact: true }).click();
+    await expect(page.getByRole('button', { name: 'Download CSV', exact: true })).toBeEnabled();
+  });
+}

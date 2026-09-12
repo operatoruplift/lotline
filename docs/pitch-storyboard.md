@@ -1,4 +1,12 @@
-# Lotline pitch film
+# Lotline pitch films
+
+**Last updated:** September 12, 2026.
+
+The current **97.6-second** product film uses the redesigned application, the 832-identity Example catalog, plans of up to ten assets, and fresh Ainsley narration generated through Higgsfield. Use its [current storyboard source](../public/videos/release-20260912/source/storyboard.json) and [film, transcript and production record](video-release.md) for release materials. It is deployed on the [demo page](https://lotlineonsolana.vercel.app/demo), with mobile and desktop playback, audio, seeking, captions and accessibility checks recorded in the [release verification](release-verification.md).
+
+## Archival 54-second pitch — September 11
+
+The following storyboard is preserved as the record of the original film. Its three-asset limit and earlier logo/screens are historical; they do not describe the current application. The original timeline, audio, captions and delivery JSON remain unchanged.
 
 Delivered: 54 seconds, 16:9, 1920 × 1080, with the user-selected Ainsley narration and 13 speech-aligned captions. Exact generation and timing records are in [pitch-narration.json](video/pitch-narration.json), and confirmed output URLs are in [delivery.json](video/delivery.json). Example fixtures are not presented as live prices.
 

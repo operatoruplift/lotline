@@ -1,6 +1,18 @@
 # Lotline technical walkthrough
 
-[Watch or download the public technical MP4](https://d2ol7oe51mr4n9.cloudfront.net/user_316WRAwjtWmpOAHb5tUQ2Grs4QP/73bd8c85-4fb7-4ba5-8b07-dd9eab8db488.mp4) · [Editable Higgsedit project ZIP](https://d2ol7oe51mr4n9.cloudfront.net/user_316WRAwjtWmpOAHb5tUQ2Grs4QP/470178d4-2c27-4b87-99b4-98904698449f.zip) · [Contact sheet](https://d2ol7oe51mr4n9.cloudfront.net/user_316WRAwjtWmpOAHb5tUQ2Grs4QP/194ecde7-127b-4e0f-9634-92ff16ab3ab8.png)
+**Last updated:** September 12, 2026.
+
+The current technical film uses fresh browser recordings, the redesigned application and **Ainsley narration generated through Higgsfield**. It explains ten-asset contribution plans, all 832 Example identities, exact integer allocation, issuer/Solana verification, scaled units, bounded quote batches, export freshness, device/cloud storage and offline boundaries. Synthetic Example footage is labeled separately from the dated read-only Live capture; recorded values are not current prices at playback time.
+
+The delivered file is **164.5 seconds (2:44.5), 1920 × 1080, 30 fps**, with H.264 video, AAC narration and 37 English caption cues. The [current manifest](video-release-manifest.json) records its measured duration, source files, generation jobs, hashes and full-decode verification.
+
+[Current technical MP4](../public/videos/release-20260912/technical.mp4) · [English captions](../public/videos/release-20260912/technical.en.vtt) · [Current transcript and measured verification](video-release.md#technical-transcript) · [Demo page](https://lotlineonsolana.vercel.app/demo)
+
+## Archival silent technical film — September 11
+
+The following 160-second delivery record is historical. It preserves the earlier screen design, three-asset walkthrough and dated evidence. The original source, captions and delivery JSON are unchanged; the current film above has narration.
+
+[Archival technical MP4](https://d2ol7oe51mr4n9.cloudfront.net/user_316WRAwjtWmpOAHb5tUQ2Grs4QP/73bd8c85-4fb7-4ba5-8b07-dd9eab8db488.mp4) · [Editable Higgsedit project ZIP](https://d2ol7oe51mr4n9.cloudfront.net/user_316WRAwjtWmpOAHb5tUQ2Grs4QP/470178d4-2c27-4b87-99b4-98904698449f.zip) · [Contact sheet](https://d2ol7oe51mr4n9.cloudfront.net/user_316WRAwjtWmpOAHb5tUQ2Grs4QP/194ecde7-127b-4e0f-9634-92ff16ab3ab8.png)
 
 The public video is **2 minutes 40 seconds, 1920 × 1080, 30 fps**. It uses native motion graphics, readable code excerpts, and actual Lotline Example screens. This cut is silent with complete on-screen explanations; [English scene-summary captions](../public/videos/technical.en.vtt) accompany the web player.
 
@@ -8,13 +20,13 @@ Its 12 chapters cover the read-only boundary, browser/server architecture, BigIn
 
 The native render completed with 4,800 frames and no diagnostics or compositor fallbacks. The source passed ESLint and a separate source review. The editable project and all required Example images are included in the ZIP; the reusable source is [technical.mjs](video/technical.mjs). Exact file metadata, chapter timing, and verification status are recorded in [technical-delivery.json](video/technical-delivery.json).
 
-## Separate narrated interactive explainer
+## Archival Scrimba interactive explainer — September 11
 
 [Scrimba interactive explainer](https://scrimba.com/explain/guide00s6b8rut?fullscreen=1) — this claim-stripped link may require account access. The private owner link is provided separately and is not committed to the repository. Public MP4 media is linked from the project README.
 
 **Player length:** approximately 3 minutes 15 seconds (the provider estimated 2:50 of narration before playback). **Format:** a hosted Scrimba explainer with 15 narrated slides, original architecture diagrams, a largest-remainder animation, and exact excerpts from the Lotline repository. Visibility was requested as unlisted. Account-free playback was verified using the original private owner URL; removing its claim parameter produces a locked player.
 
-The authored source is [technical-explainer.opml](video/technical-explainer.opml). The original editorial outline is [technical-video-script.md](technical-video-script.md). This source-based explainer is separate from the browser demo and the Higgsfield pitch video.
+The unchanged archival source is [technical-explainer.opml](video/technical-explainer.opml). The original editorial outline is preserved in [technical-video-script.md](technical-video-script.md). This source-based explainer is separate from the current narrated technical MP4. It has not been regenerated with the new design or expanded catalog and should not be used as the current public demo.
 
 ## Chapters
 

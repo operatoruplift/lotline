@@ -1,61 +1,84 @@
 import Link from 'next/link';
 import Image from 'next/image';
-import { Activity, ArrowRight, ArrowUpRight, Check, CheckCheck, CircleDollarSign, ClipboardList, Gauge, LockKeyhole, ScanLine, ShieldCheck, Sparkles } from 'lucide-react';
+import { ArrowRight, ArrowUpRight, Check, CheckCheck, CircleDollarSign, ClipboardList, Gauge, LockKeyhole, Play, ScanLine, ShieldCheck } from 'lucide-react';
 import { SiteHeader, SiteFooter } from '@/components/site-shell';
-import { logoPathForSymbol } from '@/lib/domain/assets';
+import { DecorativeVideo } from '@/components/decorative-video';
+import { Reveal } from '@/components/reveal';
+import { DEFAULT_BASKET, EXAMPLE_ASSETS } from '@/lib/demo/example';
+import { formatUsdc, validatePlan } from '@/lib/domain/math';
+import styles from './home.module.css';
 
-const previewRows = [
-  { initial: 'A', symbol: 'AAPLx', name: 'Apple xStock', share: '50', amount: '500.00', units: '2.500000', cls: 'apple' },
-  { initial: 'M', symbol: 'MSFTx', name: 'Microsoft xStock', share: '30', amount: '300.00', units: '0.750000', cls: 'microsoft' },
-  { initial: 'N', symbol: 'NVDAx', name: 'NVIDIA xStock', share: '20', amount: '200.00', units: '1.600000', cls: 'nvidia' },
+const rows = validatePlan(DEFAULT_BASKET).allocations.map(allocation => ({ ...allocation, asset: EXAMPLE_ASSETS.find(asset => asset.mint === allocation.mint)!, amount: formatUsdc(allocation.usdcRaw).replace(/0000$/, '') }));
+function SplitBar() { return <div className={styles.splitBar} role="img" aria-label="50 percent Apple, 30 percent Microsoft, 20 percent NVIDIA">{rows.map(row => <span key={row.mint} style={{ width: `${row.weightBps / 100}%` }} />)}</div>; }
+function Signal() { return <div className={styles.signal} aria-label="Illustrative allocation signal, not a price chart"><div><span>YOUR ALLOCATION</span><strong><i /> 100% assigned</strong></div><svg viewBox="0 0 300 38" preserveAspectRatio="none" aria-hidden="true"><path d="M0 29 C35 29 36 24 58 25 S84 31 102 21 S128 20 146 23 S169 30 185 18 S211 16 226 18 S250 25 268 11 S289 10 300 5" /><circle cx="268" cy="11" r="3" /></svg></div>; }
+const features = [
+  { title: 'Verified assets', media: 'feature-verified', kicker: '01 / START WITH IDENTITY', text: 'Explore issuer-verified xStocks and ETFs on Solana. Each asset is matched to its exact mint, with its official logo.', link: 'Explore the catalog', href: '/app' },
+  { title: 'Your chosen split', media: 'feature-split', kicker: '02 / MAKE IT YOURS', text: 'Choose up to ten assets. Set your own percentages. Every micro-USDC goes exactly where your split says it should.', link: 'Choose your split', href: '/app' },
+  { title: 'A plan to keep', media: 'feature-keep', kicker: '03 / TAKE IT WITH YOU', text: 'Keep a draft on this device, share an exact plan link, or export a CSV. Optional accounts let you save plans across devices.', link: 'Try a shareable plan', href: '/app?mode=example' },
+];
+const steps = [
+  ['Choose your split.', 'Choose verified xStocks from the catalog. Set the percentages for your new contribution.'],
+  ['See what adds up.', 'Enter a USDC budget for quote estimates. Add a public wallet address to see your current units, too.'],
+  ['Take the next step.', 'Copy or export your plan. Open Jupiter to independently review amounts and fees before trading.'],
 ];
 
 export default function Home() {
-  return <><SiteHeader /><main id="main" className="landing-page">
-    <section className="hero page-width">
-      <div className="hero-ambient" aria-hidden="true"><span className="ambient-orb ambient-orb-one" /><span className="ambient-orb ambient-orb-two" /><span className="ambient-grid" /></div>
-      <div className="hero-copy">
-        <div className="eyebrow hero-eyebrow"><span className="eyebrow-rule" /> SMALL CONTRIBUTIONS. CLEAR INTENT. <span className="hero-status"><span className="hero-status-dot" /> LIVE PLANNER</span></div>
-        <h1>A clear plan for<br />your next <span>xStocks</span><br />contribution.</h1>
-        <p className="hero-description">Your assets. Your percentages. See how your next USDC contribution adds up, then take the plan with you.</p>
-        <div className="hero-actions"><Link href="/app" className="button primary large">Make a plan <ArrowRight size={17} /></Link><Link href="/app?mode=example" className="text-button">Try the example <ArrowUpRight size={16} /></Link></div>
-        <div className="hero-reassurance"><LockKeyhole size={14} /><span>Start without an account. No signatures.</span></div>
-        <div className="hero-proof-list" aria-label="Lotline planner details"><div><strong>3</strong><span>example<br />assets</span></div><div><strong>1</strong><span>read-only<br />wallet view</span></div><div><strong>0</strong><span>custody<br />required</span></div></div>
+  return <><SiteHeader /><main id="main" className={styles.home} data-design="kova">
+    <section className={styles.hero} aria-labelledby="hero-heading">
+      <DecorativeVideo className={styles.heroFilm} src="/media/design/hero-boomerang.mp4" mobileSrc="/media/design/hero-boomerang-mobile.mp4" poster="/media/design/hero-poster.jpg" label="Hero boomerang" priority />
+      <div className={styles.ambient} aria-hidden="true"><i /><i /><span /></div>
+      <div className={styles.heroCopy}>
+        <p className={styles.kicker}>SMALL CONTRIBUTIONS. CLEAR INTENT.</p>
+        <h1 id="hero-heading" className={styles.heroTitle}>Your next contribution,<br /><em>clearly.</em></h1>
+        <p className={styles.heroDescription}>Choose your xStocks. Set your split. Review your next step.</p>
+        <div className={styles.heroActions}><Link href="/app" className="button primary large">Make a plan <ArrowRight size={17} /></Link><Link href="/app?mode=example" className="button secondary large">Try the example <ArrowUpRight size={16} /></Link><Link href="/demo" className="text-button"><Play size={14} /> Watch demo</Link></div>
+        <p className={styles.reassurance}><LockKeyhole size={13} /> Start without an account. No signatures.</p>
       </div>
-      <div className="hero-visual">
-        <div className="preview-topline"><span className="tiny-dot" /> A SMALL PLAN. A CLEAR NEXT STEP.</div>
-        <div className="preview-card-stack"><div className="product-preview" aria-label="Illustrative contribution plan">
-          <div className="preview-window-bar" aria-hidden="true"><span><i /><i /><i /></span><small>lotline / planner</small><span className="window-live"><span /> synced</span></div>
-          <div className="preview-heading"><span>Your next contribution</span><span className="example-pill">Example</span></div>
-          <div className="preview-amount">1,000<span>.00</span> <small>USDC</small></div>
-          <div className="preview-signal" aria-hidden="true"><div className="signal-copy"><span>ALLOCATION SIGNAL</span><strong><span className="signal-pulse" /> Balanced</strong></div><svg viewBox="0 0 300 38" preserveAspectRatio="none"><path className="signal-track" d="M0 29 C35 29 36 24 58 25 S84 31 102 21 S128 20 146 23 S169 30 185 18 S211 16 226 18 S250 25 268 11 S289 10 300 5" /><path className="signal-path" d="M0 29 C35 29 36 24 58 25 S84 31 102 21 S128 20 146 23 S169 30 185 18 S211 16 226 18 S250 25 268 11 S289 10 300 5" /><circle cx="268" cy="11" r="3" /></svg></div>
-          <div className="allocation-bar" role="img" aria-label="50 percent Apple, 30 percent Microsoft, 20 percent NVIDIA"><span style={{ width: '50%' }} /><span style={{ width: '30%' }} /><span style={{ width: '20%' }} /></div>
-          <div className="preview-labels"><span>YOUR SPLIT</span><span>CONTRIBUTION</span></div>
-          {previewRows.map((row) => <div className="preview-row" key={row.symbol}><span className={`asset-avatar ${row.cls}`}>{logoPathForSymbol(row.symbol) ? <Image className="asset-logo" src={logoPathForSymbol(row.symbol)!} alt="" width={36} height={36} unoptimized /> : row.initial}</span><div className="preview-asset"><strong>{row.symbol}</strong><span>{row.name}</span></div><span className="preview-weight">{row.share}%</span><strong className="preview-usdc">{row.amount}<small>USDC</small></strong></div>)}
-          <div className="preview-bottom"><span><CheckCheck size={15} /> Every micro-USDC accounted for</span><ArrowUpRight size={17} /></div>
-        </div></div>
-        <div className="preview-assurances"><div className="preview-float-chip"><ShieldCheck size={13} /><span>Read-only by default</span></div><div className="preview-float-chip"><Gauge size={13} /><span>Micro-USDC precise</span></div></div>
-        <div className="preview-note"><span className="annotation-line" /> Your contribution split. Set by you.</div>
-        <p className="preview-disclosure">Illustrative assets and amounts. No live quotes shown.</p>
+      <div className={styles.previews} aria-label="Illustrative contribution plan">
+        <div className={styles.previewEntrance}><article className={`${styles.preview} ${styles.contribution}`} data-preview="contribution">
+          <div className={styles.windowBar}><span><i /><i /><i /></span> lotline / planner</div>
+          <div className={styles.previewHeading}><h2>Your next contribution</h2><span className={styles.example}>Example</span></div>
+          <p className={styles.amount}>1,000<span>.00</span> <small>USDC</small></p>
+          <Signal /><SplitBar />
+          <div className={styles.previewFoot}><CheckCheck size={16} /> Every micro-USDC accounted for</div>
+        </article></div>
+        <div className={styles.previewEntrance}><article className={`${styles.preview} ${styles.chosen}`} data-preview="split">
+          <div className={styles.windowBar}><span><i /><i /><i /></span> YOUR PLAN, AT A GLANCE</div>
+          <div className={styles.previewHeading}><h2>Your chosen split</h2><span className={styles.example}>Example</span></div>
+          <p className={styles.splitCaption}>A 1,000.00 USDC contribution</p>
+          <div className={styles.rows}>{rows.map(row => <div className={styles.row} key={row.mint} data-preview-row>
+            <Image src={row.asset.logoUrl!} alt="" width={34} height={34} unoptimized />
+            <div><strong>{row.asset.symbol}</strong><span>{row.asset.name}</span></div>
+            <span className={styles.weight}>{row.weightBps / 100}%</span><strong className={styles.rowAmount}>{row.amount}<small>USDC</small></strong>
+          </div>)}</div><SplitBar /><div className={styles.previewFoot}><ShieldCheck size={15} /> Your percentages. Your decision.</div>
+        </article></div>
+        <div className={styles.previewEntrance}><article className={`${styles.preview} ${styles.detail}`} data-preview="detail">
+          <p className={styles.detailKicker}>EXAMPLE ALLOCATION DETAIL</p><h2>Before your<br />next step.</h2>
+          <dl><div><dt>Contribution</dt><dd>1,000.00 USDC</dd></div><div><dt>Allocated</dt><dd>1,000.00 USDC</dd></div><div><dt>Unallocated</dt><dd>0.00 USDC</dd></div></dl>
+          <p className={styles.ready}><Check size={15} /> Ready to review</p><p className={styles.detailNote}>Request a fresh estimate in the planner. No live quotes shown here.</p>
+        </article></div>
       </div>
+      <div className={styles.assurances}><span><ShieldCheck size={14} /> Read-only by default</span><span><Gauge size={14} /> Micro-USDC precise</span></div>
+      <p className={styles.disclosure}>Illustrative assets and amounts. No live quotes shown.</p>
     </section>
-    <section className="trust-strip page-width" aria-label="Lotline principles"><span><Check size={15} /> Issuer-verified assets</span><span><ScanLine size={15} /> Read-only wallet balances</span><span><CircleDollarSign size={15} /> Quote-only estimates</span><span><ClipboardList size={15} /> A plan you can keep</span></section>
-    <section className="steps-section page-width">
-      <div className="section-heading"><div><p className="eyebrow">LESS GUESSWORK. MORE CLARITY.</p><h2>One contribution.<br />Three simple steps.</h2></div><p>A focused tool for the assets you already have in mind.</p></div>
-      <div className="steps-grid">
-        <article className="motion-card"><span className="step-number">01</span><span className="step-signal"><Sparkles size={12} /> START HERE</span><h3>Choose your split.</h3><p>Choose verified xStocks from the catalog. Set the percentages for your new contribution.</p><div className="step-meter" aria-hidden="true"><span /><span /><span /></div></article>
-        <article className="motion-card"><span className="step-number">02</span><span className="step-signal"><Activity size={12} /> SEE IT ADD UP</span><h3>See what adds up.</h3><p>Enter a USDC budget for quote estimates. Add a public wallet address to see your current units, too.</p><div className="step-meter step-meter-mid" aria-hidden="true"><span /><span /><span /></div></article>
-        <article className="motion-card"><span className="step-number">03</span><span className="step-signal"><ArrowUpRight size={12} /> TAKE IT WITH YOU</span><h3>Take the next step.</h3><p>Copy or export your plan. Open Jupiter to independently review amounts and fees before trading.</p><div className="step-meter step-meter-last" aria-hidden="true"><span /><span /><span /></div></article>
-      </div>
+    <section className={styles.principles} aria-label="Lotline principles"><span><Check size={15} /> Issuer-verified assets</span><span><ScanLine size={15} /> Read-only wallet balances</span><span><CircleDollarSign size={15} /> Quote-only estimates</span><span><ClipboardList size={15} /> A plan you can keep</span></section>
+    <section className={styles.features} id="features" aria-labelledby="features-heading">
+      <Reveal effect="blur"><p className={styles.kicker}>BUILT AROUND YOUR NEXT STEP</p><h2 id="features-heading" className={styles.sectionTitle}>Less guesswork.<br /><em>More clarity.</em></h2></Reveal>
+      <div className={styles.featureGrid}>{features.map((feature, index) => <Reveal className={styles.featureWrap} delay={index * 200} key={feature.title}><article className={styles.feature} data-feature={index + 1}>
+        <DecorativeVideo className={styles.featureFilm} src={`/media/design/${feature.media}.mp4`} poster={`/media/design/${feature.media}-poster.jpg`} label={feature.title} />
+        <p className={styles.featureKicker}>{feature.kicker}</p><h3>{feature.title}</h3><p>{feature.text}</p>
+        {index === 1 && <SplitBar />}{index === 2 && <div className={styles.route} aria-hidden="true"><span>YOUR PLAN</span><i /><span>ANY SCREEN</span></div>}
+        <Link href={feature.href} className="text-button">{feature.link} <ArrowRight size={16} /></Link>
+      </article></Reveal>)}</div>
     </section>
-    <section className="everyday-section page-width" id="features">
-      <div className="section-heading"><div><p className="eyebrow">BUILT AROUND YOUR NEXT STEP</p><h2>Small details.<br />A clearer plan.</h2></div><p>Everything you need to plan with care, wherever you are.</p></div>
-      <div className="everyday-grid">
-        <article className="motion-card feature-card"><span className="feature-kicker">01 / PRECISION</span><h3>Every micro-USDC has a place.</h3><p>Your percentages become exact allocations. Mint-aware estimates account for how xStocks display units on Solana.</p><div className="precision-example"><span>10.000001 USDC</span><strong>5.000001 + 3 + 2</strong><small>Example split · 50 / 30 / 20</small></div></article>
-        <article className="motion-card feature-card"><span className="feature-kicker">02 / CONTINUITY</span><h3>A plan you can pass along.</h3><p>Your draft saves on this device. Copy a plan link to open the same exact budget and split on another screen. No account needed.</p><div className="feature-route" aria-hidden="true"><span>YOUR PLAN</span><i /><span>ANY SCREEN</span></div><Link href="/app?mode=example" className="text-button">Try a shareable plan <ArrowRight size={16} /></Link></article>
-        <article className="motion-card feature-card"><span className="feature-kicker">03 / EVERYDAY ACCESS</span><h3>At home on your home screen.</h3><p>Install Lotline on your phone or desktop. Explore the labeled Example offline; reconnect for fresh estimates and account sync.</p><div className="feature-device" aria-hidden="true"><span /><span /><span /></div><a href="#install-lotline" className="text-button">Install Lotline <ArrowRight size={16} /></a></article>
-      </div>
+    <section className={styles.how} aria-labelledby="how-heading">
+      <Reveal><div className={styles.support}><DecorativeVideo src="/media/design/support.mp4" poster="/media/design/support-poster.jpg" label="A little room to think" /><p>A little room to think clearly.</p></div></Reveal>
+      <Reveal delay={120}><p className={styles.kicker}>ONE CONTRIBUTION. THREE SIMPLE STEPS.</p><h2 id="how-heading" className={styles.sectionTitle}>How your<br /><em>plan works.</em></h2><ol className={styles.steps}>{steps.map(([title, text], index) => <li key={title}><span>0{index + 1}</span><div><h3>{title}</h3><p>{text}</p></div><div className={styles.meter} aria-hidden="true"><i /><i /><i /></div></li>)}</ol><Link href="/how-it-works" className="text-button">A closer look at the details <ArrowRight size={16} /></Link></Reveal>
     </section>
-    <section className="intent-section page-width"><span className="intent-symbol" aria-hidden="true">↗</span><div><span className="intent-kicker"><ShieldCheck size={13} /> YOUR KEYS. YOUR CALL.</span><h2>A plan, with you in control.</h2><p>Lotline splits your next contribution using percentages you choose. Your existing holdings stay in context. Every trading decision stays with you.</p></div><Link href="/app?mode=example" className="text-button">Try the example <ArrowRight size={16} /></Link></section>
+    <section className={styles.everyday} aria-label="Precision and everyday access">
+      <Reveal><p className={styles.kicker}>A LITTLE MORE PRECISION</p><h2>Every micro-USDC<br />has a place.</h2><p>Your percentages become exact allocations. Mint-aware estimates account for how xStocks display units on Solana.</p><div className={styles.precision}><span>10.000001 USDC</span><strong>5.000001 + 3 + 2</strong><small>A separate precision example · 50 / 30 / 20</small></div></Reveal>
+      <Reveal delay={150}><p className={styles.kicker}>WHEREVER YOUR NEXT STEP TAKES YOU</p><h2>At home on<br />your home screen.</h2><p>Install Lotline on your phone or desktop. Explore the labeled Example offline; reconnect for fresh estimates and account sync.</p><div className={styles.devices} aria-hidden="true"><span /><span /><span /></div><a href="#install-lotline" className="text-button">Install Lotline <ArrowRight size={16} /></a></Reveal>
+    </section>
+    <Reveal className={styles.intent}><span className={styles.intentSymbol} aria-hidden="true">↗</span><div><p className={styles.kicker}><ShieldCheck size={13} /> YOUR KEYS. YOUR CALL.</p><h2>A plan, with you in control.</h2><p>Lotline splits your next contribution using percentages you choose. Your existing holdings stay in context. Every trading decision stays with you.</p></div><Link href="/app?mode=example" className="text-button">Try the example <ArrowRight size={16} /></Link></Reveal>
   </main><SiteFooter /></>;
 }

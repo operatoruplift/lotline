@@ -5,6 +5,7 @@ import { createPlanIdentity, isCurrentResponse, isQuoteStale } from '../lib/doma
 import { validatePlan } from '../lib/domain/math';
 import { loadBasket, parseSavedBasket, saveBasket } from '../lib/domain/storage';
 import { MAX_PLAN_ASSETS } from '../lib/domain/limits';
+import type { Quote } from '../lib/domain/types';
 
 describe('safe local basket storage', () => {
   it('recovers corrupt JSON, disabled storage, unsupported versions and invalid shapes safely', () => {
@@ -80,15 +81,19 @@ describe('honest example fixtures and exports', () => {
     expect(getExampleQuotes([{ mint: EXAMPLE_ASSETS[0].mint, usdcRaw: '0' }]).quotes).toEqual([]);
   });
   it('returns and exports every selected example asset beyond the original three', () => {
-    const expanded = { ...DEFAULT_BASKET, items: EXAMPLE_ASSETS.map((asset, index) => ({ mint: asset.mint, percent: index < 4 ? '16.67' : '16.66' })) };
+    const selected = EXAMPLE_ASSETS.slice(-MAX_PLAN_ASSETS);
+    const expanded = { ...DEFAULT_BASKET, budget: '10.000001', items: selected.map(asset => ({ mint: asset.mint, percent: '10' })) };
     const plan = validatePlan(expanded);
     expect(plan.valid).toBe(true);
     const estimates = getExampleQuotes(plan.allocations);
-    expect(estimates.quotes).toHaveLength(6);
+    expect(estimates.quotes).toHaveLength(MAX_PLAN_ASSETS);
     expect(estimates.state).toBe('success');
-    expect(getExampleHoldings(expanded.items.map(item => item.mint)).holdings).toHaveLength(6);
+    expect(getExampleHoldings(expanded.items.map(item => item.mint)).holdings).toHaveLength(MAX_PLAN_ASSETS);
+    expect(plan.allocations.reduce((total, item) => total + BigInt(item.usdcRaw), 0n)).toBe(10_000_001n);
     const csv = buildPlanCsv({ ...input, basket: expanded, quotes: estimates.quotes });
-    for (const asset of EXAMPLE_ASSETS) expect(csv).toContain(asset.mint);
+    for (const asset of selected) expect(csv).toContain(asset.mint);
+    expect(csv).toContain('1.000001');
+    expect(csv).toContain('Example (synthetic estimates)');
   });
   it('exports verified identity, exact budgets, example label and review warning', () => {
     const csv = buildPlanCsv(input);
@@ -106,5 +111,96 @@ describe('honest example fixtures and exports', () => {
     expect(escapeCsvCell('line\n"quoted"')).toBe('"line\n""quoted"""');
     const malicious = EXAMPLE_ASSETS.map((asset, index) => index === 0 ? { ...asset, symbol: '=HYPERLINK("bad")' } : asset);
     expect(buildPlanCsv({ ...input, assets: malicious })).toContain('"\'=HYPERLINK(""bad"")"');
+  });
+});
+
+describe('exported estimate freshness', () => {
+  const fetchedAt = '2026-09-12T10:00:00.000Z';
+  const start = Date.parse(fetchedAt);
+  const basket = { ...DEFAULT_BASKET, budget: '10.000001' };
+  const allocations = validatePlan(basket).allocations;
+  const quotes: Quote[] = allocations.map(allocation => ({
+    mint: allocation.mint, usdcRaw: allocation.usdcRaw, state: 'success',
+    outRaw: '123000000', units: '1.5375', fetchedAt,
+    expiresAt: '2026-09-12T10:01:00.000Z', source: 'Jupiter · metis',
+  }));
+  const input = { mode: 'live' as const, basket, assets: EXAMPLE_ASSETS, quotes };
+
+  it('keeps exact amounts and original sources while stamping the single export instant', () => {
+    const csv = buildPlanCsv(input, start + 29_999);
+    const text = buildPlanText(input, start + 29_999);
+    expect(csv).toContain('"5.000001"');
+    expect(csv).toContain('"3.000000"');
+    expect(csv).toContain('"2.000000"');
+    expect(csv.match(/"Fresh at export"/g)).toHaveLength(3);
+    expect(csv.match(/"2026-09-12T10:00:29.999Z"/g)).toHaveLength(3);
+    expect(csv).toContain('"Quote fresh until (UTC)"');
+    expect(csv).toContain('"2026-09-12T10:00:30.000Z"');
+    expect(text).toContain('Quote source: Jupiter · metis');
+    expect(text).toContain(`Quote retrieved: ${fetchedAt}`);
+    expect(text).toContain('Exported at: 2026-09-12T10:00:29.999Z');
+    expect(text).toContain('Exporting does not refresh estimates.');
+    expect(quotes.every(quote => quote.fetchedAt === fetchedAt && quote.expiresAt === '2026-09-12T10:01:00.000Z')).toBe(true);
+  });
+
+  it('marks old units stale at the exact deadline without hiding the historical estimate', () => {
+    const csv = buildPlanCsv(input, start + 30_000);
+    const text = buildPlanText(input, start + 30_000);
+    expect(csv.match(/"Stale — refresh required"/g)).toHaveLength(3);
+    expect(csv).not.toContain('"Fresh at export"');
+    expect(text).toContain('Estimated units: 1.5375');
+    expect(text).toContain('Estimate status at export: Stale — refresh required');
+    expect(text).toContain(`Quote retrieved: ${fetchedAt}`);
+  });
+
+  it('honors earlier provider expiry and independent original batch times', () => {
+    const mixed = [
+      { ...quotes[0], expiresAt: '2026-09-12T10:00:05.000Z' },
+      { ...quotes[1], fetchedAt: '2026-09-12T10:00:02.000Z' },
+      { ...quotes[2], fetchedAt: '2026-09-12T10:00:04.000Z' },
+    ];
+    const csv = buildPlanCsv({ ...input, quotes: mixed }, start + 5_000);
+    expect(csv.match(/"Stale — refresh required"/g)).toHaveLength(1);
+    expect(csv.match(/"Fresh at export"/g)).toHaveLength(2);
+    for (const expiry of ['2026-09-12T10:00:05.000Z', '2026-09-12T10:00:32.000Z', '2026-09-12T10:00:34.000Z']) expect(csv).toContain(`"${expiry}"`);
+    for (const quote of mixed) expect(csv).toContain(`"${quote.fetchedAt}"`);
+  });
+
+  it('distinguishes absent or mismatched requests from provider and unit failures', () => {
+    const partial: Quote[] = [
+      { ...quotes[0], usdcRaw: '1' },
+      { ...quotes[1], state: 'unavailable', outRaw: null, units: null },
+      { ...quotes[2], units: null },
+    ];
+    const csv = buildPlanCsv({ ...input, quotes: partial }, start + 1_000);
+    expect(csv.match(/"Not requested"/g)).toHaveLength(1);
+    expect(csv).toContain('"Unavailable — units could not be verified"');
+    expect(csv).toContain('"Unavailable","2026-09-12T10:00:01.000Z"');
+    expect(csv).not.toContain('"Fresh at export"');
+    expect(buildPlanText({ ...input, quotes: [] }, start)).toContain('Estimate status at export: Not requested');
+  });
+
+  it.each([
+    { fetchedAt: 'invalid', expiresAt: '2026-09-12T10:01:00.000Z' },
+    { fetchedAt, expiresAt: 'invalid' },
+    { fetchedAt: '2026-09-12T10:00:02.000Z', expiresAt: '2026-09-12T10:01:00.000Z' },
+    { fetchedAt, expiresAt: fetchedAt },
+    { fetchedAt, expiresAt: '2026-09-12T09:59:59.000Z' },
+  ])('fails closed for invalid or inconsistent quote timing: %j', dates => {
+    const invalid = { ...quotes[0], ...dates };
+    const text = buildPlanText({ ...input, quotes: [invalid] }, start + 1_000);
+    expect(text).toContain('Estimate status at export: Unavailable — invalid quote timestamps');
+    expect(text).toContain('Estimated units: Unavailable');
+    expect(text).toContain('Fresh until: Unavailable');
+    expect(text).toContain(`Quote retrieved: ${dates.fetchedAt}`);
+    expect(text).not.toContain('Fresh at export');
+  });
+
+  it('escapes every added provider-controlled CSV field and rejects invalid export clocks', () => {
+    const csv = buildPlanCsv({ ...input, quotes: [{ ...quotes[0], source: '=HYPERLINK("bad")', fetchedAt: '\t=cmd()' }] }, start);
+    expect(csv).toContain('"\'=HYPERLINK(""bad"")"');
+    expect(csv).toContain('"\'\t=cmd()"');
+    expect(() => buildPlanCsv(input, NaN)).toThrow();
+    expect(() => buildPlanText(input, Infinity)).toThrow();
   });
 });

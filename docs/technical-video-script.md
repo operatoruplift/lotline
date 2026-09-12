@@ -1,4 +1,12 @@
-# Lotline technical walkthrough
+# Lotline technical narration
+
+**Last updated:** September 12, 2026.
+
+The released technical film's [current narration transcript and production record](video-release.md#technical-transcript) supersede the earlier outline below. It covers the redesigned application, 832 Example identities, ten assets per plan, original quote expiry in exports, saved-draft preservation, and current configuration limits. The transcript is taken from the completed Ainsley narration record, not this historical planning outline.
+
+## Archival technical outline — September 11
+
+Preserved for the original technical film and Scrimba source history. Its three-asset references and proposed timings are historical; use the current film and transcript in submission materials.
 
 Target: 2 minutes 40 seconds. Use actual browser and repository captures, readable type, and a calm voiceover. The time budget allows a short pause between concepts. Architecture diagrams may be original SVG or HTML, but operational results must come from the running application.
 

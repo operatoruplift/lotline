@@ -1,0 +1,179 @@
+WEBVTT
+
+1
+00:00:02.000 --> 00:00:06.960
+Lotline turns a chosen xStocks split into an exact
+plan for the next USDC contribution.
+
+2
+00:00:07.680 --> 00:00:12.840
+The current release supports 10 assets per plan,
+with 832 identities in its bundled Example catalog.
+
+3
+00:00:13.320 --> 00:00:17.060
+This walkthrough uses the real application, and
+clearly labeled synthetic estimates.
+
+4
+00:00:17.900 --> 00:00:19.460
+The calculation boundary is explicit.
+
+5
+00:00:20.040 --> 00:00:23.920
+USDC is parsed into integer microunits and
+percentages into basis points.
+
+6
+00:00:24.540 --> 00:00:31.300
+Big integer arithmetic calculates each allocation,
+then the largest remainder method distributes
+leftover microunits deterministically.
+
+7
+00:00:31.300 --> 00:00:33.560
+The total always matches the entered budget.
+
+8
+00:00:34.000 --> 00:00:37.440
+Invalid percentage fields never produce a complete
+allocation badge.
+
+9
+00:00:38.100 --> 00:00:39.880
+Example is isolated from Live providers.
+
+10
+00:00:40.620 --> 00:00:42.580
+The original six practice assets keep their
+fixtures.
+
+11
+00:00:43.080 --> 00:00:46.620
+Additional identities use zero illustrative holdings
+and a generic unit estimate.
+
+12
+00:00:47.140 --> 00:00:54.080
+The catalog includes pinned decimals and official
+logo assets, while unsupported saved mints remain
+visible for repair instead of silently replacing a
+user's draft.
+
+13
+00:00:54.600 --> 00:00:56.260
+Live has a separate verification path.
+
+14
+00:00:56.260 --> 00:01:01.120
+Issuer metadata identifies each asset, then Solana
+account checks verify its mint and token program.
+
+15
+00:01:01.500 --> 00:01:03.080
+Token-2022 scaled UI
+
+16
+00:01:03.700 --> 00:01:06.380
+Amounts require the current mint configuration and
+chain time.
+
+17
+00:01:07.160 --> 00:01:10.540
+Raw holdings and quote outputs go through that
+conversion before display.
+
+18
+00:01:11.080 --> 00:01:12.880
+Decimal formatting alone would be incorrect.
+
+19
+00:01:13.700 --> 00:01:17.620
+The server requests amount specific Jupiter quotes
+in bounded batches of 3.
+
+20
+00:01:18.400 --> 00:01:21.460
+It requests no transaction and supplies no signing
+wallet.
+
+21
+00:01:22.400 --> 00:01:25.420
+Each result keeps its own retrieval time and expiry.
+
+22
+00:01:25.420 --> 00:01:28.680
+With a 30 second maximum freshness window.
+
+23
+00:01:29.560 --> 00:01:32.060
+Later batches cannot refresh earlier quotes.
+
+24
+00:01:32.740 --> 00:01:36.180
+Provider failures and missing routes remain explicit
+states.
+
+25
+00:01:37.020 --> 00:01:44.480
+Copy and CSV exports preserve exact allocations,
+verified mints, quote sources, and expiry.
+
+26
+00:01:45.260 --> 00:01:49.280
+An export records whether an estimate was fresh or
+stale when exported.
+
+27
+00:01:50.080 --> 00:01:51.900
+Copying never renews a quote.
+
+28
+00:01:52.900 --> 00:01:58.280
+Editing the budget or percentages clears estimates
+so amounts cannot reuse a mismatched result.
+
+29
+00:01:58.940 --> 00:02:01.780
+Device drafts keep the contribution budget and
+split.
+
+30
+00:02:02.540 --> 00:02:09.100
+Signed in users can explicitly save named plans
+through Supabase, protected by row level security.
+
+31
+00:02:10.100 --> 00:02:14.220
+Public offline caching excludes private account and
+API responses.
+
+32
+00:02:15.080 --> 00:02:19.620
+Example calculations work offline, while Live
+estimates require a connection.
+
+33
+00:02:19.620 --> 00:02:24.100
+Email delivery remains disabled until a custom
+sender is configured.
+
+34
+00:02:25.100 --> 00:02:29.040
+The responsive web app is installable on supported
+mobile and desktop browsers.
+
+35
+00:02:30.120 --> 00:02:33.500
+It is a contribution planner, not a broker or
+automatic trader.
+
+36
+00:02:34.300 --> 00:02:36.960
+Users review any purchase independently on Jupiter.
+
+37
+00:02:36.960 --> 00:02:42.260
+Lotline makes the numerical plan repeatable and its
+Live assumptions inspectable.
+

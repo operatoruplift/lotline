@@ -1,0 +1,66 @@
+{
+  "at": "2026-09-12T16:27:19.711Z",
+  "origin": "https://lotlineonsolana.vercel.app",
+  "films": {
+    "product": {
+      "video": {
+        "path": "/videos/release-20260912/product.mp4",
+        "status": 200,
+        "bytes": 10548121,
+        "sha256": "adfbe04c6bfaa79575df2fe979b486fd0864e8f5f41bf71c5d23e3c019759d4c",
+        "contentType": "video/mp4"
+      },
+      "poster": {
+        "path": "/videos/release-20260912/product-poster.jpg",
+        "status": 200,
+        "bytes": 212373,
+        "sha256": "37e07e0b5a479093c4d888e1a55e302178ff52209efa795160ecbc5a43b7af7e",
+        "contentType": "image/jpeg"
+      },
+      "captions": {
+        "path": "/videos/release-20260912/product.en.vtt",
+        "status": 200,
+        "bytes": 3104,
+        "sha256": "05e5f8d59d2df3ca1a543c73beb426dfae4e80cdb3feedd2d7bbf9e70f02379d",
+        "contentType": "text/vtt; charset=utf-8"
+      },
+      "transcript": {
+        "path": "/videos/release-20260912/product.transcript.txt",
+        "status": 200,
+        "bytes": 1677,
+        "sha256": "e4576a99e51b8e633459bc7389fceb7b8ef97ff76d71ab63f5c1164b7e0175d9",
+        "contentType": "text/plain; charset=utf-8"
+      }
+    },
+    "technical": {
+      "video": {
+        "path": "/videos/release-20260912/technical.mp4",
+        "status": 200,
+        "bytes": 15621229,
+        "sha256": "9bc70f1cbcfbde0015702454e49042a3b366893347af60998724063567646bd4",
+        "contentType": "video/mp4"
+      },
+      "poster": {
+        "path": "/videos/release-20260912/technical-poster.jpg",
+        "status": 200,
+        "bytes": 217468,
+        "sha256": "36222628c0f8d6cbca56964e55a10b9044bd2011201dd8b8519703ff01f9626e",
+        "contentType": "image/jpeg"
+      },
+      "captions": {
+        "path": "/videos/release-20260912/technical.en.vtt",
+        "status": 200,
+        "bytes": 3850,
+        "sha256": "fdc73815a0812349765b032af56d452addab868329a91bcbe6567bbceef1554a",
+        "contentType": "text/vtt; charset=utf-8"
+      },
+      "transcript": {
+        "path": "/videos/release-20260912/technical.transcript.txt",
+        "status": 200,
+        "bytes": 2593,
+        "sha256": "9e98f54715ec954baa606f931c6c06e2df497fdfeb5b00dbfdf53f384345a70e",
+        "contentType": "text/plain; charset=utf-8"
+      }
+    }
+  }
+}

@@ -18,6 +18,9 @@ export async function getHoldings(owner: string, mints: string[]): Promise<Holdi
   const key = `${owner}:${[...mints].sort().join(',')}`;
   const cached = holdingsCache.get(key);
   if (cached) return cached;
+  // A sequential read is a snapshot window, not an atomic balance. Date it from
+  // its earliest possible observation so slow later reads cannot make it look fresh.
+  const fetchedAt = new Date().toISOString();
   const read = async (mint: string): Promise<Holding> => {
     try {
       const raw = await loadRawBalance(owner, mint);
@@ -30,7 +33,7 @@ export async function getHoldings(owner: string, mints: string[]): Promise<Holdi
   const usdc = await read(USDC_MINT);
   const all = [...holdings, usdc];
   const complete = all.filter(item => item.state === 'success' && item.units !== null).length;
-  const response: HoldingsResponse = { state: complete === all.length ? 'success' : all.some(item => item.state === 'success') ? 'partial' : 'unavailable', holdings, usdc, fetchedAt: new Date().toISOString() };
+  const response: HoldingsResponse = { state: complete === all.length ? 'success' : all.some(item => item.state === 'success') ? 'partial' : 'unavailable', holdings, usdc, fetchedAt };
   holdingsCache.set(key, response, 15_000);
   return response;
 }

@@ -1,0 +1,2 @@
+# WebVTT cues end with a blank separator, including the final cue.
+public/videos/**/*.vtt whitespace=-blank-at-eof

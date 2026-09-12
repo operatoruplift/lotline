@@ -48,6 +48,7 @@ describe('account email readiness', () => {
     const html = renderToStaticMarkup(createElement(AuthForm, { mode: 'sign-in' }));
     expect(html).toContain('<form');
     expect(html).toContain('id="auth-password"');
+    expect(html).toContain('method="post"');
     expect(html).toContain('Sign in');
     expect(html).not.toContain('Create an account');
   });

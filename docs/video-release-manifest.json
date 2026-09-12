@@ -1,0 +1,300 @@
+{
+  "version": 1,
+  "release": "2026-09-12",
+  "status": "verified",
+  "voice": {
+    "name": "Ainsley",
+    "voice_id": "731b4ffe-e95e-59f4-8c00-81608936091f",
+    "voice_type": "preset",
+    "provider": "Higgsfield",
+    "model": "seed_audio",
+    "speechRate": 0
+  },
+  "process": {
+    "capture": "Actual local Playwright browser recording of the current production preview on 127.0.0.1:3111. Includes real read-only Live quote requests; no wallet signing or transactions.",
+    "composition": "Native Higgsedit graphics and actual UI footage, prepared/rendered/encoded in the Higgsfield cloud sandbox with FFmpeg. No old video footage reused.",
+    "captions": "Measured faster-whisper base.en speech segment timing with corrected canonical product and protocol spellings.",
+    "audio": "Natural pace; no time stretching. Technical narration joined in reading order."
+  },
+  "films": {
+    "product": {
+      "src": "/videos/release-20260912/product.mp4",
+      "poster": "/videos/release-20260912/product-poster.jpg",
+      "captions": "/videos/release-20260912/product.en.vtt",
+      "durationSeconds": 97.6,
+      "transcript": "You already know your xStocks and your split. Each new contribution still needs exact amounts and a plan for next time. This is Lotline, your next contribution, clearly. Start with Example mode. Explore 832 asset identities and build a plan with up to 10. The balances and estimates here are synthetic practice data. Never market prices. Choose your assets, set percentages, and enter your USDC budget. These percentages apply to this contribution, not your existing portfolio. Here, 50, 30, and 20% divide the amount exactly. Down to the final micro USDC. Inspect the calculation and verify this plan. Search for another company, adjust the split, and compare the exact contribution amounts. Copy the plan or download a CSV with its sources and freshness status. Switch to Live when you need current verification and amount specific estimates. Lotline checks issuer identities and Solana mints reads holdings and converts raw token amounts into displayed units. Jupiter provides route estimates that expire. Unavailable routes remain unavailable. Every quote belongs to a specific amount and expires within 30 seconds. Its source and time stay visible, so an estimate cannot quietly become a promise. Your budget and split stay saved on this device. Change the amount next time and the old estimates clear. Optional accounts add named cloud plans. The installable app keeps Example planning available offline. You can try the full planning flow before creating an account. When ready, copy the exact amount and verified mint. Then review independently on official Jupiter. Lotline never signs or executes a trade. One contribution accounted for. A familiar plan to return to.",
+      "narrationDurationSeconds": 93.58,
+      "captionOffsetSeconds": 2,
+      "captionCount": 42,
+      "chapters": [
+        {
+          "at": 0,
+          "title": "Your next contribution. Clearly."
+        },
+        {
+          "at": 11.68,
+          "title": "More room to explore."
+        },
+        {
+          "at": 21.54,
+          "title": "Every micro-USDC, assigned."
+        },
+        {
+          "at": 34.24,
+          "title": "A calculation you can inspect."
+        },
+        {
+          "at": 45.32,
+          "title": "Live facts. Visible sources."
+        },
+        {
+          "at": 68.58,
+          "title": "A plan for next time."
+        },
+        {
+          "at": 82.96,
+          "title": "Review on your terms."
+        }
+      ],
+      "bytes": 10548121,
+      "sha256": "adfbe04c6bfaa79575df2fe979b486fd0864e8f5f41bf71c5d23e3c019759d4c",
+      "videoCodec": "h264",
+      "audioCodec": "aac",
+      "width": 1920,
+      "height": 1080,
+      "fps": 30,
+      "fastStart": true,
+      "fullDecode": "passed",
+      "audioMaxVolumeDb": -1.2,
+      "audioMeanVolumeDb": -19.6,
+      "captionsSha256": "05e5f8d59d2df3ca1a543c73beb426dfae4e80cdb3feedd2d7bbf9e70f02379d",
+      "posterSha256": "37e07e0b5a479093c4d888e1a55e302178ff52209efa795160ecbc5a43b7af7e",
+      "transcriptSrc": "/videos/release-20260912/product.transcript.txt",
+      "transcriptSha256": "e4576a99e51b8e633459bc7389fceb7b8ef97ff76d71ab63f5c1164b7e0175d9",
+      "audioJobIds": [
+        "cf0c749d-15c3-4963-9853-a24ebeade087"
+      ]
+    },
+    "technical": {
+      "src": "/videos/release-20260912/technical.mp4",
+      "poster": "/videos/release-20260912/technical-poster.jpg",
+      "captions": "/videos/release-20260912/technical.en.vtt",
+      "durationSeconds": 164.5,
+      "transcript": "Lotline turns a chosen xStocks split into an exact plan for the next USDC contribution. The current release supports 10 assets per plan, with 832 identities in its bundled Example catalog. This walkthrough uses the real application, and clearly labeled synthetic estimates. The calculation boundary is explicit. USDC is parsed into integer microunits and percentages into basis points. Big integer arithmetic calculates each allocation, then the largest remainder method distributes leftover microunits deterministically. The total always matches the entered budget. Invalid percentage fields never produce a complete allocation badge. Example is isolated from Live providers. The original six practice assets keep their fixtures. Additional identities use zero illustrative holdings and a generic unit estimate. The catalog includes pinned decimals and official logo assets, while unsupported saved mints remain visible for repair instead of silently replacing a user's draft. Live has a separate verification path. Issuer metadata identifies each asset, then Solana account checks verify its mint and token program. Token-2022 scaled UI Amounts require the current mint configuration and chain time. Raw holdings and quote outputs go through that conversion before display. Decimal formatting alone would be incorrect. The server requests amount specific Jupiter quotes in bounded batches of 3. It requests no transaction and supplies no signing wallet. Each result keeps its own retrieval time and expiry. With a 30 second maximum freshness window. Later batches cannot refresh earlier quotes. Provider failures and missing routes remain explicit states. Copy and CSV exports preserve exact allocations, verified mints, quote sources, and expiry. An export records whether an estimate was fresh or stale when exported. Copying never renews a quote. Editing the budget or percentages clears estimates so amounts cannot reuse a mismatched result. Device drafts keep the contribution budget and split. Signed in users can explicitly save named plans through Supabase, protected by row level security. Public offline caching excludes private account and API responses. Example calculations work offline, while Live estimates require a connection. Email delivery remains disabled until a custom sender is configured. The responsive web app is installable on supported mobile and desktop browsers. It is a contribution planner, not a broker or automatic trader. Users review any purchase independently on Jupiter. Lotline makes the numerical plan repeatable and its Live assumptions inspectable.",
+      "narrationDurationSeconds": 160.5,
+      "captionOffsetSeconds": 2,
+      "captionCount": 37,
+      "chapters": [
+        {
+          "at": 0,
+          "title": "A focused contribution planner."
+        },
+        {
+          "at": 17.9,
+          "title": "Exact integer arithmetic."
+        },
+        {
+          "at": 38.1,
+          "title": "Example stays isolated."
+        },
+        {
+          "at": 54.6,
+          "title": "Why Solana verification matters."
+        },
+        {
+          "at": 73.5,
+          "title": "Bounded quotes. Honest freshness."
+        },
+        {
+          "at": 97.02,
+          "title": "Exports carry their evidence."
+        },
+        {
+          "at": 118.94,
+          "title": "Local first. Cloud by choice."
+        },
+        {
+          "at": 145.1,
+          "title": "The execution boundary stays clear."
+        }
+      ],
+      "bytes": 15621229,
+      "sha256": "9bc70f1cbcfbde0015702454e49042a3b366893347af60998724063567646bd4",
+      "videoCodec": "h264",
+      "audioCodec": "aac",
+      "width": 1920,
+      "height": 1080,
+      "fps": 30,
+      "fastStart": true,
+      "fullDecode": "passed",
+      "audioMaxVolumeDb": -1.3,
+      "audioMeanVolumeDb": -19.6,
+      "captionsSha256": "fdc73815a0812349765b032af56d452addab868329a91bcbe6567bbceef1554a",
+      "posterSha256": "36222628c0f8d6cbca56964e55a10b9044bd2011201dd8b8519703ff01f9626e",
+      "transcriptSrc": "/videos/release-20260912/technical.transcript.txt",
+      "transcriptSha256": "9e98f54715ec954baa606f931c6c06e2df497fdfeb5b00dbfdf53f384345a70e",
+      "audioJobIds": [
+        "4d7f0a4c-d489-4bff-9ff3-61124733dca4",
+        "92e0574e-3e46-4780-a813-1f01f6bf31c7"
+      ]
+    }
+  },
+  "completedAt": "2026-09-12T16:01:20.108492+00:00",
+  "provenance": {
+    "voiceJobs": [
+      {
+        "index": 1,
+        "film": "product",
+        "jobId": "cf0c749d-15c3-4963-9853-a24ebeade087",
+        "model": "seed_audio",
+        "voiceName": "Ainsley",
+        "voiceId": "731b4ffe-e95e-59f4-8c00-81608936091f",
+        "voiceType": "preset",
+        "sourceUrl": "https://d8j0ntlcm91z4.cloudfront.net/user_316WRAwjtWmpOAHb5tUQ2Grs4QP/hf_20260912_153600_cf0c749d-15c3-4963-9853-a24ebeade087.wav",
+        "narrationDurationSeconds": 93.58,
+        "speechMetrics": {
+          "speechSeconds": 93.139,
+          "words": 269,
+          "wordsPerSecond": 2.89,
+          "internalPausesAtLeast08Seconds": 0,
+          "rate": "ok"
+        }
+      },
+      {
+        "index": 2,
+        "film": "technical",
+        "jobId": "4d7f0a4c-d489-4bff-9ff3-61124733dca4",
+        "model": "seed_audio",
+        "voiceName": "Ainsley",
+        "voiceId": "731b4ffe-e95e-59f4-8c00-81608936091f",
+        "voiceType": "preset",
+        "sourceUrl": "https://d8j0ntlcm91z4.cloudfront.net/user_316WRAwjtWmpOAHb5tUQ2Grs4QP/hf_20260912_153101_4d7f0a4c-d489-4bff-9ff3-61124733dca4.wav",
+        "narrationDurationSeconds": 71.5,
+        "speechMetrics": {
+          "speechSeconds": 71.5,
+          "words": 196,
+          "wordsPerSecond": 2.74,
+          "internalPausesAtLeast08Seconds": 0,
+          "rate": "ok"
+        }
+      },
+      {
+        "index": 3,
+        "film": "technical",
+        "jobId": "92e0574e-3e46-4780-a813-1f01f6bf31c7",
+        "model": "seed_audio",
+        "voiceName": "Ainsley",
+        "voiceId": "731b4ffe-e95e-59f4-8c00-81608936091f",
+        "voiceType": "preset",
+        "sourceUrl": "https://d8j0ntlcm91z4.cloudfront.net/user_316WRAwjtWmpOAHb5tUQ2Grs4QP/hf_20260912_153101_92e0574e-3e46-4780-a813-1f01f6bf31c7.wav",
+        "narrationDurationSeconds": 89,
+        "speechMetrics": {
+          "speechSeconds": 89,
+          "words": 188,
+          "wordsPerSecond": 2.11,
+          "internalPausesAtLeast08Seconds": 0,
+          "rate": "ok"
+        }
+      }
+    ],
+    "sourceArchive": {
+      "mediaId": "da40e070-7fa6-498e-9af0-34e1bd0808c8",
+      "url": "https://d2ol7oe51mr4n9.cloudfront.net/user_316WRAwjtWmpOAHb5tUQ2Grs4QP/da40e070-7fa6-498e-9af0-34e1bd0808c8.zip",
+      "contents": "Eight actual current UI recordings; raw/home, plan, catalog, verify, repeat, live, account, handoff.webm"
+    },
+    "finalMedia": [
+      {
+        "mediaId": "85e8558b-44b4-4e5f-b6e1-865fc2801507",
+        "url": "https://d2ol7oe51mr4n9.cloudfront.net/user_316WRAwjtWmpOAHb5tUQ2Grs4QP/85e8558b-44b4-4e5f-b6e1-865fc2801507.mp4"
+      },
+      {
+        "mediaId": "8ac5fbed-cd0f-4a30-aa75-6338893eec0b",
+        "url": "https://d2ol7oe51mr4n9.cloudfront.net/user_316WRAwjtWmpOAHb5tUQ2Grs4QP/8ac5fbed-cd0f-4a30-aa75-6338893eec0b.mp4"
+      },
+      {
+        "mediaId": "7e391d1f-ff7f-4543-8703-2da24e4884f1",
+        "url": "https://d2ol7oe51mr4n9.cloudfront.net/user_316WRAwjtWmpOAHb5tUQ2Grs4QP/7e391d1f-ff7f-4543-8703-2da24e4884f1.jpg"
+      },
+      {
+        "mediaId": "b5de8884-1db9-430c-a95b-68f26abf72b5",
+        "url": "https://d2ol7oe51mr4n9.cloudfront.net/user_316WRAwjtWmpOAHb5tUQ2Grs4QP/b5de8884-1db9-430c-a95b-68f26abf72b5.jpg"
+      },
+      {
+        "mediaId": "9e2680d8-1b96-4c25-af2b-73bc13b77e8f",
+        "url": "https://d2ol7oe51mr4n9.cloudfront.net/user_316WRAwjtWmpOAHb5tUQ2Grs4QP/9e2680d8-1b96-4c25-af2b-73bc13b77e8f.json"
+      },
+      {
+        "mediaId": "5e2f0b43-51f4-4a78-ab97-e22eec46e08a",
+        "url": "https://d2ol7oe51mr4n9.cloudfront.net/user_316WRAwjtWmpOAHb5tUQ2Grs4QP/5e2f0b43-51f4-4a78-ab97-e22eec46e08a.jpg"
+      }
+    ],
+    "supersededAudio": [
+      {
+        "jobId": "482c9ec1-4c56-4346-97ce-d4bc7233c59a",
+        "durationSeconds": 79.4,
+        "wordsPerSecond": 2.92,
+        "reason": "Rewritten before release because the natural read was shorter than the target and exceeded the measured pace gate. No time stretching."
+      }
+    ]
+  },
+  "recording": {
+    "source": "http://127.0.0.1:3111",
+    "captureDate": "2026-09-12",
+    "liveClipFinalizedAt": "2026-09-12T15:37:11.765Z",
+    "liveClipDurationSeconds": 15.32,
+    "liveObserved": "Live mode and Live quotes received with nonzero AAPLx, MSFTx and NVDAx estimates; sources/expiry appear during the recorded scroll.",
+    "liveDisclaimer": "Dated recorded quotes, not current prices when the film is replayed. Persistent Live chapter labels state recording date and quote expiry.",
+    "apiResponseLogCaptured": false,
+    "uiFootageIsGenerated": false,
+    "privateAccountAction": false,
+    "emailSent": false,
+    "transactionSignedOrSubmitted": false
+  },
+  "sourceFiles": [
+    {
+      "src": "/videos/release-20260912/source/edit.mjs",
+      "sha256": "912f0cbfa526ef0015a076638c572a92db8c443829facbb71d08a123b9bf9959"
+    },
+    {
+      "src": "/videos/release-20260912/source/prepare.py",
+      "sha256": "c854cec7530667d2e6c914a745f14059ceb30e4a3e465d7bd81025c223c831f6"
+    },
+    {
+      "src": "/videos/release-20260912/source/storyboard.json",
+      "sha256": "48b4eb7a078fd38c9fe64b1a1d36e9e9f9935ef14fb5853f8bf46d342492b711"
+    },
+    {
+      "src": "/videos/release-20260912/source/narration.json",
+      "sha256": "a029a1b01714df83cf0eb1598d24fa910ae70306b51e96c00ba6b1ba7eed20f5"
+    },
+    {
+      "src": "/videos/release-20260912/source/logo.svg",
+      "sha256": "ea1374b7817c0320682c27f74e129108c6c444f9e4c87a4006d5f78391b68947"
+    },
+    {
+      "src": "/videos/release-20260912/source/README.md",
+      "sha256": "7c524df6602be3785e0f8de6ce58bd96f1974dfb9a96806fd2e43643f70905fa"
+    }
+  ],
+  "verification": {
+    "fullDecode": "Both final MP4 files fully decoded without FFmpeg errors.",
+    "nativeVisualReview": "All15chapterpreviewframes inspected for currentlogo, legible copy, correct Example/Live labels and uncropped footage.",
+    "nativeRender": "0diagnostics and0fallbacks; product2928frames, technical4935frames.",
+    "audio": "Ainsley exact preset throughout; no time stretching; measured internal pauses>=0.8s:0per accepted narration chunk.",
+    "ingressCleanup": {
+      "localhostPort": 3127,
+      "allowedMethods": [
+        "GET"
+      ],
+      "allowedFiles": 8,
+      "listing": false,
+      "traversal": false,
+      "applicationAPI": false,
+      "credentials": false,
+      "tunnelStoppedAt": "2026-09-12T15:45:54Z",
+      "serverStoppedAt": "2026-09-12T15:45:54Z",
+      "uploadedSourceMediaId": "da40e070-7fa6-498e-9af0-34e1bd0808c8"
+    },
+    "published": "Not asserted by this media manifest; deployment verification is separate."
+  }
+}

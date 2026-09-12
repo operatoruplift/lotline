@@ -2,10 +2,10 @@
  * Live API requests, account pages, authentication, and user documents never
  * enter Cache Storage. The Example is refreshed atomically when online.
  */
-const CACHE = 'lotline-public-example-v3';
+const CACHE = 'lotline-public-example-v4';
 const OFFLINE = '/offline';
 const STATIC_PATHS = ['/brand/', '/icons/', '/logos/', '/_next/static/'];
-const STATIC_FILES = new Set(['/favicon.ico', '/icon.svg', '/apple-icon.png']);
+const STATIC_FILES = new Set(['/favicon.ico', '/icon.svg', '/apple-icon.png', '/media/design/footer-landscape-poster.jpg']);
 let preparing;
 
 function isStatic(url) {
@@ -21,7 +21,7 @@ async function prepareOffline() {
     const html = await response.clone().text();
     // Read only public same-origin static URLs; never precache a linked route,
     // image optimizer URL, API, third-party host, or authentication response.
-    const paths = new Set(['/icons/icon-192.png?v=branch-1', '/icons/icon-512.png?v=branch-1', '/icons/icon-maskable-512.png?v=branch-1', '/icons/apple-touch-icon.png?v=branch-1', '/brand/mark.svg?v=branch-1', '/brand/favicon.svg?v=branch-1', '/logos/xstocks/AAPLx.png', '/logos/xstocks/MSFTx.png', '/logos/xstocks/NVDAx.png', '/logos/xstocks/TSLAx.png', '/logos/xstocks/SPYx.png', '/logos/xstocks/QQQx.png']);
+    const paths = new Set(['/media/design/footer-landscape-poster.jpg', '/icons/icon-192.png?v=branch-1', '/icons/icon-512.png?v=branch-1', '/icons/icon-maskable-512.png?v=branch-1', '/icons/apple-touch-icon.png?v=branch-1', '/brand/mark.svg?v=branch-1', '/brand/favicon.svg?v=branch-1', '/logos/xstocks/AAPLx.png', '/logos/xstocks/MSFTx.png', '/logos/xstocks/NVDAx.png', '/logos/xstocks/TSLAx.png', '/logos/xstocks/SPYx.png', '/logos/xstocks/QQQx.png']);
     for (const match of html.matchAll(/(?:src|href)="([^"]+)"/g)) {
       const url = new URL(match[1].replaceAll('&amp;', '&'), self.location.origin);
       if (isStatic(url)) paths.add(url.pathname + url.search);

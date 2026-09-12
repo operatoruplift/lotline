@@ -25,7 +25,7 @@ function worker() {
   const caches = {
     open: vi.fn(async () => cache),
     match: cache.match,
-    keys: vi.fn(async () => ['lotline-public-example-v0', 'lotline-public-example-v1', 'lotline-public-example-v2', 'lotline-public-example-v3', 'unrelated-cache']),
+    keys: vi.fn(async () => ['lotline-public-example-v0', 'lotline-public-example-v1', 'lotline-public-example-v2', 'lotline-public-example-v3', 'lotline-public-example-v4', 'unrelated-cache']),
     delete: vi.fn(async () => true),
   };
   const fetch = vi.fn<(input: string | { url: string }, options?: RequestInit) => Promise<Response>>(async (input) => {
@@ -50,9 +50,11 @@ describe('public offline cache boundary', () => {
     await w.dispatch('install').waiting;
     const paths = [...w.stored.keys()].map(url => new URL(url).pathname);
     expect(paths).toContain('/offline');
+    expect(paths).toContain('/media/design/footer-landscape-poster.jpg');
+    expect(paths.some(path => path.endsWith('.mp4'))).toBe(false);
     expect(paths).toContain('/_next/static/chunks/example.js');
     expect(paths).toContain('/_next/static/css/example.css');
-    expect(paths.every(path => path === '/offline' || path === '/favicon.ico' || path === '/icon.svg' || path === '/apple-icon.png' || path.startsWith('/_next/static/') || path.startsWith('/icons/') || path.startsWith('/brand/') || path.startsWith('/logos/'))).toBe(true);
+    expect(paths.every(path => path === '/media/design/footer-landscape-poster.jpg' || path === '/offline' || path === '/favicon.ico' || path === '/icon.svg' || path === '/apple-icon.png' || path.startsWith('/_next/static/') || path.startsWith('/icons/') || path.startsWith('/brand/') || path.startsWith('/logos/'))).toBe(true);
     for (const [, options] of w.fetch.mock.calls) expect(options?.credentials).toBe('omit');
     expect(w.self.skipWaiting).toHaveBeenCalledOnce();
   });
@@ -98,11 +100,12 @@ describe('public offline cache boundary', () => {
   it('does not store an online live page and only removes its own outdated caches', async () => {
     const w = worker();
     await w.dispatch('activate').waiting;
-    expect(w.caches.delete).toHaveBeenCalledTimes(3);
+    expect(w.caches.delete).toHaveBeenCalledTimes(4);
+    expect(w.caches.delete).toHaveBeenCalledWith('lotline-public-example-v3');
     expect(w.caches.delete).toHaveBeenCalledWith('lotline-public-example-v0');
     expect(w.caches.delete).toHaveBeenCalledWith('lotline-public-example-v1');
     expect(w.caches.delete).toHaveBeenCalledWith('lotline-public-example-v2');
-    expect(w.caches.delete).not.toHaveBeenCalledWith('lotline-public-example-v3');
+    expect(w.caches.delete).not.toHaveBeenCalledWith('lotline-public-example-v4');
     expect(w.caches.delete).not.toHaveBeenCalledWith('unrelated-cache');
     const { response } = w.dispatch('fetch', { request: { url: `${w.origin}/app`, method: 'GET', mode: 'navigate' } });
     expect((await response)?.ok).toBe(true);

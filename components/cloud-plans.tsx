@@ -6,7 +6,7 @@ import { Cloud, LoaderCircle, Plus } from 'lucide-react';
 import type { Basket } from '@/lib/domain/types';
 import { formatUsdc } from '@/lib/domain/math';
 import { MAX_PLAN_ASSETS } from '@/lib/domain/limits';
-import { browserSupabase } from '@/lib/supabase/client';
+import { browserSupabase, runBrowserAuth } from '@/lib/supabase/client';
 import { authEmailEnabled } from '@/lib/supabase/config';
 import { basketToCloudPlan, cloudPlanRecord, cloudPlanToBasket, type CloudPlan } from '@/lib/supabase/plans';
 import styles from './auth.module.css';
@@ -29,11 +29,24 @@ export function CloudPlans({ basket, onLoad }: { basket: Basket; onLoad: (basket
     setPlans([]); setName('My contribution'); setMessage(''); setFailed(false); setBusy(false);
   }, []);
 
+  const expireSession = useCallback(() => {
+    // A session can expire after the initial account check. Invalidate pending
+    // responses and remove private state as soon as a protected request denies it.
+    generation.current += 1;
+    clearPrivateState(null);
+    setRefreshing(false);
+    setSession({ state: 'guest' });
+    setFailed(true);
+    setMessage('Your account session ended. Sign in again to manage cloud plans. Your local draft is unchanged.');
+  }, [clearPrivateState]);
+
   const refresh = useCallback(async () => {
     const revision = ++generation.current;
     setRefreshing(true);
     try {
       const response = await fetch('/api/auth/session', { cache: 'no-store', signal: AbortSignal.timeout(15_000) });
+      if (revision !== generation.current) return;
+      if (response.status === 401) { expireSession(); return; }
       const next = await response.json() as Session;
       if (revision !== generation.current) return;
       if (!response.ok || !['signed-in', 'guest', 'configuration-required', 'unavailable'].includes(next.state) || (next.state === 'signed-in' && !next.user?.id)) { clearPrivateState(null); setSession({ state: 'unavailable' }); return; }
@@ -44,6 +57,8 @@ export function CloudPlans({ basket, onLoad }: { basket: Basket; onLoad: (basket
       setSession(next);
       if (next.state !== 'signed-in') { setPlans([]); return; }
       const result = await fetch('/api/plans', { cache: 'no-store', signal: AbortSignal.timeout(15_000) });
+      if (revision !== generation.current) return;
+      if (result.status === 401) { expireSession(); return; }
       const data = await result.json();
       if (revision !== generation.current) return;
       const validated = cloudPlanRecord.array().safeParse(data.plans);
@@ -51,7 +66,7 @@ export function CloudPlans({ basket, onLoad }: { basket: Basket; onLoad: (basket
       setPlans(validated.data);
     } catch { if (revision === generation.current) { clearPrivateState(null); setSession({ state: 'unavailable' }); } }
     finally { if (revision === generation.current) setRefreshing(false); }
-  }, [clearPrivateState]);
+  }, [clearPrivateState, expireSession]);
 
   useEffect(() => {
     queueMicrotask(() => void refresh());
@@ -76,6 +91,8 @@ export function CloudPlans({ basket, onLoad }: { basket: Basket; onLoad: (basket
     const revision = generation.current;
     try {
       const response = await fetch('/api/plans', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body), signal: AbortSignal.timeout(15_000) });
+      if (revision !== generation.current) return;
+      if (response.status === 401) { expireSession(); return; }
       const data = await response.json();
       if (revision !== generation.current) return;
       const validated = cloudPlanRecord.safeParse(data.plan);
@@ -92,6 +109,8 @@ export function CloudPlans({ basket, onLoad }: { basket: Basket; onLoad: (basket
     const revision = generation.current;
     try {
       const response = await fetch(`/api/plans?id=${encodeURIComponent(id)}`, { method: 'DELETE', signal: AbortSignal.timeout(15_000) });
+      if (revision !== generation.current) return;
+      if (response.status === 401) { expireSession(); return; }
       const data = await response.json();
       if (revision !== generation.current) return;
       if (!response.ok) { setFailed(true); setMessage(data.message ?? 'The plan could not be deleted.'); return; }
@@ -106,7 +125,7 @@ export function CloudPlans({ basket, onLoad }: { basket: Basket; onLoad: (basket
     const revision = generation.current;
     const signingOutId = accountId.current;
     try {
-      const result = await browserSupabase()?.auth.signOut({ scope: 'local' });
+      const result = await runBrowserAuth(new AbortController().signal, auth => auth.signOut({ scope: 'local' }));
       if (accountId.current !== null && accountId.current !== signingOutId) return;
       if (!result || result.error) { setFailed(true); setMessage('Sign out could not be confirmed. Please try again.'); return; }
       generation.current += 1; clearPrivateState(null); setSession({ state: 'guest' }); setMessage('Signed out. Your draft is still saved on this device.');

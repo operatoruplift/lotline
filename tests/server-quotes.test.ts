@@ -1,15 +1,16 @@
 import { afterEach, beforeEach, expect, it, vi } from 'vitest';
 
-const state = vi.hoisted(() => ({ halted: false, oldHalt: false }));
+const state = vi.hoisted(() => ({ halted: false, oldHalt: false, issuerAge: 0, slotWait: 0 }));
 const MINT = 'XsbEhLAtcf6HdfpFZ5xEMdqW8nfAvcsP5bdudRLJzJp';
 const USDC = 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v';
 vi.mock('../lib/server/catalog', () => ({
   selectedAssets: async () => [{ symbol: 'AAPLx', mint: MINT, halted: state.oldHalt }],
-  getIssuerAsset: async () => ({ symbol: 'AAPLx', mint: MINT, halted: state.halted }),
+  getIssuerAsset: async () => ({ symbol: 'AAPLx', mint: MINT, halted: state.halted, fetchedAt: new Date(Date.now() - state.issuerAge).toISOString() }),
 }));
+vi.mock('../lib/server/provider-limits', () => ({ reserveProviderSlot: async () => { if (state.slotWait) vi.setSystemTime(Date.now() + state.slotWait); } }));
 vi.mock('../lib/server/solana', () => ({ convertRawUnits: async () => '0.0297791' }));
 const payload = { inputMint: USDC, outputMint: MINT, inAmount: '10000000', outAmount: '2968207', transaction: null, router: 'metis' };
-beforeEach(() => { vi.resetModules(); state.halted = false; state.oldHalt = false; vi.stubEnv('JUPITER_API_KEY', ''); });
+beforeEach(() => { vi.resetModules(); state.halted = false; state.oldHalt = false; state.issuerAge = 0; state.slotWait = 0; vi.stubEnv('JUPITER_API_KEY', ''); });
 afterEach(() => { vi.unstubAllEnvs(); vi.unstubAllGlobals(); vi.useRealTimers(); });
 
 it('makes a real-shaped quote-only request without key, wallet or taker', async () => {
@@ -55,4 +56,22 @@ it('returns invalid-input 400 for malformed money and bounds JSON bodies', async
   }
   const oversized = await POST(new Request('http://localhost/api/quotes', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ data: 'a'.repeat(5000) }) }));
   expect(oversized.status).toBe(400);
+});
+
+it('fails closed if the issuer check ages out during provider coordination', async () => {
+  vi.useFakeTimers(); state.issuerAge = 25_000; state.slotWait = 6_000;
+  const fetcher = vi.fn(); vi.stubGlobal('fetch', fetcher);
+  const { getQuotes } = await import('../lib/server/quotes');
+  const result = await getQuotes([{ mint:MINT, usdcRaw:'10000000' }]);
+  expect(result.quotes[0]).toMatchObject({ state:'unavailable', outRaw:null });
+  expect(result.quotes[0].message).toContain('Issuer verification expired');
+  expect(fetcher).not.toHaveBeenCalled();
+});
+it('includes upstream latency in the thirty-second quote lifetime', async () => {
+  vi.useFakeTimers(); const started = Date.now();
+  vi.stubGlobal('fetch', vi.fn(async () => { vi.setSystemTime(Date.now() + 12_000); return Response.json(payload); }));
+  const { getQuotes } = await import('../lib/server/quotes');
+  const result = await getQuotes([{ mint:MINT, usdcRaw:'10000000' }]);
+  expect(Date.parse(result.quotes[0].fetchedAt)).toBe(started);
+  expect(Date.parse(result.quotes[0].expiresAt)).toBe(started + 30_000);
 });

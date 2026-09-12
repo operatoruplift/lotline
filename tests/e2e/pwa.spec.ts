@@ -74,12 +74,16 @@ test('offline reload supports real Example math and export without caching live 
   });
   expect(cachedUrls.every(url => {
     const path = new URL(url).pathname;
-    return path === '/offline' || path === '/favicon.ico' || path === '/icon.svg' || path === '/apple-icon.png' || path.startsWith('/_next/static/') || path.startsWith('/brand/') || path.startsWith('/icons/') || path.startsWith('/logos/');
+    return path === '/media/design/footer-landscape-poster.jpg' || path === '/offline' || path === '/favicon.ico' || path === '/icon.svg' || path === '/apple-icon.png' || path.startsWith('/_next/static/') || path.startsWith('/brand/') || path.startsWith('/icons/') || path.startsWith('/logos/');
   })).toBe(true);
   await context.setOffline(true);
   await page.reload();
   await expect(page.getByLabel('USDC budget')).toBeVisible();
   await expect(page.getByText('You’re offline. Live estimates and sync are paused.')).toBeVisible();
+  const poster = page.locator('[data-decorative-video="Footer landscape"] img');
+  await poster.scrollIntoViewIfNeeded();
+  await expect.poll(() => poster.evaluate(node => (node as HTMLImageElement).naturalWidth)).toBeGreaterThan(0);
+  expect(await page.locator('[data-decorative-video] video[src]').count()).toBe(0);
   await page.getByLabel('USDC budget').fill('10.000001');
   await page.getByRole('button', { name: 'Get estimates', exact: true }).click();
   const downloaded = page.waitForEvent('download');

@@ -5,7 +5,7 @@ import { BASKET_STORAGE_KEY } from '../../lib/domain/storage';
 test('a first Live visit cannot leave the linked Example empty', async ({ page }) => {
   await page.route('**/api/assets', route => route.fulfill({ json: { state: 'success', assets: EXAMPLE_ASSETS, unavailable: [] } }));
   await page.goto('/app');
-  await expect(page.getByText('Saved on this device', { exact: true })).toBeVisible();
+  await expect(page.getByText('Draft saved here', { exact: true })).toBeVisible();
   await expect(page.getByLabel('AAPLx percentage')).toHaveCount(0);
   await page.getByRole('link', { name: 'How it works', exact: true }).first().click();
   await page.getByRole('link', { name: /try the example/i }).first().click();
@@ -18,7 +18,7 @@ test('replace an asset without losing its weight, split exactly, and reset delib
   await page.goto('/app?mode=example');
   await page.getByLabel('USDC budget').fill('10.000001');
   await page.getByRole('button', { name: 'Change MSFTx', exact: true }).click();
-  await page.getByLabel('Choose a verified xStock').selectOption(EXAMPLE_ASSETS.find(asset => asset.symbol === 'QQQx')!.mint);
+  await page.getByLabel('Choose an example xStock').selectOption(EXAMPLE_ASSETS.find(asset => asset.symbol === 'QQQx')!.mint);
   await expect(page.getByLabel('QQQx percentage')).toHaveValue('30');
   await expect(page.getByLabel('MSFTx percentage')).toHaveCount(0);
   await page.getByRole('button', { name: 'Split evenly', exact: true }).click();

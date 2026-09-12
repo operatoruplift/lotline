@@ -10,7 +10,7 @@ test('restores an existing draft and preserves edits when reloaded before any ti
   await page.clock.install({ time: new Date('2026-09-11T12:00:00Z') });
   await page.goto('/app?mode=example');
   await expect(page.getByLabel('USDC budget')).toHaveValue('125.75');
-  await expect(page.getByText('Saved on this device', { exact: true })).toBeVisible();
+  await expect(page.getByText('Draft saved here', { exact: true })).toBeVisible();
 
   // Model navigating away immediately, without letting a deferred save run.
   await page.clock.pauseAt(new Date('2026-09-11T13:00:00Z'));

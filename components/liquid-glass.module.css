@@ -1,0 +1,32 @@
+.scene { position:relative; isolation:isolate; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:36px; padding:80px 24px 32px; min-height:calc(100svh - 80px); background:#dde4d9; }
+.backdrop { position:absolute; inset:0; z-index:-1; overflow:hidden; }
+.poster,.video { display:block; position:absolute; inset:0; width:100%; height:100%; object-fit:cover; object-position:50% 50%; }
+.video { opacity:0; }
+.video[data-decoded='true'] { opacity:1; }
+.card { width:min(100%,480px); position:relative; isolation:isolate; border-radius:16px; box-shadow:0 24px 70px -25px #08150c50,0 0 0 1px #fff6; }
+.fallback,.surface,.veil { position:absolute; inset:0; border-radius:inherit; pointer-events:none; }
+.fallback { background:#fdf5ebe8; backdrop-filter:blur(18px); }
+.surface { overflow:hidden; }
+.canvas { display:block; width:100%; height:100%; }
+.veil { background:linear-gradient(110deg,#fdf5eb99,#fdf5ebb8 48%,#fdf5eb80); box-shadow:inset 0 1px 1px #fff9,inset 0 -1px 1px #08150c14; }
+.card[data-refraction-state='loading'] .veil,.card[data-refraction-state='fallback'] .veil { background:transparent; }
+.card[data-refraction-state='video'] .fallback,.card[data-refraction-state='poster'] .fallback,.card[data-refraction-state='paused'] .fallback { visibility:hidden; }
+.content { position:relative; z-index:1; }
+.sceneFooter { width:100%; max-width:1120px; display:flex; justify-content:space-between; align-items:center; gap:12px 24px; flex-wrap:wrap; color:#122718; font-size:12px; }
+.sceneFooter>span { padding:8px 12px; border-radius:12px; background:#fdf5ebad; }
+.sceneFooter button { display:inline-flex; align-items:center; gap:8px; padding:10px 14px; min-height:44px; border:1px solid #fdf5eb9e; border-radius:12px; background:#fdf5ebde; color:#08150c; cursor:pointer; font-size:12px; }
+.sceneFooter button:focus-visible { outline:2px solid #08150c; outline-offset:3px; }
+.sceneFooter button:disabled { cursor:default; }
+.card[data-entrance='enter'] [data-auth-reveal] { animation:glass-enter 700ms cubic-bezier(.16,1,.3,1) both; animation-delay:var(--auth-delay,0ms); }
+.card [data-auth-reveal='1'] { --auth-delay:100ms; }
+.card [data-auth-reveal='2'] { --auth-delay:200ms; }
+.card [data-auth-reveal='3'] { --auth-delay:300ms; }
+.card [data-auth-reveal='4'] { --auth-delay:400ms; }
+.card [data-auth-reveal='5'] { --auth-delay:500ms; }
+.card [data-auth-reveal='6'] { --auth-delay:600ms; }
+.card [data-auth-reveal='last'] { --auth-delay:700ms; }
+.card:focus-within [data-auth-reveal] { animation:none; }
+@keyframes glass-enter { from { opacity:0; transform:translateY(20px); } to { opacity:1; transform:translateY(0); } }
+@media(max-width:600px) { .scene { padding:38px 18px 22px; gap:28px; } .sceneFooter { justify-content:center; text-align:center; } .sceneFooter>span { display:none; } }
+@media(max-height:600px) and (min-width:601px) { .scene { padding-top:32px; } }
+@media(prefers-reduced-motion:reduce) { .card[data-entrance='enter'] [data-auth-reveal] { animation:none; } }

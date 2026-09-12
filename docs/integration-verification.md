@@ -1,6 +1,8 @@
-# Verification record
+# Historical verification record
 
 Verified September 11–12, 2026. The original chain and quote observations retain their September 11 UTC timestamps. See [live integration detail](live-integration.md), the exact [normalized live observations](live-smoke.json), and the separate [production-build UI observation](ui-live-smoke.json).
+
+These are earlier checkpoints, not evidence that the current uncommitted redesign or expanded Example is deployed. The [Stocklana finish delivery](stocklana-finish-delivery.md) records the latest local checks and the separate September 12 public-page observation.
 
 [Deployed website](https://lotlineonsolana.vercel.app) · [Example planner](https://lotlineonsolana.vercel.app/app?mode=example) · [Demo](https://lotlineonsolana.vercel.app/demo) · [Public repository](https://github.com/operatoruplift/lotline)
 
@@ -37,7 +39,7 @@ The deployed Vercel site also passed a Live smoke on September 11, 2026, from 17
 
 ## Supabase and deployment
 
-The hosted Supabase project has both migrations applied: shared provider start-time reservations and owner-restricted contribution plans. Hosted database tests checked grants, row-level isolation, malformed plan rejection, and the 20-plan quota using synthetic fixtures inside a transaction that was rolled back. No test accounts or plans from that SQL transaction were retained.
+At the initial September 11 hosted checkpoint, the first two migrations were applied: shared provider start-time reservations and owner-restricted contribution plans. The September 12 catalog checkpoint above records the third, expanded-stock-plan migration. Hosted database tests checked grants, row-level isolation, malformed plan rejection, and the 20-plan quota using synthetic fixtures inside a transaction that was rolled back. No test accounts or plans from that SQL transaction were retained.
 
 Auth configuration has been pushed and checked with zero managed differences: the site URL uses the deployed Vercel origin, callback redirects are exact, email confirmation is enabled, and the minimum password length is 12. The Supabase public configuration, server secret, and explicit `NEXT_PUBLIC_AUTH_EMAIL_ENABLED=false` readiness flag are set in local configuration and the Vercel development, preview, and production environments. The Git-connected Vercel deployment reached Ready at the linked public URL.
 

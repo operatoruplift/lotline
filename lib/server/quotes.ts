@@ -42,8 +42,13 @@ async function freshQuote(asset: Asset, usdcRaw: string): Promise<Quote> {
     const apiKey = process.env.JUPITER_API_KEY?.trim();
     // Only these three parameters are sent. No wallet/taker, transaction, or execute call exists.
     await reserveProviderSlot('jupiter');
+    // Coordination can wait. Do not send a quote using an issuer check that aged
+    // out while queued, and do not delay a reserved provider slot with another fetch.
+    const issuerAge = Date.now() - Date.parse(issuer.fetchedAt);
+    if (!Number.isFinite(issuerAge) || issuerAge < 0 || issuerAge >= 30_000) throw new ServiceError('unavailable', 'Issuer verification expired while waiting. Refresh estimates to recheck this asset.');
+    const requestedAt = new Date().toISOString();
     const payload = await fetchJson(`https://api.jup.ag/swap/v2/order?${params}`, { headers: apiKey ? { 'x-api-key': apiKey } : {} });
-    const quote = normalizeQuote(payload, asset.mint, usdcRaw);
+    const quote = normalizeQuote(payload, asset.mint, usdcRaw, requestedAt);
     try { quote.units = await convertRawUnits(asset.mint, quote.outRaw!); }
     catch (error) { quote.message = safeMessage(error); }
     return quote;

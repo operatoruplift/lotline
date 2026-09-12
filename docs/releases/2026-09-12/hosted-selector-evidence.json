@@ -1,0 +1,46 @@
+{
+  "verifiedAt": "2026-09-12T16:29:28.065485+00:00",
+  "origin": "https://lotlineonsolana.vercel.app",
+  "scope": "Test-only selector repairs; no app, media, environment, or deployment changes.",
+  "originalRun": {
+    "passed": 13,
+    "failed": 2,
+    "log": "hosted-browser.log"
+  },
+  "findings": [
+    {
+      "test": "decorative players release the old route and use the mobile derivative",
+      "cause": "A hidden Next streamed HTML boundary temporarily retained a second hero player. The unscoped locator was ambiguous.",
+      "repair": "Scope to rendered scene with :visible, require one match, retain mobile source, time advancement and route-cleanup assertions."
+    },
+    {
+      "test": "a guest finds an additional Example asset by company on mobile without a live provider",
+      "cause": "The hosted image src includes a deployment query parameter. The previous src-suffix locator never attached; it did not observe a decode failure.",
+      "networkEvidence": {
+        "path": "/logos/xstocks/AMZNx.png",
+        "status": 200,
+        "contentType": "image/png",
+        "bytes": 22616,
+        "durationMs": 629.886
+      },
+      "repair": "Locate the image through its unique labeled basket row, scroll into viewport, verify exact URL pathname and positive naturalWidth."
+    }
+  ],
+  "reruns": [
+    {
+      "tests": 2,
+      "passed": 2,
+      "durationSeconds": 10.8,
+      "output": "hosted-selector-rerun-results",
+      "coverage": "Both originally failing hosted tests"
+    },
+    {
+      "tests": 2,
+      "passed": 2,
+      "durationSeconds": 8.9,
+      "output": "hosted-media-selector-rerun-results",
+      "coverage": "Remaining two media tests updated to the same rendered-scene selector"
+    }
+  ],
+  "lint": "Focused ESLint on both changed test files passed."
+}

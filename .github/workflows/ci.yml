@@ -9,6 +9,14 @@ jobs:
   verify:
     runs-on: ubuntu-latest
     timeout-minutes: 20
+    env:
+      # Non-secret fixtures; browser tests intercept every account request.
+      NEXT_PUBLIC_SUPABASE_URL: https://auth-fixture.invalid
+      NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: sb_publishable_ci_fixture
+      NEXT_PUBLIC_AUTH_EMAIL_ENABLED: 'false'
+      SUPABASE_SECRET_KEY: ''
+      LOTLINE_SHARED_LIMITS: 'false'
+      TOKENS_XYZ_API_KEY: ''
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:

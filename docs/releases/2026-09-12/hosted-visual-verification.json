@@ -1,0 +1,214 @@
+{
+  "startedAt": "2026-09-12T16:25:15.944Z",
+  "origin": "https://lotlineonsolana.vercel.app",
+  "deploymentId": "dpl_8mZD9ufC7c7qJjsS486NRfvPQAju",
+  "scope": "Anonymous GET-only hosted pages and public media. No form submission, account mutation, email or transaction. Example estimates synthetic.",
+  "pages": [
+    {
+      "device": "desktop",
+      "route": "/",
+      "at": "2026-09-12T16:25:18.629Z",
+      "status": 200,
+      "heading": "Your next contribution,clearly.",
+      "currentLogoMatches": true,
+      "kova": true,
+      "overflow": 0,
+      "screenshot": "hosted-home-desktop.png"
+    },
+    {
+      "device": "desktop",
+      "route": "/demo",
+      "at": "2026-09-12T16:25:22.140Z",
+      "status": 200,
+      "heading": "See your next contributioncome together.",
+      "currentLogoMatches": true,
+      "films": [
+        {
+          "kind": "product",
+          "src": "/videos/release-20260912/product.mp4",
+          "captions": "/videos/release-20260912/product.en.vtt",
+          "poster": "/videos/release-20260912/product-poster.jpg",
+          "controls": true,
+          "muted": false
+        },
+        {
+          "kind": "technical",
+          "src": "/videos/release-20260912/technical.mp4",
+          "captions": "/videos/release-20260912/technical.en.vtt",
+          "poster": "/videos/release-20260912/technical-poster.jpg",
+          "controls": true,
+          "muted": false
+        }
+      ],
+      "overflow": 0,
+      "screenshot": "hosted-demo-desktop.png"
+    },
+    {
+      "device": "desktop",
+      "route": "/app?mode=example",
+      "at": "2026-09-12T16:25:26.498Z",
+      "status": 200,
+      "heading": "Your next contribution.",
+      "currentLogoMatches": true,
+      "exampleBanner": "Explore 832 assets from the bundled identity snapshot. Balances, rates, and scaled units are synthetic. No real wallet is shown; use Live for current verification and quotes.",
+      "selectableAssets": 829,
+      "selectedAssets": 3,
+      "totalAssets": 832,
+      "estimateMode": "synthetic Example",
+      "overflow": 0,
+      "screenshot": "hosted-example-desktop.png"
+    },
+    {
+      "device": "mobile",
+      "route": "/",
+      "at": "2026-09-12T16:25:36.899Z",
+      "status": 200,
+      "heading": "Your next contribution,clearly.",
+      "currentLogoMatches": true,
+      "kova": true,
+      "overflow": 0,
+      "screenshot": "hosted-home-mobile.png"
+    },
+    {
+      "device": "mobile",
+      "route": "/demo",
+      "at": "2026-09-12T16:25:40.300Z",
+      "status": 200,
+      "heading": "See your next contributioncome together.",
+      "currentLogoMatches": true,
+      "films": [
+        {
+          "kind": "product",
+          "src": "/videos/release-20260912/product.mp4",
+          "captions": "/videos/release-20260912/product.en.vtt",
+          "poster": "/videos/release-20260912/product-poster.jpg",
+          "controls": true,
+          "muted": false
+        },
+        {
+          "kind": "technical",
+          "src": "/videos/release-20260912/technical.mp4",
+          "captions": "/videos/release-20260912/technical.en.vtt",
+          "poster": "/videos/release-20260912/technical-poster.jpg",
+          "controls": true,
+          "muted": false
+        }
+      ],
+      "overflow": 0,
+      "screenshot": "hosted-demo-mobile.png"
+    },
+    {
+      "device": "mobile",
+      "route": "/app?mode=example",
+      "at": "2026-09-12T16:25:43.399Z",
+      "status": 200,
+      "heading": "Your next contribution.",
+      "currentLogoMatches": true,
+      "exampleBanner": "Explore 832 assets from the bundled identity snapshot. Balances, rates, and scaled units are synthetic. No real wallet is shown; use Live for current verification and quotes.",
+      "selectableAssets": 829,
+      "selectedAssets": 3,
+      "totalAssets": 832,
+      "estimateMode": "synthetic Example",
+      "overflow": 0,
+      "screenshot": "hosted-example-mobile.png"
+    }
+  ],
+  "media": [
+    {
+      "kind": "product",
+      "at": "2026-09-12T16:25:46.965Z",
+      "src": "/videos/release-20260912/product.mp4",
+      "headStatus": 200,
+      "contentType": "video/mp4",
+      "contentLength": "10548121",
+      "acceptRanges": "bytes",
+      "cacheControl": "public, max-age=0, must-revalidate",
+      "rangeStatus": 206,
+      "rangeContentRange": "bytes 0-1023/10548121",
+      "rangeBytes": 1024,
+      "startsWithMp4Ftyp": true,
+      "captions": "/videos/release-20260912/product.en.vtt",
+      "captionStatus": 200,
+      "captionsHash": "05e5f8d59d2df3ca1a543c73beb426dfae4e80cdb3feedd2d7bbf9e70f02379d",
+      "captionsMatchManifest": true,
+      "captionCueCount": 42,
+      "transcriptStatus": 200,
+      "transcriptMatchesManifest": true
+    },
+    {
+      "kind": "technical",
+      "at": "2026-09-12T16:25:47.828Z",
+      "src": "/videos/release-20260912/technical.mp4",
+      "headStatus": 200,
+      "contentType": "video/mp4",
+      "contentLength": "15621229",
+      "acceptRanges": "bytes",
+      "cacheControl": "public, max-age=0, must-revalidate",
+      "rangeStatus": 206,
+      "rangeContentRange": "bytes 0-1023/15621229",
+      "rangeBytes": 1024,
+      "startsWithMp4Ftyp": true,
+      "captions": "/videos/release-20260912/technical.en.vtt",
+      "captionStatus": 200,
+      "captionsHash": "fdc73815a0812349765b032af56d452addab868329a91bcbe6567bbceef1554a",
+      "captionsMatchManifest": true,
+      "captionCueCount": 37,
+      "transcriptStatus": 200,
+      "transcriptMatchesManifest": true
+    }
+  ],
+  "auth": [
+    {
+      "route": "/sign-in",
+      "at": "2026-09-12T16:25:29.091Z",
+      "status": 200,
+      "heading": "Sign in to Lotline",
+      "emailInputs": 1,
+      "formCount": 1,
+      "submitted": false,
+      "existingAccountFormAvailable": true,
+      "screenshot": "hosted-sign-in.png"
+    },
+    {
+      "route": "/sign-up",
+      "at": "2026-09-12T16:25:31.419Z",
+      "status": 200,
+      "heading": "Make room for a plan.",
+      "emailInputs": 0,
+      "formCount": 0,
+      "submitted": false,
+      "emailGatedMessage": "Signup and recovery emails aren’t available yet.",
+      "screenshot": "hosted-sign-up.png"
+    },
+    {
+      "route": "/auth/reset-password",
+      "at": "2026-09-12T16:25:33.762Z",
+      "status": 200,
+      "heading": "Reset your password.",
+      "emailInputs": 0,
+      "formCount": 0,
+      "submitted": false,
+      "emailGatedMessage": "Signup and recovery emails aren’t available yet.",
+      "screenshot": "hosted-reset-password.png"
+    }
+  ],
+  "blockedNonGet": [],
+  "pageErrors": [],
+  "completedAt": "2026-09-12T16:25:47.828Z",
+  "passed": true,
+  "exampleScreenshotsFinal": [
+    {
+      "device": "desktop",
+      "at": "2026-09-12T16:27:28.879Z",
+      "toastDismissed": true,
+      "scrollY": 0
+    },
+    {
+      "device": "mobile",
+      "at": "2026-09-12T16:27:32.809Z",
+      "toastDismissed": true,
+      "scrollY": 0
+    }
+  ],
+  "screenshotNote": "Final Example screenshots dismiss the transient success notice and return to the document top; no product styles altered."
+}

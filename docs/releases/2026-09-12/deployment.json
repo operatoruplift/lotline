@@ -1,0 +1,16 @@
+{
+  "deploymentId": "dpl_8mZD9ufC7c7qJjsS486NRfvPQAju",
+  "url": "https://lotline-e8bc65vdv-operatoruplift.vercel.app",
+  "canonicalOrigin": "https://lotlineonsolana.vercel.app",
+  "createdAt": "2026-09-12T16:19:43Z",
+  "status": "READY",
+  "target": "production",
+  "project": "lotline",
+  "aliases": [
+    "https://lotlineonsolana.vercel.app",
+    "https://lotlinesolana.vercel.app",
+    "https://lotline-operatoruplift.vercel.app"
+  ],
+  "source": "Reviewed local release, including all preserved prior redesign and contribution finish work. Git publication follows the production checks; no application changes were needed after deployment.",
+  "configurationChanged": false
+}

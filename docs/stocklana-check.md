@@ -1,9 +1,28 @@
-# Stocklana public requirements check
+# Stocklana requirements — dated official recheck
 
-Checked September 11, 2026 against the [official Stocklana page](https://hackathons.solana.com/hackathons/stocklana).
+Checked **September 12, 2026 (UTC)** using the [official Stocklana event page](https://hackathons.solana.com/hackathons/stocklana) and its linked [Submit Project page](https://hackathons.solana.com/hackathons/stocklana/submit). No login, wallet connection, registration or submission was performed.
 
-The public page describes a week of building stock applications on Solana, displays a $100,000 prize pool, and gives a September 18, 2026 deadline. Its page data specifies `2026-09-18T20:00:00.000Z` as the submission deadline. The publicly returned rules field was empty at the time of this check; the page did not supply a judging rubric or detailed submission checklist. Those requirements are therefore unverified, not assumed.
+## Supplied brief versus independent confirmation
 
-Lotline uses mainnet Solana wallet balances and Jupiter's tokenized-stock liquidity for read-only estimates. This is the product's relevance to the announced theme, not an assertion of eligibility or organizer approval.
+| Requirement supplied by the user | September 12 official result |
+| --- | --- |
+| Friday September 18, 2026, 4:00pm Eastern deadline | Confirmed in the event's Timeline |
+| A real user/problem, working end-to-end demo, Solana relevance, execution quality | All four confirmed in Judging |
+| One submission per team; original work; disclose open-source components | Confirmed in Eligibility |
+| At least one GitHub, live-demo or video link | Confirmed in Submitting |
 
-No hackathon entry was registered or submitted. The website and public GitHub repository were published at the user's separate request. Before submitting, recheck the official page and the submission form for current rules, eligibility, required links, and media. The included demo script is a preparation aid, not an organizer-mandated format.
+The event's stated judging question is “could this be a real app that people will actually use?” It also says to register before submitting, permits teammate invitations from the form and edits before closing, and schedules judging through October 2. The displayed prize pool is $100,000. [Official event rules](https://hackathons.solana.com/hackathons/stocklana)
+
+The deadline converts to **2026-09-18 20:00 UTC**, or **Saturday September 19 at 03:00 in Asia/Ho_Chi_Minh**. This conversion uses Eastern daylight time applicable to that date; it is not an additional organizer deadline.
+
+## Submission access and remaining details
+
+The unauthenticated [submission page](https://hackathons.solana.com/hackathons/stocklana/submit) displays a sign-in requirement and Connect Wallet. Its authenticated form fields, length limits, any additional declarations and team-specific eligibility have not been inspected or confirmed. The 115-second script in this repository is a presentation choice, not an organizer-required duration.
+
+The supplied rubric and deadline are therefore now independently corroborated on the public event page. The user/team must still review the actual form and complete any applicable declarations before submitting. This record does not claim organizer approval, eligibility adjudication, or likely placement.
+
+## Historical note
+
+The September 11 check found an empty publicly returned rules field while confirming the event date. That describes the earlier response, not the current page: the September 12 recheck above supersedes its “rubric unverified” conclusion. Historical application evidence remains separately dated.
+
+The [submission draft](stocklana-submission.md), [demo script](stocklana-demo-script.md) and [usability guide](usability-test-guide.md) are preparation materials. No entry has been registered or submitted by this task.

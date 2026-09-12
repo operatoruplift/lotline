@@ -1,0 +1,4 @@
+.scene{position:relative;isolation:isolate;overflow:hidden;min-width:0;background:#ebe4dc}
+.poster,.video{position:absolute;inset:0;width:100%;height:100%;object-position:center;pointer-events:none}
+.video{transition:opacity .6s ease}
+@media(prefers-reduced-motion:reduce){.video{transition:none}}

@@ -92,6 +92,10 @@ for (const width of [375, 768, 1440]) {
     for (const route of ['/', '/app?mode=example', '/how-it-works']) {
       await page.goto(route);
       if (route.includes('/app')) await expect(page.getByLabel('USDC budget')).toBeVisible();
+      // Assess the completed entrance; media tests cover motion and pause behavior.
+      const header = page.getByRole('banner');
+      await expect(header).toHaveCount(1);
+      await expect(header.locator(':scope > div')).toHaveCSS('opacity', '1');
       expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
       const accessibility = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21aa']).analyze();
       expect(accessibility.violations.map(v => `${v.id}: ${v.nodes.map(n => n.target.join(',')).join('; ')}`)).toEqual([]);
@@ -135,7 +139,7 @@ test('create a three-asset split and export using keyboard controls', async ({ p
   for (let i = 0; i < 3; i++) {
     await tabTo('Add an asset');
     await page.keyboard.press('Enter');
-    await tabTo('Choose a verified xStock');
+    await tabTo('Choose an example xStock');
     // Native select typeahead works across desktop platforms without relying on popup-menu key semantics.
     await page.keyboard.type(['AAPLx', 'MSFTx', 'NVDAx'][i]);
     await page.keyboard.press('Tab');

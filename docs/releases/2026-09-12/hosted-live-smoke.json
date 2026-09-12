@@ -1,0 +1,98 @@
+{
+  "startedAt": "2026-09-12T16:22:22.741Z",
+  "origin": "https://lotlineonsolana.vercel.app",
+  "scope": "Read-only hosted HTTP; uses deployed provider coordination. No accounts, email, signatures, or transaction submissions.",
+  "transactionsSigned": 0,
+  "transactionsSubmitted": 0,
+  "catalog": {
+    "status": 200,
+    "state": "success",
+    "count": 832,
+    "unavailable": [],
+    "checkedMint": {
+      "symbol": "AAPLx",
+      "name": "Apple xStock",
+      "mint": "XsbEhLAtcf6HdfpFZ5xEMdqW8nfAvcsP5bdudRLJzJp",
+      "decimals": 8,
+      "tokenProgram": "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb",
+      "halted": false,
+      "verifiedAt": "2026-09-12T16:22:27.875Z",
+      "logoUrl": "/logos/xstocks/AAPLx.png",
+      "logoSourceUrl": "https://xstocks-metadata.backed.fi/logos/tokens/AAPLx.png",
+      "issuerIsin": "CH1436219187",
+      "underlyingSymbol": "AAPL",
+      "underlyingIsin": "US0378331005"
+    }
+  },
+  "owner": {
+    "address": "7pt9tkctJPK7PPNQJ77GKg8ZffSF6QxoMiCFYHxrtaCj",
+    "source": "Independently public AAPLx mint authority, not a user wallet."
+  },
+  "holdings": {
+    "status": 200,
+    "cacheControl": "no-store",
+    "body": {
+      "state": "success",
+      "holdings": [
+        {
+          "mint": "XsbEhLAtcf6HdfpFZ5xEMdqW8nfAvcsP5bdudRLJzJp",
+          "state": "success",
+          "raw": "0",
+          "units": "0"
+        }
+      ],
+      "usdc": {
+        "mint": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+        "state": "success",
+        "raw": "0",
+        "units": "0"
+      },
+      "fetchedAt": "2026-09-12T16:22:32.130Z"
+    }
+  },
+  "request": {
+    "items": [
+      {
+        "mint": "XsbEhLAtcf6HdfpFZ5xEMdqW8nfAvcsP5bdudRLJzJp",
+        "usdcRaw": "10000000"
+      }
+    ],
+    "takerIncluded": false
+  },
+  "quote": {
+    "status": 200,
+    "cacheControl": "no-store",
+    "body": {
+      "state": "success",
+      "quotes": [
+        {
+          "mint": "XsbEhLAtcf6HdfpFZ5xEMdqW8nfAvcsP5bdudRLJzJp",
+          "state": "success",
+          "usdcRaw": "10000000",
+          "outRaw": "2991405",
+          "units": "0.03001184",
+          "fetchedAt": "2026-09-12T16:22:39.671Z",
+          "expiresAt": "2026-09-12T16:23:09.671Z",
+          "source": "Jupiter · okx",
+          "feeBps": 10,
+          "feeMint": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v"
+        }
+      ]
+    }
+  },
+  "resultingUnits": {
+    "status": 200,
+    "cacheControl": "no-store",
+    "body": {
+      "state": "success",
+      "items": [
+        {
+          "mint": "XsbEhLAtcf6HdfpFZ5xEMdqW8nfAvcsP5bdudRLJzJp",
+          "units": "0.03001184"
+        }
+      ]
+    }
+  },
+  "status": "passed",
+  "completedAt": "2026-09-12T16:22:46.373Z"
+}

@@ -637,3 +637,11 @@ h1,h2,h3{font-weight:550;line-height:1.18}
   .landing-page .hero-copy>*,.landing-page .hero-visual,.landing-page .ambient-orb-one,.landing-page .ambient-orb-two,.landing-page .preview-card-stack,.landing-page .signal-path,.landing-page .preview-signal circle,.landing-page .product-preview>.allocation-bar>span,.landing-page .product-preview>.allocation-bar>span:after,.landing-page .hero-status-dot,.landing-page .window-live>span,.landing-page .signal-pulse,.landing-page .step-meter>span,.landing-page .intent-symbol,.landing-page .feature-device>span{animation:none!important}
   .landing-page .hero-copy>*{opacity:1;transform:none}
 }
+
+/* Shared redesign tokens; semantic warning/error/success colors remain distinct. */
+:root{--paper:#FDF5EB;--forest:#08150C;--forest-dark:#1A2E1F;--ink:#08150C;--soft:#F4F1EC;--line:#DDDCD0;--radius:16px;--font-editorial:Georgia,'Times New Roman',serif}
+.brand{color:#174D3C}.button,.header-cta{border-radius:12px}
+html[data-motion="paused"] *,html[data-motion="paused"] *:before,html[data-motion="paused"] *:after,html[data-motion="hidden"] *,html[data-motion="hidden"] *:before,html[data-motion="hidden"] *:after{animation-play-state:paused!important}
+html[data-motion="reduced"] *,html[data-motion="reduced"] *:before,html[data-motion="reduced"] *:after{animation:none!important;scroll-behavior:auto!important}
+/* A paused entrance must never hide controls or educational content. */
+html[data-motion="paused"] [data-reveal],html[data-motion="reduced"] [data-reveal]{opacity:1!important;filter:none!important;transform:none!important}

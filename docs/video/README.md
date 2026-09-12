@@ -1,10 +1,23 @@
-# Lotline pitch production
+# Lotline video production
+
+**Last updated:** September 12, 2026.
+
+The current product and technical films use fresh recordings of the redesigned application and the user-selected **Ainsley** voice generated through Higgsfield. The product film is **97.6 seconds** and the narrated technical film is **164.5 seconds**. Both explain the current 832-identity Example catalog and ten-asset plan limit. Example estimates remain visibly synthetic; recorded Live quotes carry their observation date and expiry disclosure.
+
+- [Current films, transcripts, provenance and verification](../video-release.md)
+- [Current product MP4](../../public/videos/release-20260912/product.mp4) and [English captions](../../public/videos/release-20260912/product.en.vtt)
+- [Current technical MP4](../../public/videos/release-20260912/technical.mp4) and [English captions](../../public/videos/release-20260912/technical.en.vtt)
+- [Demo page](https://lotlineonsolana.vercel.app/demo)
+
+## Archival pitch production — September 11
+
+The following record describes the original 54-second film, its earlier three-asset UI and former mark. Keep these source assets and delivery records for provenance; use the current films above for judging and product demonstrations. This archive was not rewritten to imply its original narration or screenshots had changed.
 
 The pitch uses a native Higgsedit 0.14.0 timeline, original Lotline graphics, and actual Example-mode screenshots. It does not use generated app screens or represent example prices as current quotes.
 
 ## Source and previews
 
-- [Watch the narrated 54-second pitch](https://d2ol7oe51mr4n9.cloudfront.net/user_316WRAwjtWmpOAHb5tUQ2Grs4QP/b87047f8-d625-4416-b6f7-485f4c92b73e.mp4)
+- [Archival narrated 54-second pitch](https://d2ol7oe51mr4n9.cloudfront.net/user_316WRAwjtWmpOAHb5tUQ2Grs4QP/b87047f8-d625-4416-b6f7-485f4c92b73e.mp4)
 - [Native edit source](pitch.mjs)
 - [54-second storyboard](../pitch-storyboard.md)
 - [Editable Higgsedit project ZIP](https://d2ol7oe51mr4n9.cloudfront.net/user_316WRAwjtWmpOAHb5tUQ2Grs4QP/9d753b4b-a7b5-4198-8907-1c43ce559ee9.zip)
