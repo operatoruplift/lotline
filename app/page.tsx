@@ -20,12 +20,11 @@ export default function Home() {
         <p className="hero-description">Your assets. Your percentages. See how your next USDC contribution adds up, then take the plan with you.</p>
         <div className="hero-actions"><Link href="/app" className="button primary large">Make a plan <ArrowRight size={17} /></Link><Link href="/app?mode=example" className="text-button">Try the example <ArrowUpRight size={16} /></Link></div>
         <div className="hero-reassurance"><LockKeyhole size={14} /><span>Start without an account. No signatures.</span></div>
-        <div className="hero-proof-list" aria-label="Lotline planner details"><div><strong>3</strong><span>verified<br />assets</span></div><div><strong>1</strong><span>read-only<br />wallet view</span></div><div><strong>0</strong><span>custody<br />required</span></div></div>
+        <div className="hero-proof-list" aria-label="Lotline planner details"><div><strong>3</strong><span>example<br />assets</span></div><div><strong>1</strong><span>read-only<br />wallet view</span></div><div><strong>0</strong><span>custody<br />required</span></div></div>
       </div>
       <div className="hero-visual">
         <div className="preview-topline"><span className="tiny-dot" /> A SMALL PLAN. A CLEAR NEXT STEP.</div>
-        <div className="preview-float-chip preview-float-chip-top"><ShieldCheck size={13} /><span>Read-only by default</span></div>
-        <div className="product-preview" aria-label="Illustrative contribution plan">
+        <div className="preview-card-stack"><div className="product-preview" aria-label="Illustrative contribution plan">
           <div className="preview-window-bar" aria-hidden="true"><span><i /><i /><i /></span><small>lotline / planner</small><span className="window-live"><span /> synced</span></div>
           <div className="preview-heading"><span>Your next contribution</span><span className="example-pill">Example</span></div>
           <div className="preview-amount">1,000<span>.00</span> <small>USDC</small></div>
@@ -34,9 +33,9 @@ export default function Home() {
           <div className="preview-labels"><span>YOUR SPLIT</span><span>CONTRIBUTION</span></div>
           {previewRows.map((row) => <div className="preview-row" key={row.symbol}><span className={`asset-avatar ${row.cls}`}>{logoPathForSymbol(row.symbol) ? <Image className="asset-logo" src={logoPathForSymbol(row.symbol)!} alt="" width={36} height={36} unoptimized /> : row.initial}</span><div className="preview-asset"><strong>{row.symbol}</strong><span>{row.name}</span></div><span className="preview-weight">{row.share}%</span><strong className="preview-usdc">{row.amount}<small>USDC</small></strong></div>)}
           <div className="preview-bottom"><span><CheckCheck size={15} /> Every micro-USDC accounted for</span><ArrowUpRight size={17} /></div>
-        </div>
+        </div></div>
+        <div className="preview-assurances"><div className="preview-float-chip"><ShieldCheck size={13} /><span>Read-only by default</span></div><div className="preview-float-chip"><Gauge size={13} /><span>Micro-USDC precise</span></div></div>
         <div className="preview-note"><span className="annotation-line" /> Your contribution split. Set by you.</div>
-        <div className="preview-float-chip preview-float-chip-bottom"><Gauge size={13} /><span>Micro-USDC precise</span></div>
         <p className="preview-disclosure">Illustrative assets and amounts. No live quotes shown.</p>
       </div>
     </section>
@@ -44,7 +43,7 @@ export default function Home() {
     <section className="steps-section page-width">
       <div className="section-heading"><div><p className="eyebrow">LESS GUESSWORK. MORE CLARITY.</p><h2>One contribution.<br />Three simple steps.</h2></div><p>A focused tool for the assets you already have in mind.</p></div>
       <div className="steps-grid">
-        <article className="motion-card"><span className="step-number">01</span><span className="step-signal"><Sparkles size={12} /> START HERE</span><h3>Choose your split.</h3><p>Pick up to three verified xStocks. Set the percentages for your new contribution.</p><div className="step-meter" aria-hidden="true"><span /><span /><span /></div></article>
+        <article className="motion-card"><span className="step-number">01</span><span className="step-signal"><Sparkles size={12} /> START HERE</span><h3>Choose your split.</h3><p>Choose verified xStocks from the catalog. Set the percentages for your new contribution.</p><div className="step-meter" aria-hidden="true"><span /><span /><span /></div></article>
         <article className="motion-card"><span className="step-number">02</span><span className="step-signal"><Activity size={12} /> SEE IT ADD UP</span><h3>See what adds up.</h3><p>Enter a USDC budget for quote estimates. Add a public wallet address to see your current units, too.</p><div className="step-meter step-meter-mid" aria-hidden="true"><span /><span /><span /></div></article>
         <article className="motion-card"><span className="step-number">03</span><span className="step-signal"><ArrowUpRight size={12} /> TAKE IT WITH YOU</span><h3>Take the next step.</h3><p>Copy or export your plan. Open Jupiter to independently review amounts and fees before trading.</p><div className="step-meter step-meter-last" aria-hidden="true"><span /><span /><span /></div></article>
       </div>

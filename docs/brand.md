@@ -17,6 +17,8 @@ Run `npm run brand:generate` to regenerate the SVG marks, favicon, PNG app icons
 - `public/brand/monochrome.svg`: charcoal symbol.
 - `public/brand/wordmark.svg`: horizontal Lotline lockup with editable text and a system font stack.
 - `public/brand/favicon.svg`: paper symbol on a forest rounded tile.
+- `app/favicon.ico`: conventional browser favicon with 16, 32, and 48 px frames.
+- `app/icon.svg` and `app/apple-icon.png`: Next.js file-based metadata icons with generated versioned links.
 - `public/icons/icon-source.svg`: full-bleed forest tile for standard app icons.
 - `public/icons/icon-maskable-source.svg`: separately padded source for OS masks.
 - `public/icons/`: 180 px Apple touch, 192 px and 512 px standard, and 512 px maskable PNGs.

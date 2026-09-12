@@ -2,6 +2,7 @@ import { serverSupabase } from '@/lib/supabase/server';
 import { cloudPlanInput, cloudPlanRecord, isSameOriginMutation, planId } from '@/lib/supabase/plans';
 import { readSmallJson, ServiceError } from '@/lib/server/common';
 import { noStore } from '@/lib/server/requests';
+import { MAX_PLAN_ASSETS } from '@/lib/domain/limits';
 
 export const dynamic = 'force-dynamic';
 const columns = 'id,name,budget_raw,allocations,created_at';
@@ -32,7 +33,7 @@ export async function POST(request: Request) {
   if (!isSameOriginMutation(request)) return result({ state: 'forbidden', message: 'Reload Lotline before saving a plan.' }, 403);
   try {
     const parsed = cloudPlanInput.safeParse(await readSmallJson(request));
-    if (!parsed.success) return result({ state: 'invalid-input', message: 'Use a name, a positive USDC budget, and one to three supported assets totaling 100%.' }, 400);
+    if (!parsed.success) return result({ state: 'invalid-input', message: `Use a name, a positive USDC budget, and one to ${MAX_PLAN_ASSETS} supported assets totaling 100%.` }, 400);
     const auth = await authorized();
     if (auth.response) return auth.response;
     const { data, error } = await auth.client!.from('lotline_contribution_plans').insert({ ...parsed.data, user_id: auth.user!.id }).select(columns).single();

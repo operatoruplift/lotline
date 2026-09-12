@@ -1,4 +1,5 @@
 import type { Basket } from './types';
+import { MAX_PLAN_ASSETS } from './limits';
 
 export const USDC_DECIMALS = 6;
 export const MAX_BUDGET_USDC = 1_000_000;
@@ -37,8 +38,8 @@ export function formatUsdc(raw: bigint | string): string {
 /** Largest remainder allocation; basket order is the explicit final tie breaker. */
 export function allocate(budgetRaw: bigint, weightsBps: number[]): bigint[] {
   if (budgetRaw < 0n || budgetRaw > MAX_BUDGET_RAW) throw new Error('Budget is outside the supported range.');
-  if (weightsBps.length < 1 || weightsBps.length > 3 || weightsBps.some(weight => !Number.isSafeInteger(weight) || weight < 0 || weight > TOTAL_BPS)) {
-    throw new Error('Choose one to three assets with valid percentages.');
+  if (weightsBps.length < 1 || weightsBps.length > MAX_PLAN_ASSETS || weightsBps.some(weight => !Number.isSafeInteger(weight) || weight < 0 || weight > TOTAL_BPS)) {
+    throw new Error(`Choose one to ${MAX_PLAN_ASSETS} assets with valid percentages.`);
   }
   if (weightsBps.reduce((sum, weight) => sum + weight, 0) !== TOTAL_BPS) {
     throw new Error('Your contribution percentages must total 100%.');
@@ -63,8 +64,8 @@ export type PlanValidation = { valid: boolean; message?: string; allocations: Pl
 
 export function validatePlan(basket: Basket): PlanValidation {
   try {
-    if (!basket || basket.version !== 1 || !Array.isArray(basket.items) || basket.items.length < 1 || basket.items.length > 3) {
-      throw new Error('Choose one to three verified xStocks to make your plan.');
+    if (!basket || basket.version !== 1 || !Array.isArray(basket.items) || basket.items.length < 1 || basket.items.length > MAX_PLAN_ASSETS) {
+      throw new Error(`Choose one to ${MAX_PLAN_ASSETS} verified xStocks to make your plan.`);
     }
     if (basket.items.some(item => !item || typeof item.mint !== 'string' || !/^[1-9A-HJ-NP-Za-km-z]{32,44}$/.test(item.mint))) {
       throw new Error('Choose a verified xStock for every allocation.');

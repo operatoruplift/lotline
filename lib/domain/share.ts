@@ -1,5 +1,6 @@
 import { validatePlan } from './math';
 import type { Basket, Mode } from './types';
+import { MAX_PLAN_ASSETS } from './limits';
 
 export const PLAN_HASH_PREFIX = '#plan=';
 export const MAX_PLAN_HASH_LENGTH = 2_048;
@@ -11,7 +12,7 @@ function parsePayload(value: unknown): SharedPlan | null {
   const keys = Object.keys(candidate);
   if (keys.length !== 4 || !keys.every(key => ['v', 'mode', 'budget', 'items'].includes(key))) return null;
   if (candidate.v !== 1 || (candidate.mode !== 'example' && candidate.mode !== 'live') || typeof candidate.budget !== 'string') return null;
-  if (!Array.isArray(candidate.items) || candidate.items.length < 1 || candidate.items.length > 3) return null;
+  if (!Array.isArray(candidate.items) || candidate.items.length < 1 || candidate.items.length > MAX_PLAN_ASSETS) return null;
   const items: Basket['items'] = [];
   for (const item of candidate.items) {
     if (!Array.isArray(item) || item.length !== 2 || typeof item[0] !== 'string' || typeof item[1] !== 'string') return null;

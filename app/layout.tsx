@@ -22,7 +22,6 @@ export const metadata: Metadata = {
     description: 'Plan your next xStocks contribution with exact USDC splits and read-only estimates.',
     images: ['/icons/icon-512.png?v=branch-1'],
   },
-  icons: { icon: '/brand/favicon.svg?v=branch-1', apple: '/icons/apple-touch-icon.png?v=branch-1' },
   appleWebApp: { capable: true, title: 'Lotline', statusBarStyle: 'default' },
   applicationName: 'Lotline',
 };

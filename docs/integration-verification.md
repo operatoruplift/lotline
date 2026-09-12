@@ -4,11 +4,21 @@ Verified September 11–12, 2026. The original chain and quote observations reta
 
 [Deployed website](https://lotlineonsolana.vercel.app) · [Example planner](https://lotlineonsolana.vercel.app/app?mode=example) · [Demo](https://lotlineonsolana.vercel.app/demo) · [Public repository](https://github.com/operatoruplift/lotline)
 
+## September 12 catalog and favicon update
+
+The issuer snapshot now contains **832 Solana tokenized stocks and ETFs**, all verified against initialized Token2022 mints with supported scaling and bundled official 400×400 PNG logos. The live local `/api/assets` endpoint returned all 832 with zero verification exclusions. Four issuer-reported halts remained marked: CITICx, CKAHx, CKHUTx, and JPSTx. See [catalog provenance](xstocks-catalog.md) and [the machine-readable verification record](xstocks-catalog-verification.json).
+
+A read-only live AMZNx quote for 100 USDC returned HTTP 200 and mint-aware units at 09:45:40 UTC. This is a point-in-time route check, not a claim that every listed asset always has liquidity. Quotes separately recheck issuer halt status; bulk catalog loading does not seed or extend that cache.
+
+Plans now support up to 10 assets, with API requests still capped at three assets each. The expanded Supabase allowlist migration `20260912094113_expanded_stock_plans` was applied. Transactional tests passed for ten assets, rejecting eleven, new mints outside the original six, duplicate and unknown mint rejection, account ownership, exact amounts, account limits, and delete isolation. Every test fixture was rolled back.
+
+Browser favicon routes now use the selected branching logo through conventional ICO, SVG, and Apple metadata files. The contribution preview uses aligned content and keeps its status badges outside the card. Layout regression checks cover 320, 375, 768, and 1440 px.
+
 ## Completed build checks
 
 - Lint, TypeScript checking, and the Next.js production build passed.
-- A fresh full unit-test run passed all **151 deterministic tests**; the single opt-in live test is skipped in ordinary unit runs and live evidence is recorded separately.
-- **35 distinct browser scenarios** passed against the fresh local production build, including the core planner, responsive and accessibility checks, PWA/offline flows, two cloud-plan account-change scenarios, immediate-reload/blocked-storage regressions, four judge-readiness flows, and eight strict share-link journeys. The first pass also caught and fixed the mobile test selector race; the final focused production runs passed all four judge flows and all eight share-link flows.
+- The deterministic suite plus the final catalog rerun passed **168 tests**. The full 832-asset fixture uses a scoped 60-second test bound after exceeding 15 seconds on a busy development machine; the single opt-in live test remains skipped in ordinary runs and live evidence is recorded separately.
+- **38 browser scenarios** passed together against the fresh local production build, including the ten-asset batching/export/persistence journey, the full-catalog mobile search, four-width contribution-card layout regression, the core planner, accessibility, PWA/offline flows, cloud-plan account changes, draft persistence, judge-readiness flows, and strict share-link journeys.
 - A secret scan of the tracked source and built-client files found no matches for the configured server-secret values. The public Supabase project URL and publishable key are intentionally exposed; privileged keys remain server-side.
 
 Counts describe the completed checkpoint above. Hosted browser and account-flow checks are recorded separately below as they finish; a passed local test does not imply every deployed integration was exercised.

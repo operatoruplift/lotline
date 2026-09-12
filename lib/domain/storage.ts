@@ -1,4 +1,5 @@
 import type { Basket } from './types';
+import { MAX_PLAN_ASSETS } from './limits';
 
 export const BASKET_STORAGE_KEY = 'lotline:basket:v1';
 const MAX_STORED_LENGTH = 2_048;
@@ -9,7 +10,7 @@ export function parseSavedBasket(value: unknown, allowedMints?: readonly string[
   if (!value || typeof value !== 'object' || Array.isArray(value)) return null;
   const candidate = value as Record<string, unknown>;
   if (candidate.version !== 1 || typeof candidate.budget !== 'string' || candidate.budget.length > 32 || !/^[0-9.]*$/.test(candidate.budget)) return null;
-  if (!Array.isArray(candidate.items) || candidate.items.length > 3) return null;
+  if (!Array.isArray(candidate.items) || candidate.items.length > MAX_PLAN_ASSETS) return null;
   const items: Basket['items'] = [];
   for (const item of candidate.items) {
     if (!item || typeof item !== 'object' || Array.isArray(item)) return null;

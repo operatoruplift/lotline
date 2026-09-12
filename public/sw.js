@@ -2,13 +2,14 @@
  * Live API requests, account pages, authentication, and user documents never
  * enter Cache Storage. The Example is refreshed atomically when online.
  */
-const CACHE = 'lotline-public-example-v2';
+const CACHE = 'lotline-public-example-v3';
 const OFFLINE = '/offline';
 const STATIC_PATHS = ['/brand/', '/icons/', '/logos/', '/_next/static/'];
+const STATIC_FILES = new Set(['/favicon.ico', '/icon.svg', '/apple-icon.png']);
 let preparing;
 
 function isStatic(url) {
-  return url.origin === self.location.origin && STATIC_PATHS.some((path) => url.pathname.startsWith(path));
+  return url.origin === self.location.origin && (STATIC_FILES.has(url.pathname) || STATIC_PATHS.some((path) => url.pathname.startsWith(path)));
 }
 
 async function prepareOffline() {

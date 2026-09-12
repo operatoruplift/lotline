@@ -25,12 +25,12 @@ function worker() {
   const caches = {
     open: vi.fn(async () => cache),
     match: cache.match,
-    keys: vi.fn(async () => ['lotline-public-example-v0', 'lotline-public-example-v1', 'lotline-public-example-v2', 'unrelated-cache']),
+    keys: vi.fn(async () => ['lotline-public-example-v0', 'lotline-public-example-v1', 'lotline-public-example-v2', 'lotline-public-example-v3', 'unrelated-cache']),
     delete: vi.fn(async () => true),
   };
   const fetch = vi.fn<(input: string | { url: string }, options?: RequestInit) => Promise<Response>>(async (input) => {
     const url = new URL(key(input));
-    if (url.pathname === '/offline') return new Response('<html><script src="/_next/static/chunks/example.js"></script><link href="/_next/static/css/example.css" rel="stylesheet"><a href="/auth/callback?code=secret">Sign in</a><img src="https://external.example/track"><a href="/api/holdings?owner=secret">Never cache</a></html>', { headers: { 'content-type': 'text/html' } });
+    if (url.pathname === '/offline') return new Response('<html><link href="/favicon.ico" rel="icon"><link href="/icon.svg?v=123" rel="icon"><link href="/apple-icon.png?v=123" rel="apple-touch-icon"><script src="/_next/static/chunks/example.js"></script><link href="/_next/static/css/example.css" rel="stylesheet"><a href="/auth/callback?code=secret">Sign in</a><img src="https://external.example/track"><a href="/api/holdings?owner=secret">Never cache</a></html>', { headers: { 'content-type': 'text/html' } });
     return new Response(`public asset ${url.pathname}`);
   });
   const self = { location: { origin }, addEventListener: (type: string, listener: (event: WorkerEvent) => void) => listeners.set(type, listener), skipWaiting: vi.fn(async () => {}), clients: { claim: vi.fn(async () => {}) } };
@@ -52,7 +52,7 @@ describe('public offline cache boundary', () => {
     expect(paths).toContain('/offline');
     expect(paths).toContain('/_next/static/chunks/example.js');
     expect(paths).toContain('/_next/static/css/example.css');
-    expect(paths.every(path => path === '/offline' || path.startsWith('/_next/static/') || path.startsWith('/icons/') || path.startsWith('/brand/') || path.startsWith('/logos/'))).toBe(true);
+    expect(paths.every(path => path === '/offline' || path === '/favicon.ico' || path === '/icon.svg' || path === '/apple-icon.png' || path.startsWith('/_next/static/') || path.startsWith('/icons/') || path.startsWith('/brand/') || path.startsWith('/logos/'))).toBe(true);
     for (const [, options] of w.fetch.mock.calls) expect(options?.credentials).toBe('omit');
     expect(w.self.skipWaiting).toHaveBeenCalledOnce();
   });
@@ -98,10 +98,11 @@ describe('public offline cache boundary', () => {
   it('does not store an online live page and only removes its own outdated caches', async () => {
     const w = worker();
     await w.dispatch('activate').waiting;
-    expect(w.caches.delete).toHaveBeenCalledTimes(2);
+    expect(w.caches.delete).toHaveBeenCalledTimes(3);
     expect(w.caches.delete).toHaveBeenCalledWith('lotline-public-example-v0');
     expect(w.caches.delete).toHaveBeenCalledWith('lotline-public-example-v1');
-    expect(w.caches.delete).not.toHaveBeenCalledWith('lotline-public-example-v2');
+    expect(w.caches.delete).toHaveBeenCalledWith('lotline-public-example-v2');
+    expect(w.caches.delete).not.toHaveBeenCalledWith('lotline-public-example-v3');
     expect(w.caches.delete).not.toHaveBeenCalledWith('unrelated-cache');
     const { response } = w.dispatch('fetch', { request: { url: `${w.origin}/app`, method: 'GET', mode: 'navigate' } });
     expect((await response)?.ok).toBe(true);

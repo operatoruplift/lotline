@@ -1,25 +1,33 @@
-/**
- * Official xStocks logo files bundled with Lotline.
- *
- * The files are mirrored from the issuer metadata endpoint so the planner
- * does not depend on a third-party image request to render an asset identity.
- */
-export const XSTOCK_LOGO_PATHS = {
-  AAPLx: '/logos/xstocks/AAPLx.png',
-  MSFTx: '/logos/xstocks/MSFTx.png',
-  NVDAx: '/logos/xstocks/NVDAx.png',
-  TSLAx: '/logos/xstocks/TSLAx.png',
-  SPYx: '/logos/xstocks/SPYx.png',
-  QQQx: '/logos/xstocks/QQQx.png',
-} as const;
+import registry from './xstocks-registry.json' with { type: 'json' };
 
+/** Issuer identities pinned by scripts/refresh-xstocks-catalog.mjs after Solana mint verification. */
+export type XStockIdentity = {
+  symbol: string;
+  name: string;
+  mint: string;
+  decimals: number;
+  logoUrl: string;
+  logoSourceUrl: string;
+  issuerIsin: string;
+  underlyingSymbol: string;
+  underlyingIsin: string;
+};
+
+export const XSTOCK_REGISTRY: readonly Readonly<XStockIdentity>[] = registry;
+export const XSTOCK_SYMBOLS = XSTOCK_REGISTRY.map(asset => asset.symbol);
+export const XSTOCK_MINTS = XSTOCK_REGISTRY.map(asset => asset.mint);
+export const XSTOCK_LOGO_PATHS: Readonly<Record<string, string>> = Object.fromEntries(XSTOCK_REGISTRY.map(asset => [asset.symbol, asset.logoUrl]));
 export const XSTOCK_LOGO_HOST = 'xstocks-metadata.backed.fi';
+const identities = new Map(XSTOCK_REGISTRY.map(asset => [asset.symbol, asset]));
+
+export function identityForSymbol(symbol: string): Readonly<XStockIdentity> | undefined {
+  return identities.get(symbol);
+}
 
 export function logoPathForSymbol(symbol: string): string | undefined {
-  return XSTOCK_LOGO_PATHS[symbol as keyof typeof XSTOCK_LOGO_PATHS];
+  return identityForSymbol(symbol)?.logoUrl;
 }
 
 export function officialLogoUrlForSymbol(symbol: string): string | undefined {
-  if (!logoPathForSymbol(symbol)) return undefined;
-  return `https://${XSTOCK_LOGO_HOST}/logos/tokens/${encodeURIComponent(symbol)}.png`;
+  return identityForSymbol(symbol)?.logoSourceUrl;
 }

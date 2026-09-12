@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { allocate, formatUsdc, MAX_BUDGET_RAW, parseBudget, parsePercent, validatePlan } from '../lib/domain/math';
 import { DEFAULT_BASKET } from '../lib/demo/example';
+import { MAX_PLAN_ASSETS } from '../lib/domain/limits';
 
 describe('exact USDC parsing', () => {
   it('parses decimal strings into micro-units exactly, including the documented limit', () => {
@@ -41,7 +42,7 @@ describe('largest remainder allocations', () => {
   });
   it('always allocates the full budget and never funds zero weights', () => {
     for (const budget of [0n, 1n, 2n, 3n, 17n, 1_000_001n, MAX_BUDGET_RAW]) {
-      for (const weights of [[5000, 3000, 2000], [1, 9998, 1], [0, 10000], [3333, 3333, 3334]]) {
+      for (const weights of [[5000, 3000, 2000], [1, 9998, 1], [0, 10000], [3333, 3333, 3334], Array(MAX_PLAN_ASSETS).fill(1000), [0, ...Array(8).fill(1111), 1112]]) {
         const allocations = allocate(budget, weights);
         expect(allocations.reduce((sum, raw) => sum + raw, 0n)).toBe(budget);
         allocations.forEach((raw, index) => { expect(raw >= 0n).toBe(true); if (weights[index] === 0) expect(raw).toBe(0n); });
@@ -49,7 +50,14 @@ describe('largest remainder allocations', () => {
     }
   });
   it('rejects incomplete, all-zero, fractional, and excessive selections', () => {
-    for (const weights of [[0, 0], [5000, 2000], [5000.1, 4999.9], [2500, 2500, 2500, 2500], [-1, 10001]]) expect(() => allocate(1n, weights)).toThrow();
+    for (const weights of [[0, 0], [5000, 2000], [5000.1, 4999.9], [10000, ...Array(MAX_PLAN_ASSETS).fill(0)], [-1, 10001]]) expect(() => allocate(1n, weights)).toThrow();
+  });
+  it('supports ten unique assets and assigns tiny-budget ties in basket order', () => {
+    const items = Array.from({ length: MAX_PLAN_ASSETS }, (_, index) => ({ mint: `${'123456789AB'[index]}${'1'.repeat(43)}`, percent: '10' }));
+    const plan = validatePlan({ version: 1, budget: '0.000003', items });
+    expect(plan.valid).toBe(true);
+    expect(plan.allocations.map(item => item.usdcRaw)).toEqual(['1', '1', '1', '0', '0', '0', '0', '0', '0', '0']);
+    expect(validatePlan({ version: 1, budget: '1', items: [...items, { mint: `B${'1'.repeat(43)}`, percent: '0' }] }).valid).toBe(false);
   });
   it('returns actionable validation and prevents duplicate mints', () => {
     expect(validatePlan(DEFAULT_BASKET).valid).toBe(true);

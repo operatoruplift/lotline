@@ -3,9 +3,10 @@ import { NextRequest } from 'next/server';
 import { DEFAULT_BASKET } from '@/lib/demo/example';
 import { basketToCloudPlan, cloudPlanInput, cloudPlanToBasket, isSameOriginMutation, PLAN_MINTS, safeAuthNext } from '@/lib/supabase/plans';
 import { supabaseConfig } from '@/lib/supabase/config';
+import { MAX_PLAN_ASSETS } from '@/lib/domain/limits';
 
 afterEach(() => vi.unstubAllEnvs());
-const input = () => ({ name: 'Monthly split', budget_raw: '10000001', allocations: [{ mint: PLAN_MINTS[0], bps: '5000' }, { mint: PLAN_MINTS[1], bps: '3000' }, { mint: PLAN_MINTS[2], bps: '2000' }] });
+const input = () => ({ name: 'Monthly split', budget_raw: '10000001', allocations: DEFAULT_BASKET.items.map((item, index) => ({ mint: item.mint, bps: ['5000', '3000', '2000'][index] })) });
 
 describe('cloud plan privacy and exact representation', () => {
   it('round trips micro-USDC and basis points exactly', () => {
@@ -27,11 +28,24 @@ describe('cloud plan privacy and exact representation', () => {
   it.each(['1.1', '-1', '05000', '10001', 'x'])('rejects non-canonical bps %s', bps => {
     expect(cloudPlanInput.safeParse({ ...input(), allocations: [{ mint: PLAN_MINTS[0], bps }] }).success).toBe(false);
   });
-  it('rejects unknown mints, duplicates, four assets and invalid totals', () => {
+  it('rejects unknown mints, duplicates, eleven assets and invalid totals', () => {
     expect(cloudPlanInput.safeParse({ ...input(), allocations: [{ mint: '11111111111111111111111111111111', bps: '10000' }] }).success).toBe(false);
     expect(cloudPlanInput.safeParse({ ...input(), allocations: [{ mint: PLAN_MINTS[0], bps: '5000' }, { mint: PLAN_MINTS[0], bps: '5000' }] }).success).toBe(false);
-    expect(cloudPlanInput.safeParse({ ...input(), allocations: PLAN_MINTS.slice(0, 4).map(mint => ({ mint, bps: '2500' })) }).success).toBe(false);
+    const excessive = PLAN_MINTS.slice(0, MAX_PLAN_ASSETS + 1).map((mint, index) => ({ mint, bps: index === 0 ? '10000' : '0' }));
+    expect(excessive).toHaveLength(11);
+    expect(cloudPlanInput.safeParse({ ...input(), allocations: excessive }).success).toBe(false);
     expect(cloudPlanInput.safeParse({ ...input(), allocations: [{ mint: PLAN_MINTS[0], bps: '9999' }] }).success).toBe(false);
+  });
+  it('round-trips ten supported assets, including newly cataloged identities', () => {
+    const allocations = PLAN_MINTS.slice(0, MAX_PLAN_ASSETS).map(mint => ({ mint, bps: '1000' }));
+    expect(allocations).toHaveLength(10);
+    const expanded = { ...input(), budget_raw: '1', allocations };
+    expect(cloudPlanInput.safeParse(expanded).success).toBe(true);
+    const basket = cloudPlanToBasket(expanded);
+    expect(basket.items).toHaveLength(10);
+    expect(basket.budget).toBe('0.000001');
+    expect(basketToCloudPlan(basket, expanded.name)).toEqual(expanded);
+    expect(cloudPlanInput.safeParse({ ...expanded, allocations: [{ mint: PLAN_MINTS.at(-1), bps: '10000' }] }).success).toBe(true);
   });
   it('allows exact maximum, a one-micro budget and zero-weight slots', () => {
     for (const budget_raw of ['1', '1000000000000']) expect(cloudPlanInput.safeParse({ ...input(), budget_raw }).success).toBe(true);

@@ -12,7 +12,7 @@ Lotline turns your next USDC contribution into a precise xStocks plan: choose yo
 
 You know which assets you want to contribute to. The next question is practical: how should this USDC contribution be split, and approximately how many units would it add?
 
-Lotline brings that calculation into one focused workspace. Choose up to three issuer-verified xStocks on Solana, set your own percentages, enter a USDC budget, and request quote estimates. Add a public wallet address to see current holdings alongside the estimated contribution and resulting units. Then copy the plan, download a CSV, or open Jupiter to independently review a trade.
+Lotline brings that calculation into one focused workspace. Search 832 issuer-listed Solana stocks and ETFs with their official logos. Choose up to 10 issuer-verified xStocks, set your own percentages, enter a USDC budget, and request quote estimates. Add a public wallet address to see current holdings alongside the estimated contribution and resulting units. Then copy the plan, download a CSV, or open Jupiter to independently review a trade.
 
 ### Your contribution, your choices
 

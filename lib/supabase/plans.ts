@@ -1,19 +1,14 @@
 import { z } from 'zod';
 import type { Basket } from '@/lib/domain/types';
 import { formatUsdc, MAX_BUDGET_RAW, parseBudget, parsePercent, validatePlan } from '@/lib/domain/math';
+import { MAX_PLAN_ASSETS } from '@/lib/domain/limits';
+import { XSTOCK_MINTS } from '@/lib/domain/assets';
 
 // Issuer-confirmed Solana deployments. Live execution estimates still reverify the catalog.
-export const PLAN_MINTS = [
-  'XsbEhLAtcf6HdfpFZ5xEMdqW8nfAvcsP5bdudRLJzJp',
-  'XspzcW1PRtgf6Wj92HCiZdjzKCyFekVD8P5Ueh3dRMX',
-  'Xsc9qvGR1efVDFGLrVsmkzv3qi45LTBjeUKSPmx9qEh',
-  'XsDoVfqeBukxuZHWhdvWHBhgEHjGNst4MLodqsJHzoB',
-  'XsoCS1TfEyfFhfvj8EtZ528L3CaKBDBRqRapnBbDF2W',
-  'Xs8S1uUs1zvS2p7iwtsG3b6fkhpvmwz4GYU3gWAmWHZ',
-] as const;
+export const PLAN_MINTS = XSTOCK_MINTS;
 const rawBudget = z.string().regex(/^[1-9]\d{0,12}$/).refine(value => /^[1-9]\d{0,12}$/.test(value) && BigInt(value) <= MAX_BUDGET_RAW);
 const bps = z.string().regex(/^(0|[1-9]\d{0,4})$/).refine(value => /^(0|[1-9]\d{0,4})$/.test(value) && Number(value) <= 10_000);
-const allocations = z.array(z.object({ mint: z.enum(PLAN_MINTS), bps }).strict()).min(1).max(3)
+const allocations = z.array(z.object({ mint: z.string().refine(value => (PLAN_MINTS as readonly string[]).includes(value)), bps }).strict()).min(1).max(MAX_PLAN_ASSETS)
   .refine(items => new Set(items.map(item => item.mint)).size === items.length)
   .refine(items => items.reduce((sum, item) => sum + Number(item.bps), 0) === 10_000);
 

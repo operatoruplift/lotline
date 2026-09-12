@@ -10,7 +10,28 @@ const save = (name, data) => writeFile(new URL(`../public/${name}`, import.meta.
 await save('brand/mark.svg', svg(mark.viewBox, 'Lotline', path(mark.forest)));
 await save('brand/monochrome.svg', svg(mark.viewBox, 'Lotline monochrome', path('#18211D')));
 await save('brand/mark-light.svg', svg(mark.viewBox, 'Lotline reversed', path(mark.paper)));
-await save('brand/favicon.svg', svg(mark.viewBox, 'Lotline', `<rect width="32" height="32" rx="7" fill="${mark.forest}"/><g transform="translate(4 4) scale(.75)">${path(mark.paper)}</g>`));
+const favicon = svg(mark.viewBox, 'Lotline', `<rect width="32" height="32" rx="7" fill="${mark.forest}"/><g transform="translate(4 4) scale(.75)">${path(mark.paper)}</g>`);
+await save('brand/favicon.svg', favicon);
+// Next's file conventions serve both the conventional /favicon.ico endpoint
+// and a content-versioned SVG link, so older browser tab icons can refresh.
+await writeFile(new URL('../app/icon.svg', import.meta.url), favicon);
+const faviconSizes = [16, 32, 48];
+const faviconFrames = await Promise.all(faviconSizes.map(size => sharp(Buffer.from(favicon)).resize(size, size).png().toBuffer()));
+const icoHeader = Buffer.alloc(6 + faviconFrames.length * 16);
+icoHeader.writeUInt16LE(1, 2);
+icoHeader.writeUInt16LE(faviconFrames.length, 4);
+let frameOffset = icoHeader.length;
+faviconFrames.forEach((frame, index) => {
+  const entryOffset = 6 + index * 16;
+  icoHeader[entryOffset] = faviconSizes[index];
+  icoHeader[entryOffset + 1] = faviconSizes[index];
+  icoHeader.writeUInt16LE(1, entryOffset + 4);
+  icoHeader.writeUInt16LE(32, entryOffset + 6);
+  icoHeader.writeUInt32LE(frame.length, entryOffset + 8);
+  icoHeader.writeUInt32LE(frameOffset, entryOffset + 12);
+  frameOffset += frame.length;
+});
+await writeFile(new URL('../app/favicon.ico', import.meta.url), Buffer.concat([icoHeader, ...faviconFrames]));
 await save('brand/wordmark.svg', svg('0 0 148 36', 'Lotline', `<g transform="translate(0 2)">${path(mark.forest)}</g><text x="41" y="27" fill="${mark.forest}" font-family="Arial,Helvetica,sans-serif" font-size="27" font-weight="700" letter-spacing="-1.3">Lotline.</text>`));
 
 // The full-bleed background is masked by the OS. The smaller mark stays inside
@@ -26,7 +47,9 @@ for (const [name, size, source] of [
   ['apple-touch-icon.png', 180, standard],
   ['icon-maskable-512.png', 512, maskable],
 ]) {
-  await save(`icons/${name}`, await sharp(Buffer.from(source)).resize(size, size).png().toBuffer());
+  const raster = await sharp(Buffer.from(source)).resize(size, size).png().toBuffer();
+  await save(`icons/${name}`, raster);
+  if (name === 'apple-touch-icon.png') await writeFile(new URL('../app/apple-icon.png', import.meta.url), raster);
 }
 
 const samples = [16, 24, 32, 48, 64];

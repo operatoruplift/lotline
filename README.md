@@ -1,6 +1,6 @@
 # Lotline
 
-**A clear plan for your next xStocks contribution.** Choose up to three issuer-verified Solana xStocks, set your contribution percentages, enter a USDC budget, and request estimated units. Optionally read a public wallet's balances, then copy or export the plan for independent review on Jupiter.
+**A clear plan for your next xStocks contribution.** Choose up to 10 issuer-verified Solana xStocks, set your contribution percentages, enter a USDC budget, and request estimated units. Optionally read a public wallet's balances, then copy or export the plan for independent review on Jupiter.
 
 [Live website](https://lotlineonsolana.vercel.app) · [Try the example](https://lotlineonsolana.vercel.app/app?mode=example) · [Demo](https://lotlineonsolana.vercel.app/demo) · [Public source](https://github.com/operatoruplift/lotline)
 
@@ -40,7 +40,9 @@ Missing configuration or failed upstream calls produce explicit unavailable stat
 
 ## Use it
 
-1. Select one to three assets, set percentages totaling exactly 100%, and enter a budget.
+Search **832 issuer-listed Solana stocks and ETFs** by company or ticker, with bundled official logos and verified mint identities. Choose up to 10 per plan. Live estimates arrive in batches of three; every estimate retains its original timestamp. Catalog inclusion does not guarantee an available trading route. See [catalog provenance and refresh instructions](docs/xstocks-catalog.md).
+
+1. Select one to 10 assets, set percentages totaling exactly 100%, and enter a budget.
 2. Optionally load a public wallet's selected-token and USDC balances.
 3. Choose **Get estimates**. The results show exact USDC allocation, estimated received units, and estimated resulting units when balances are available.
 4. Copy the plan or download its CSV. To review a trade independently, copy the mint and exact USDC amount, open Jupiter, select that asset, and enter the amount there.
@@ -90,7 +92,7 @@ The type-check command generates Next.js route types before running TypeScript, 
 
 ## Supabase and Vercel deployment
 
-The hosted Supabase project and Git-connected Vercel project are configured, both database migrations have been applied, and required Supabase public and secret values are set in development, preview, and production environments. The live site is linked above. See the [deployment configuration](docs/deployment.md) and [integration verification](docs/integration-verification.md) for dated checks and remaining limitations. The launch `NEXT_PUBLIC_AUTH_EMAIL_ENABLED=false` flag makes the signup and recovery state explicit to judges while preserving existing-user sign-in and owner-scoped cloud plans.
+The hosted Supabase project and Git-connected Vercel project are configured, all three database migrations have been applied, and required Supabase public and secret values are set in development, preview, and production environments. The live site is linked above. See the [deployment configuration](docs/deployment.md) and [integration verification](docs/integration-verification.md) for dated checks and remaining limitations. The launch `NEXT_PUBLIC_AUTH_EMAIL_ENABLED=false` flag makes the signup and recovery state explicit to judges while preserving existing-user sign-in and owner-scoped cloud plans.
 
 For a separate deployment:
 

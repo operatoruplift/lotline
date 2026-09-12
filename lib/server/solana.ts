@@ -2,20 +2,23 @@ import 'server-only';
 import { address, unwrapOption, type GetAccountInfoApi, type Rpc } from '@solana/kit';
 import { amountToUiAmountForMintWithoutSimulation, getMintDecoder } from '@solana-program/token-2022';
 import { z } from 'zod';
-import { BoundedCache, fetchJson, rawSchema, ServiceError, SpacedQueue, TOKEN_2022_PROGRAM, TOKEN_PROGRAM, U64_MAX, USDC_MINT } from './common';
+import { addressSchema, BoundedCache, fetchJson, rawSchema, ServiceError, SpacedQueue, TOKEN_2022_PROGRAM, TOKEN_PROGRAM, U64_MAX, USDC_MINT } from './common';
 import { reserveProviderSlot } from './provider-limits';
 
 const CLOCK = 'SysvarC1ock11111111111111111111111111111111';
 const rpcQueue = new SpacedQueue(120, 40);
-const mintCache = new BoundedCache<MintInfo>(12);
-const binaryCache = new BoundedCache<BinaryResult>(16);
-const binarySchema = z.object({
-  context: z.object({ slot: z.number().int().nonnegative() }),
-  value: z.object({
+const mintCache = new BoundedCache<MintInfo>(2_001);
+const binaryCache = new BoundedCache<BinaryResult>(2_002);
+const binaryAccountSchema = z.object({
     data: z.tuple([z.string().max(32_000).regex(/^[A-Za-z0-9+/]*={0,2}$/), z.literal('base64')]),
     owner: z.string(), executable: z.boolean(), lamports: z.number().nonnegative(), rentEpoch: z.number().nonnegative().optional(),
-  }).nullable(),
+  });
+const contextSchema = z.object({ slot: z.number().int().nonnegative() });
+const binarySchema = z.object({
+  context: contextSchema,
+  value: binaryAccountSchema.nullable(),
 });
+const multipleAccountsSchema = z.object({ context: contextSchema, value: z.array(binaryAccountSchema.nullable()).max(100) });
 type BinaryResult = z.infer<typeof binarySchema>;
 export type MintInfo = { decimals: number; tokenProgram: string; scaled: boolean };
 
@@ -54,6 +57,12 @@ export async function loadMint(mint: string, fresh = false): Promise<MintInfo> {
   const cached = !fresh && mintCache.get(mint);
   if (cached) return cached;
   const account = (await binaryAccount(mint)).value!;
+  return verifyMintAccount(mint, account);
+}
+
+/** Shared by single-account reads and ordered getMultipleAccounts responses. */
+function verifyMintAccount(mint: string, account: z.infer<typeof binaryAccountSchema>): MintInfo {
+  if (account.executable) throw new ServiceError('unavailable', 'The chain account could not be verified.');
   const expectedProgram = mint === USDC_MINT ? TOKEN_PROGRAM : TOKEN_2022_PROGRAM;
   if (account.owner !== expectedProgram) throw new ServiceError('unavailable', 'The asset is not a supported mainnet token mint.');
   try {
@@ -67,6 +76,43 @@ export async function loadMint(mint: string, fresh = false): Promise<MintInfo> {
     mintCache.set(mint, info, 60 * 60_000);
     return info;
   } catch { throw new ServiceError('unavailable', 'Mint scaling could not be verified. Units unavailable.'); }
+}
+
+/** Verify a large catalog with at most 100 mint accounts in each bounded RPC request. */
+export async function loadMints(mints: readonly string[]): Promise<Map<string, MintInfo | ServiceError>> {
+  if (mints.length > 2_000 || new Set(mints).size !== mints.length || mints.some(mint => !addressSchema.safeParse(mint).success)) throw new ServiceError('invalid-input', 'The mint verification batch is invalid.');
+  const result = new Map<string, MintInfo | ServiceError>();
+  const pending: string[] = [];
+  for (const mint of mints) {
+    const cached = mintCache.get(mint);
+    if (cached) result.set(mint, cached);
+    else pending.push(mint);
+  }
+  const batches = Array.from({ length: Math.ceil(pending.length / 100) }, (_, index) => pending.slice(index * 100, (index + 1) * 100));
+  // Four in flight keeps cold starts short while retaining the RPC/provider queue limits.
+  for (let offset = 0; offset < batches.length; offset += 4) {
+    await Promise.all(batches.slice(offset, offset + 4).map(async batch => {
+      try {
+        const parsed = multipleAccountsSchema.safeParse(await rpcRequest('getMultipleAccounts', [batch, { encoding: 'base64', commitment: 'confirmed' }]));
+        if (!parsed.success || parsed.data.value.length !== batch.length) throw new ServiceError('unavailable', 'The chain account batch could not be verified.');
+        for (const [index, mint] of batch.entries()) {
+          try {
+            const account = parsed.data.value[index];
+            if (!account) throw new ServiceError('unavailable', 'The chain account could not be verified.');
+            const info = verifyMintAccount(mint, account);
+            binaryCache.set(mint, { context: parsed.data.context, value: account }, 5_000);
+            result.set(mint, info);
+          } catch (error) {
+            result.set(mint, error instanceof ServiceError ? error : new ServiceError('unavailable', 'The chain account could not be verified.'));
+          }
+        }
+      } catch (error) {
+        const failure = error instanceof ServiceError ? error : new ServiceError('unavailable', 'The chain account batch could not be verified.');
+        for (const mint of batch) result.set(mint, failure);
+      }
+    }));
+  }
+  return result;
 }
 
 /** The installed helper decodes the mint and selects its scheduled multiplier using the clock sysvar. */

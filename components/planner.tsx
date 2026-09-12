@@ -14,6 +14,9 @@ import { PLAN_HASH_PREFIX } from '@/lib/domain/share';
 import { DEFAULT_BASKET, EXAMPLE_ASSETS, exampleUnits, getExampleHoldings, getExampleQuotes } from '@/lib/demo/example';
 import { SiteFooter, SiteHeader } from './site-shell';
 import { BrandMark } from './brand-mark';
+import { AssetPicker } from './asset-picker';
+import { MAX_PLAN_ASSETS } from '@/lib/domain/limits';
+import { requestHoldings, requestQuotes, requestUnits } from '@/lib/client/planner-requests';
 import { CloudPlans } from './cloud-plans';
 import { PlanTransfer } from './plan-transfer';
 import { utcTime, VerificationReceipt } from './verification-receipt';
@@ -71,6 +74,7 @@ export function Planner({ initialMode, cloudEnabled = true }: { initialMode: Mod
   const [quotes, setQuotes] = useState<QuotesResponse | null>(null);
   const [projections, setProjections] = useState<ProjectionResponse['items']>([]);
   const [quoteLoading, setQuoteLoading] = useState(false);
+  const [quoteProgress, setQuoteProgress] = useState(0);
   const [showPicker, setShowPicker] = useState(false);
   const [replacingMint, setReplacingMint] = useState<string | null>(null);
   const [notice, setNotice] = useState<Notice | null>(null);
@@ -103,7 +107,7 @@ export function Planner({ initialMode, cloudEnabled = true }: { initialMode: Mod
   const allZeroHoldings = holdings?.state === 'success' && holdings.holdings.length > 0 && holdings.holdings.every((holding) => holding.state === 'success' && holding.raw === '0');
 
   const persistBasket = useCallback((next: Basket) => {
-    // The bounded, three-asset draft is small enough to save during the edit.
+    // The bounded draft is small enough to save during the edit.
     // A deferred write can be lost if the user reloads or navigates away.
     try { setSaved(saveBasket(window.localStorage, next) ? 'saved' : 'unavailable'); }
     catch { setSaved('unavailable'); }
@@ -236,9 +240,7 @@ export function Planner({ initialMode, cloudEnabled = true }: { initialMode: Mod
     holdingsAbort.current = controller;
     setHoldingsLoading(true);
     try {
-      const params = new URLSearchParams({ owner: wallet.trim(), mints: basket.items.map((item) => item.mint).join(',') });
-      const response = await fetch(`/api/holdings?${params}`, { signal: controller.signal });
-      const data = await readResponse<HoldingsResponse>(response);
+      const data = await requestHoldings(wallet.trim(), basket.items.map(item => item.mint), controller.signal);
       if (controller.signal.aborted) return;
       setHoldings(data);
       setNotice({ text: data.state === 'success' ? 'Current wallet balances loaded. Get estimates to see your projected units.' : data.message ?? 'Some balances are unavailable. You can still plan your contribution.', error: data.state !== 'success' && data.state !== 'partial' });
@@ -257,13 +259,19 @@ export function Planner({ initialMode, cloudEnabled = true }: { initialMode: Mod
     const identity = createPlanIdentity(mode, basket, revision.current);
     activeQuote.current = identity;
     setQuoteLoading(true);
+    setQuoteProgress(0);
     setQuotes(null);
     setProjections([]);
     setNotice(null);
     const items = plan.allocations.filter((item) => BigInt(item.usdcRaw) > 0n).map(({ mint, usdcRaw }) => ({ mint, usdcRaw }));
     const current = () => !controller.signal.aborted && isCurrentResponse(activeQuote.current, identity);
     try {
-      const data = mode === 'example' ? getExampleQuotes(items) : await readResponse<QuotesResponse>(await fetch('/api/quotes', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ items }), signal: controller.signal }));
+      const data = mode === 'example' ? getExampleQuotes(items) : await requestQuotes(items, controller.signal, (partial, done) => {
+        if (!current()) return;
+        setQuotes(partial);
+        setQuoteProgress(done);
+        setNow(Date.now());
+      });
       if (!current()) return;
       setQuotes(data);
       setNow(Date.now());
@@ -275,7 +283,7 @@ export function Planner({ initialMode, cloudEnabled = true }: { initialMode: Mod
         if (mode === 'example') setProjections(rawProjections.map(({ mint, raw }) => ({ mint, units: exampleUnits(mint, raw) })));
         else {
           try {
-            const projected = await readResponse<ProjectionResponse>(await fetch('/api/units', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ items: rawProjections }), signal: controller.signal }));
+            const projected = await requestUnits(rawProjections, controller.signal);
             if (!current()) return;
             setProjections(projected.items);
           } catch {
@@ -321,16 +329,16 @@ export function Planner({ initialMode, cloudEnabled = true }: { initialMode: Mod
       <div className="plan-column"><section className="panel plan-panel" aria-labelledby="plan-heading">
         <div className="panel-kicker">01 <span /> BUILD YOUR SPLIT</div><div className="panel-title"><h2 id="plan-heading">Your plan</h2><span className="save-state">{saved === 'saved' ? <Check size={12} /> : saved === 'pending' ? <Clock3 size={12} /> : <Info size={12} />}{saved === 'saved' ? 'Saved on this device' : saved === 'pending' ? 'Saving on this device…' : 'Local saving unavailable'}</span></div>
         <label className="field-label" htmlFor="budget">USDC budget</label><div className="budget-input-wrap"><span className="usdc-icon" aria-hidden="true">$</span><input id="budget" name="budget" aria-describedby="budget-help" autoComplete="off" inputMode="decimal" value={basket.budget} onChange={(event) => updateBasket({ ...basket, budget: event.target.value })} /><span>USDC</span></div><p id="budget-help" className="field-hint">The amount you want to contribute next.</p>
-        <div className="split-label"><span className="field-label">Contribution split</span><span>{basket.items.length} / 3 assets</span></div>
+        <div className="split-label"><span className="field-label">Contribution split</span><span>{basket.items.length} / {MAX_PLAN_ASSETS} assets</span></div>
         <div className="basket-list">
           {basket.items.map((item, index) => { const asset = assetMap.get(item.mint); return <div className="basket-row" key={item.mint}><AssetAvatar asset={asset} /><div className="basket-asset"><button type="button" className="asset-change" aria-label={`Change ${asset?.symbol ?? 'unverified asset'}`} onClick={() => { setReplacingMint(item.mint); setShowPicker(true); }} disabled={catalogLoading || !assets.length}>{asset?.symbol ?? 'Unverified asset'}<ChevronDown size={11} /></button><span>{asset?.name ?? `${item.mint.slice(0, 5)}…${item.mint.slice(-4)}`}</span></div><div className="percent-field"><label htmlFor={`weight-${index}`} className="sr-only">{asset?.symbol ?? `Asset ${index + 1}`} percentage</label><input id={`weight-${index}`} inputMode="decimal" autoComplete="off" value={item.percent} onChange={(event) => updateBasket({ ...basket, items: basket.items.map((entry, i) => i === index ? { ...entry, percent: event.target.value } : entry) })} /><span>%</span></div><button type="button" className="icon-button remove-button" aria-label={`Remove ${asset?.symbol ?? 'unverified asset'}`} onClick={() => updateBasket({ ...basket, items: basket.items.filter((_, i) => i !== index) }, true)}><Trash2 size={15} /></button></div>; })}
         </div>
-        {(basket.items.length < 3 || replacingMint !== null) && <div className="asset-picker-area">{showPicker ? <div className="asset-picker"><label htmlFor="asset-picker" className="sr-only">Choose a verified xStock</label><select id="asset-picker" autoFocus value="" onChange={(event) => { if (!event.target.value) return; updateBasket({ ...basket, items: replacingMint ? basket.items.map(item => item.mint === replacingMint ? { ...item, mint: event.target.value } : item) : [...basket.items, { mint: event.target.value, percent: basket.items.length === 0 ? '100' : '0' }] }, true); setShowPicker(false); }}><option value="" disabled>Choose a verified xStock</option>{assets.filter((asset) => !basket.items.some((item) => item.mint === asset.mint)).map((asset) => <option value={asset.mint} key={asset.mint}>{asset.symbol} · {asset.name}{asset.halted ? ' · Issuer halt reported' : ''}</option>)}</select><ChevronDown size={14} /><button type="button" className="icon-button" aria-label="Close asset picker" onClick={() => { setShowPicker(false); setReplacingMint(null); }}><X size={15} /></button></div> : <button type="button" className="add-asset-button" onClick={() => setShowPicker(true)} disabled={catalogLoading || !assets.length}><Plus size={16} />{catalogLoading ? 'Loading verified assets…' : 'Add an asset'}</button>}</div>}
+        {(basket.items.length < MAX_PLAN_ASSETS || replacingMint !== null) && <div className="asset-picker-area">{showPicker ? <AssetPicker assets={assets.filter(asset => !basket.items.some(item => item.mint === asset.mint))} onSelect={mint => updateBasket({ ...basket, items: replacingMint ? basket.items.map(item => item.mint === replacingMint ? { ...item, mint } : item) : [...basket.items, { mint, percent: basket.items.length === 0 ? '100' : '0' }] }, true)} onClose={() => { setShowPicker(false); setReplacingMint(null); }} /> : <button type="button" className="add-asset-button" onClick={() => setShowPicker(true)} disabled={catalogLoading || !assets.length || (!replacingMint && basket.items.length >= assets.length)}><Plus size={16} />{catalogLoading ? 'Loading verified assets…' : 'Add an asset'}</button>}</div>}
         {mode === 'live' && !catalogLoading && catalog && catalog.state !== 'success' && <div className="catalog-notice"><Info size={15} /><div><p>{catalog.message ?? 'Some issuer-verified assets are temporarily unavailable.'}</p>{catalog.unavailable.length > 0 && <p>{catalog.unavailable.map((item) => item.symbol).join(', ')} unavailable.</p>}<button type="button" onClick={() => { setCatalogLoading(true); setCatalogReload((count) => count + 1); }}>Retry catalog <RefreshCw size={12} /></button>{catalog.assets.length === 0 && <button type="button" onClick={() => switchMode('example')}>Try Example mode <ArrowRight size={12} /></button>}</div></div>}
-        {basket.items.length > 0 && <><div className="allocation-bar plan-bar" aria-hidden="true">{basket.items.map((item, index) => { let bps = 0; try { bps = parsePercent(item.percent); } catch { /* Invalid percentages have no bar width. */ } return <span key={item.mint} style={{ width: `${Math.min(100, bps / 100)}%`, background: ['var(--forest)', 'var(--sage)', 'var(--mint)'][index] }} />; })}</div><div className={`weight-total ${totalBps === 10000 ? 'valid' : 'invalid'}`}><span>{totalBps === 10000 ? <Check size={13} /> : <Info size={13} />}{displayAmount((totalBps / 100).toFixed(2), 0)}% allocated</span><span>Total must equal 100%</span></div></>}
+        {basket.items.length > 0 && <><div className="allocation-bar plan-bar" aria-hidden="true">{basket.items.map((item, index) => { let bps = 0; try { bps = parsePercent(item.percent); } catch { /* Invalid percentages have no bar width. */ } return <span key={item.mint} style={{ width: `${Math.min(100, bps / 100)}%`, background: ['var(--forest)', 'var(--sage)', 'var(--mint)', '#437365', '#82946B'][index % 5] }} />; })}</div><div className={`weight-total ${totalBps === 10000 ? 'valid' : 'invalid'}`}><span>{totalBps === 10000 ? <Check size={13} /> : <Info size={13} />}{displayAmount((totalBps / 100).toFixed(2), 0)}% allocated</span><span>Total must equal 100%</span></div></>}
         <div className="split-tools">{basket.items.length > 1 && <button type="button" onClick={splitEvenly}>Split evenly</button>}{mode === 'example' && <button type="button" onClick={() => { const next = copyBasket(DEFAULT_BASKET); applySharedPlan(next, 'example'); const view = exampleView(next); setQuotes(view.quotes); setProjections(view.projections); setNow(Date.now()); setNotice({ text: 'Example reset to the illustrative 50 / 30 / 20 split.' }); }}>Reset example</button>}</div><p className="split-explainer">These percentages apply to your new contribution.</p>
         {validationMessage && !catalogLoading && <p className="validation-message" id="plan-validation"><Info size={14} /><span>{validationMessage}</span></p>}
-        <button type="button" className="button primary estimate-button" onClick={getEstimates} disabled={!canEstimate || quoteLoading} aria-describedby={validationMessage ? 'plan-validation' : undefined}>{quoteLoading ? <><LoaderCircle size={17} className="spinning" />Getting estimates…</> : quotes ? <><RefreshCw size={16} />Refresh estimates</> : <>Get estimates <ArrowRight size={17} /></>}</button>
+        <button type="button" className="button primary estimate-button" onClick={getEstimates} disabled={!canEstimate || quoteLoading} aria-describedby={validationMessage ? 'plan-validation' : undefined}>{quoteLoading ? <><LoaderCircle size={17} className="spinning" />Getting estimates…{quoteProgress > 0 ? ` ${quoteProgress} / ${plan.allocations.filter(item => BigInt(item.usdcRaw) > 0n).length}` : ''}</> : quotes ? <><RefreshCw size={16} />Refresh estimates</> : <>Get estimates <ArrowRight size={17} /></>}</button>
         <div className="plan-privacy"><ShieldCheck size={13} />{holdingsLoading ? 'Waiting for current balances to finish loading.' : 'Quote only. No transaction or signature.'}</div>
       </section>
       <section className="panel wallet-panel" aria-labelledby="wallet-heading"><div className="wallet-title"><Wallet size={18} /><h2 id="wallet-heading">{mode === 'example' ? 'Illustrative balances' : 'Add your wallet'}</h2><span className="optional-label">{mode === 'example' ? 'EXAMPLE' : 'OPTIONAL'}</span></div>{mode === 'example' ? <><p className="wallet-description">Synthetic holdings add context to this practice plan. Includes a non-unit token multiplier.</p><div className="wallet-balance"><span>Example USDC balance</span><strong>{holdings?.usdc.units ? displayAmount(holdings.usdc.units) : '—'} <small>USDC</small></strong></div><div className="readonly-note"><FlaskConical size={12} /> These balances do not belong to a real wallet.</div></> : <><p className="wallet-description">See your current and estimated resulting units with a public Solana address.</p><label htmlFor="wallet-address" className="field-label">Wallet address</label><input ref={walletRef} id="wallet-address" className={`wallet-input${wallet && !walletValid ? ' input-invalid' : ''}`} type="text" placeholder="Paste a Solana public address" autoComplete="off" spellCheck={false} value={wallet} aria-invalid={wallet !== '' && !walletValid} aria-describedby={wallet && !walletValid ? 'wallet-error' : 'wallet-privacy'} onChange={(event) => { invalidate(true); setWallet(event.target.value); }} />{wallet && !walletValid && <p id="wallet-error" className="field-error">Enter a valid Solana public wallet address.</p>}<button type="button" className="button secondary load-balances" onClick={loadHoldings} disabled={!walletValid || !basket.items.length || unknownSelected || holdingsLoading || !online}>{holdingsLoading ? <><LoaderCircle size={15} className="spinning" />Loading balances…</> : <>{holdings ? <RefreshCw size={14} /> : <Wallet size={14} />}{holdings ? 'Reload balances' : 'Load balances'}</>}</button>{holdings && <div className="wallet-balance"><span>Current USDC balance</span><strong>{holdings.usdc.state === 'success' && holdings.usdc.units !== null ? <>{displayAmount(holdings.usdc.units)} <small>USDC</small></> : 'Unavailable'}</strong></div>}<p id="wallet-privacy" className="readonly-note"><ShieldCheck size={12} /> Read only. Address never saved.</p></>}{mode === 'live' && holdings && <p className="balance-snapshot"><Clock3 size={12} /><span>Balance snapshot<br /><time dateTime={holdings.fetchedAt}>{utcTime(holdings.fetchedAt)}</time><br />{Math.max(0, Math.floor((now - Date.parse(holdings.fetchedAt)) / 60_000)) >= 1 ? 'At least a minute old. Reload balances for a fresh view.' : 'Reload balances to check again.'}</span></p>}{holdings && holdings.state !== 'success' && <p className="field-error">{holdings.message ?? 'Some balances could not be verified. Unavailable balances are not zero.'}</p>}{allZeroHoldings && <p className="field-hint">No selected token holdings found. Confirmed balances are zero.</p>}{insufficientUsdc && <div className="balance-info"><Info size={14} /><span>Your budget exceeds this {mode === 'example' ? 'example ' : ''}USDC balance. You can still plan a future contribution.</span></div>}</section>

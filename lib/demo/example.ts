@@ -51,7 +51,7 @@ export function exampleUnits(mint: string, raw: bigint | string, chainTime = EXA
 }
 
 export function getExampleHoldings(mints: string[]): HoldingsResponse {
-  const holdings: Holding[] = mints.slice(0, 3).map(mint => {
+  const holdings: Holding[] = mints.map(mint => {
     const index = EXAMPLE_ASSETS.findIndex(asset => asset.mint === mint);
     if (index < 0) return { mint, state: 'unavailable', raw: null, units: null, message: 'This asset is not in the example catalog.' };
     const raw = RAW_HOLDINGS[index];
@@ -69,7 +69,7 @@ export function getExampleHoldings(mints: string[]): HoldingsResponse {
 export function getExampleQuotes(items: { mint: string; usdcRaw: string }[]): QuotesResponse {
   const fetchedAt = new Date().toISOString();
   const expiresAt = new Date(Date.parse(fetchedAt) + 30_000).toISOString();
-  const quotes: QuotesResponse['quotes'] = items.slice(0, 3).filter(item => item.usdcRaw !== '0').map(item => {
+  const quotes: QuotesResponse['quotes'] = items.filter(item => item.usdcRaw !== '0').map(item => {
     const index = EXAMPLE_ASSETS.findIndex(asset => asset.mint === item.mint);
     const rate = RAW_QUOTE_RATES[index];
     const out = rate && /^\d{1,13}$/.test(item.usdcRaw) ? BigInt(item.usdcRaw) * rate[0] / rate[1] : 0n;

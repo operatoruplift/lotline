@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { DEFAULT_BASKET, EXAMPLE_ASSETS } from '../lib/demo/example';
 import { buildPlanLink, decodePlanHash, encodePlanHash, MAX_PLAN_HASH_LENGTH } from '../lib/domain/share';
+import { MAX_PLAN_ASSETS } from '../lib/domain/limits';
 
 const payload = () => ({ v: 1, mode: 'example', budget: '10.000001', items: DEFAULT_BASKET.items.map(item => [item.mint, item.percent]) });
 const hashFor = (value: unknown) => `#plan=${Buffer.from(JSON.stringify(value), 'utf8').toString('base64url')}`;
@@ -69,5 +70,16 @@ describe('private, exact shareable plans', () => {
     const basket = { version: 1 as const, budget: '0.000001', items: [{ mint: '1'.repeat(32), percent: '100' }] };
     expect(decodePlanHash(encodePlanHash(basket, 'live'))).toEqual({ basket, mode: 'live' });
     expect(EXAMPLE_ASSETS.some(asset => asset.mint === basket.items[0].mint)).toBe(false);
+  });
+  it('round-trips ten long asset entries and rejects an eleventh unique asset', () => {
+    const basket = { version: 1 as const, budget: '000000000000000001000000.000000', items: Array.from({ length: MAX_PLAN_ASSETS }, (_, index) => ({ mint: `${'123456789AB'[index]}${'1'.repeat(43)}`, percent: '0000000000010.00' })) };
+    for (const mode of ['live', 'example'] as const) {
+      const hash = encodePlanHash(basket, mode);
+      expect(hash.length).toBeLessThanOrEqual(MAX_PLAN_HASH_LENGTH);
+      expect(decodePlanHash(hash)).toEqual({ basket, mode });
+    }
+    const overLimit = { ...basket, items: [...basket.items, { mint: `B${'1'.repeat(43)}`, percent: '0' }] };
+    expect(() => encodePlanHash(overLimit, 'live')).toThrow();
+    expect(decodePlanHash(hashFor({ v: 1, mode: 'live', budget: overLimit.budget, items: overLimit.items.map(item => [item.mint, item.percent]) }))).toBeNull();
   });
 });

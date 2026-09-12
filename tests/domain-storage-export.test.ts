@@ -4,6 +4,7 @@ import { buildPlanCsv, buildPlanText, escapeCsvCell } from '../lib/domain/export
 import { createPlanIdentity, isCurrentResponse, isQuoteStale } from '../lib/domain/identity';
 import { validatePlan } from '../lib/domain/math';
 import { loadBasket, parseSavedBasket, saveBasket } from '../lib/domain/storage';
+import { MAX_PLAN_ASSETS } from '../lib/domain/limits';
 
 describe('safe local basket storage', () => {
   it('recovers corrupt JSON, disabled storage, unsupported versions and invalid shapes safely', () => {
@@ -29,6 +30,16 @@ describe('safe local basket storage', () => {
     expect(saveBasket(storage, cleared)).toBe(true);
     expect(loadBasket(storage)).toEqual(cleared);
     expect(validatePlan(cleared).valid).toBe(false);
+  });
+  it('round-trips ten maximal-length draft entries within the storage budget', () => {
+    const draft = { version: 1 as const, budget: '000000000000000001000000.000000', items: Array.from({ length: MAX_PLAN_ASSETS }, (_, index) => ({ mint: `${'123456789AB'[index]}${'1'.repeat(43)}`, percent: '0000000000010.00' })) };
+    let stored = '';
+    expect(saveBasket({ setItem: (_key, value) => { stored = value; } }, draft)).toBe(true);
+    expect(stored.length).toBeLessThanOrEqual(2048);
+    expect(loadBasket({ getItem: () => stored })).toEqual(draft);
+    const overLimit = { ...draft, items: [...draft.items, { mint: `B${'1'.repeat(43)}`, percent: '0' }] };
+    expect(parseSavedBasket(overLimit)).toBeNull();
+    expect(saveBasket({ setItem: () => { throw new Error('must not write'); } }, overLimit)).toBe(false);
   });
 });
 
@@ -67,6 +78,17 @@ describe('honest example fixtures and exports', () => {
   it('returns deterministic raw outputs and skips zero allocations', () => {
     expect(getExampleQuotes(allocations).quotes.map(quote => quote.outRaw)).toEqual(quotes.map(quote => quote.outRaw));
     expect(getExampleQuotes([{ mint: EXAMPLE_ASSETS[0].mint, usdcRaw: '0' }]).quotes).toEqual([]);
+  });
+  it('returns and exports every selected example asset beyond the original three', () => {
+    const expanded = { ...DEFAULT_BASKET, items: EXAMPLE_ASSETS.map((asset, index) => ({ mint: asset.mint, percent: index < 4 ? '16.67' : '16.66' })) };
+    const plan = validatePlan(expanded);
+    expect(plan.valid).toBe(true);
+    const estimates = getExampleQuotes(plan.allocations);
+    expect(estimates.quotes).toHaveLength(6);
+    expect(estimates.state).toBe('success');
+    expect(getExampleHoldings(expanded.items.map(item => item.mint)).holdings).toHaveLength(6);
+    const csv = buildPlanCsv({ ...input, basket: expanded, quotes: estimates.quotes });
+    for (const asset of EXAMPLE_ASSETS) expect(csv).toContain(asset.mint);
   });
   it('exports verified identity, exact budgets, example label and review warning', () => {
     const csv = buildPlanCsv(input);
