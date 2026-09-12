@@ -1,4 +1,16 @@
-import { expect, test } from '@playwright/test';
+import { expect, test, type Page } from '@playwright/test';
+
+async function renderedGlass(page: Page) {
+  const main = page.getByRole('main');
+  await expect(main).toHaveCount(1);
+  const scene = main.locator('[data-glass-scene]');
+  const card = scene.locator('[data-glass-card]');
+  const media = scene.locator('video');
+  await expect(scene).toHaveCount(1);
+  await expect(card).toHaveCount(1);
+  await expect(media).toHaveCount(1);
+  return { scene, card, media };
+}
 
 test('samples real video pixels, advances frames, pauses, and releases its surface on navigation', async ({ page }) => {
   const errors: string[] = [];
@@ -6,8 +18,7 @@ test('samples real video pixels, advances frames, pauses, and releases its surfa
   const sources = new Set<string>();
   page.on('request', request => { if (/auth-glass(?:-mobile)?\.mp4/.test(request.url())) sources.add(new URL(request.url()).pathname); });
   await page.goto('/sign-in');
-  const card = page.locator('[data-glass-card]');
-  const media = page.locator('[data-glass-scene] video');
+  const { scene, card, media } = await renderedGlass(page);
   await expect(card).toHaveAttribute('data-refraction-state', 'video', { timeout: 30_000 });
   await expect(card.locator('canvas')).toHaveAttribute('data-refraction-sampled', 'true');
   await page.getByLabel('Email address').fill('first@example.test');
@@ -26,9 +37,9 @@ test('samples real video pixels, advances frames, pauses, and releases its surfa
   await page.getByRole('button', { name: 'Resume background', exact: true }).click();
   await expect(card).toHaveAttribute('data-refraction-state', 'video');
   expect(sources.size).toBe(1);
-  await page.evaluate(() => {
+  await scene.evaluate(node => {
     const holder = window as typeof window & { oldGlass?: { media: HTMLVideoElement; canvas: HTMLCanvasElement } };
-    holder.oldGlass = { media: document.querySelector('[data-glass-scene] video')!, canvas: document.querySelector('[data-glass-card] canvas')! };
+    holder.oldGlass = { media: node.querySelector('video')!, canvas: node.querySelector('[data-glass-card] canvas')! };
   });
   await page.getByRole('link', { name: 'Continue without an account', exact: true }).click();
   await expect(page).toHaveURL(/\/app\?mode=example$/);
@@ -44,7 +55,7 @@ test('reduced motion uses a refracted still with no video download and does not 
   const requested: string[] = [];
   page.on('request', request => { if (/auth-glass(?:-mobile)?\.mp4/.test(request.url())) requested.push(request.url()); });
   await page.goto('/sign-in');
-  const card = page.locator('[data-glass-card]');
+  const { card, media } = await renderedGlass(page);
   await expect(card).toHaveAttribute('data-refraction-state', 'poster');
   await expect(card.locator('canvas')).toHaveAttribute('data-refraction-sampled', 'true');
   expect(requested).toEqual([]);
@@ -54,7 +65,7 @@ test('reduced motion uses a refracted still with no video download and does not 
   await page.emulateMedia({ reducedMotion: 'no-preference' });
   await expect(card).toHaveAttribute('data-refraction-state', 'video', { timeout: 30_000 });
   await page.emulateMedia({ reducedMotion: 'reduce' });
-  await expect.poll(() => page.locator('[data-glass-scene] video').evaluate(video => (video as HTMLVideoElement).paused)).toBe(true);
+  await expect.poll(() => media.evaluate(video => (video as HTMLVideoElement).paused)).toBe(true);
   await expect(card).toHaveAttribute('data-entrance', 'done');
 });
 
@@ -66,7 +77,8 @@ test('graphics failure keeps native account controls and the guest path usable',
     } as typeof original;
   });
   await page.goto('/sign-in');
-  await expect(page.locator('[data-glass-card]')).toHaveAttribute('data-refraction-state', 'fallback');
+  const { card } = await renderedGlass(page);
+  await expect(card).toHaveAttribute('data-refraction-state', 'fallback');
   await page.getByLabel('Email address').fill('draft@example.test');
   await expect(page.getByLabel('Email address')).toHaveValue('draft@example.test');
   await expect(page.getByRole('button', { name: 'Sign in', exact: true })).toBeEnabled();
@@ -77,8 +89,8 @@ test('graphics failure keeps native account controls and the guest path usable',
 test('pauses offscreen and on visibility events, then resumes when the scene returns', async ({ page }) => {
   await page.setViewportSize({ width: 1000, height: 500 });
   await page.goto('/sign-in');
-  const media = page.locator('[data-glass-scene] video');
-  await expect(page.locator('[data-glass-card]')).toHaveAttribute('data-refraction-state', 'video');
+  const { card, media } = await renderedGlass(page);
+  await expect(card).toHaveAttribute('data-refraction-state', 'video');
   // Give the short test viewport enough document to move the whole scene out of view.
   await page.evaluate(() => {
     const space = document.createElement('div');
@@ -86,7 +98,7 @@ test('pauses offscreen and on visibility events, then resumes when the scene ret
     space.scrollIntoView();
   });
   await expect.poll(() => media.evaluate(video => (video as HTMLVideoElement).paused)).toBe(true);
-  await page.locator('[data-glass-card]').scrollIntoViewIfNeeded();
+  await card.scrollIntoViewIfNeeded();
   await expect.poll(() => media.evaluate(video => (video as HTMLVideoElement).paused)).toBe(false);
   // Exercise the real visibility listener with deterministic document state.
   await page.evaluate(() => {
@@ -105,7 +117,8 @@ test('pauses offscreen and on visibility events, then resumes when the scene ret
 test('blocked autoplay offers a real retry while the still and native form remain usable', async ({ page }) => {
   await page.addInitScript(() => { HTMLMediaElement.prototype.play = () => Promise.reject(new DOMException('Autoplay disabled by this test', 'NotAllowedError')); });
   await page.goto('/sign-in');
-  await expect(page.locator('[data-glass-scene]')).toHaveAttribute('data-playback', 'blocked');
+  const { scene } = await renderedGlass(page);
+  await expect(scene).toHaveAttribute('data-playback', 'blocked');
   await expect(page.getByRole('button', { name: 'Play background', exact: true })).toBeEnabled();
   await page.getByLabel('Email address').fill('draft@example.test');
   await expect(page.getByLabel('Email address')).toHaveValue('draft@example.test');
@@ -117,9 +130,11 @@ for (const viewport of [{ width: 390, height: 844 }, { width: 844, height: 390 }
     await page.setViewportSize(viewport);
     await page.emulateMedia({ reducedMotion: 'reduce' });
     await page.goto('/sign-in');
-    await expect(page.locator('[data-glass-card]')).toHaveAttribute('data-refraction-state', 'poster');
+    const { card } = await renderedGlass(page);
+    await expect(card).toHaveAttribute('data-refraction-state', 'poster');
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
-    const fields = page.locator('[data-glass-card] input');
+    const fields = card.locator('input');
+    await expect(fields).toHaveCount(2);
     for (const field of await fields.all()) {
       await field.focus();
       await expect(field).toBeInViewport();
