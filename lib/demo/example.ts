@@ -1,19 +1,20 @@
 import type { Asset, Basket, Holding, HoldingsResponse, QuotesResponse } from '../domain/types';
+import { logoPathForSymbol, officialLogoUrlForSymbol } from '../domain/assets';
 
 export const USDC_MINT = 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v';
 const TOKEN_2022_PROGRAM = 'TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb';
 const VERIFIED_AT = '2026-09-11T00:00:00.000Z';
 
-// Identity/mints were fetched from api.xstocks.fi on September 11, 2026.
+// Identity, mints, and issuer metadata were fetched from api.xstocks.fi on September 12, 2026.
 // Holdings, exchange rates, and multipliers below are deliberately synthetic.
 export const EXAMPLE_ASSETS: Asset[] = [
-  { symbol: 'AAPLx', name: 'Apple', mint: 'XsbEhLAtcf6HdfpFZ5xEMdqW8nfAvcsP5bdudRLJzJp' },
-  { symbol: 'MSFTx', name: 'Microsoft', mint: 'XspzcW1PRtgf6Wj92HCiZdjzKCyFekVD8P5Ueh3dRMX' },
-  { symbol: 'NVDAx', name: 'NVIDIA', mint: 'Xsc9qvGR1efVDFGLrVsmkzv3qi45LTBjeUKSPmx9qEh' },
-  { symbol: 'TSLAx', name: 'Tesla', mint: 'XsDoVfqeBukxuZHWhdvWHBhgEHjGNst4MLodqsJHzoB' },
-  { symbol: 'SPYx', name: 'S&P 500', mint: 'XsoCS1TfEyfFhfvj8EtZ528L3CaKBDBRqRapnBbDF2W' },
-  { symbol: 'QQQx', name: 'Nasdaq 100', mint: 'Xs8S1uUs1zvS2p7iwtsG3b6fkhpvmwz4GYU3gWAmWHZ' },
-].map(asset => ({ ...asset, decimals: 8, tokenProgram: TOKEN_2022_PROGRAM, halted: false, verifiedAt: VERIFIED_AT }));
+  { symbol: 'AAPLx', name: 'Apple xStock', issuerIsin: 'CH1436219187', underlyingSymbol: 'AAPL', underlyingIsin: 'US0378331005', mint: 'XsbEhLAtcf6HdfpFZ5xEMdqW8nfAvcsP5bdudRLJzJp' },
+  { symbol: 'MSFTx', name: 'Microsoft xStock', issuerIsin: 'CH1436219203', underlyingSymbol: 'MSFT', underlyingIsin: 'US5949181045', mint: 'XspzcW1PRtgf6Wj92HCiZdjzKCyFekVD8P5Ueh3dRMX' },
+  { symbol: 'NVDAx', name: 'NVIDIA xStock', issuerIsin: 'CH1436219195', underlyingSymbol: 'NVDA', underlyingIsin: 'US67066G1040', mint: 'Xsc9qvGR1efVDFGLrVsmkzv3qi45LTBjeUKSPmx9qEh' },
+  { symbol: 'TSLAx', name: 'Tesla xStock', issuerIsin: 'CH1436219252', underlyingSymbol: 'TSLA', underlyingIsin: 'US88160R1014', mint: 'XsDoVfqeBukxuZHWhdvWHBhgEHjGNst4MLodqsJHzoB' },
+  { symbol: 'SPYx', name: 'SP500 xStock', issuerIsin: 'CH1436219716', underlyingSymbol: 'SPY', underlyingIsin: 'US78462F1030', mint: 'XsoCS1TfEyfFhfvj8EtZ528L3CaKBDBRqRapnBbDF2W' },
+  { symbol: 'QQQx', name: 'Nasdaq xStock', issuerIsin: 'CH1436219724', underlyingSymbol: 'QQQ', underlyingIsin: 'US46090E1038', mint: 'Xs8S1uUs1zvS2p7iwtsG3b6fkhpvmwz4GYU3gWAmWHZ' },
+].map(asset => ({ ...asset, logoUrl: logoPathForSymbol(asset.symbol), logoSourceUrl: officialLogoUrlForSymbol(asset.symbol), decimals: 8, tokenProgram: TOKEN_2022_PROGRAM, halted: false, verifiedAt: VERIFIED_AT }));
 
 export const DEFAULT_BASKET: Basket = {
   version: 1,

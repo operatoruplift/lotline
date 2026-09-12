@@ -7,15 +7,17 @@ Verified September 11–12, 2026. The original chain and quote observations reta
 ## Completed build checks
 
 - Lint, TypeScript checking, and the Next.js production build passed.
-- A fresh full unit-test run passed all **149 deterministic tests**; the single opt-in live test is skipped in ordinary unit runs and live evidence is recorded separately.
+- A fresh full unit-test run passed all **151 deterministic tests**; the single opt-in live test is skipped in ordinary unit runs and live evidence is recorded separately.
 - **35 distinct browser scenarios** passed against the fresh local production build, including the core planner, responsive and accessibility checks, PWA/offline flows, two cloud-plan account-change scenarios, immediate-reload/blocked-storage regressions, four judge-readiness flows, and eight strict share-link journeys. The first pass also caught and fixed the mobile test selector race; the final focused production runs passed all four judge flows and all eight share-link flows.
-- A scan of 153 source and built-client files found no matches for the configured server-secret values. The public Supabase project URL and publishable key are intentionally exposed; privileged keys remain server-side.
+- A secret scan of the tracked source and built-client files found no matches for the configured server-secret values. The public Supabase project URL and publishable key are intentionally exposed; privileged keys remain server-side.
 
 Counts describe the completed checkpoint above. Hosted browser and account-flow checks are recorded separately below as they finish; a passed local test does not imply every deployed integration was exercised.
 
 ## Chain and quote integration
 
 The opt-in live adapter smoke passed: six official issuer deployments resolved, their mainnet Token-2022 mints and scaling were decoded, a public issuer-authority address returned confirmed zero AAPLx/USDC holdings, and a real keyless Jupiter quote for 10 USDC returned usable raw output and mint-aware scaled units. The request omitted `taker`. The resulting-unit path converted the raw balance plus quote output. No signatures or transactions were submitted.
+
+The six curated asset identities were rechecked against the official issuer responses on September 12, 2026. Each response supplied the expected underlying ticker and ISIN, a unique Solana deployment, and the matching official 400×400 logo. Those six logo files are bundled under `public/logos/xstocks/` so the planner and offline Example do not depend on an external image request; their issuer source URLs remain visible in the verification receipt.
 
 The live check used a zero-balance public address. Nonzero holdings, multiple accounts for one mint, scheduled multiplier changes, and partial RPC failures are covered by deterministic tests; they are not claimed as observed on that live wallet. Public endpoints may throttle access, and live prices are not permanently guaranteed. The original observation times are preserved in the evidence file.
 

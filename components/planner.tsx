@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import Image from 'next/image';
 import { isAddress } from '@solana/kit';
 import { ArrowDownToLine, ArrowRight, ArrowUpRight, Check, ChevronDown, CircleHelp, Clipboard, Clock3, ExternalLink, FlaskConical, Info, LoaderCircle, Plus, RefreshCw, ShieldCheck, Trash2, Wallet, WifiOff, X } from 'lucide-react';
 import type { Asset, Basket, CatalogResponse, HoldingsResponse, Mode, ProjectionResponse, QuotesResponse } from '@/lib/domain/types';
@@ -8,6 +9,7 @@ import { formatUsdc, parsePercent, validatePlan } from '@/lib/domain/math';
 import { buildPlanCsv, buildPlanText } from '@/lib/domain/export';
 import { createPlanIdentity, isCurrentResponse } from '@/lib/domain/identity';
 import { loadBasket, saveBasket } from '@/lib/domain/storage';
+import { logoPathForSymbol } from '@/lib/domain/assets';
 import { PLAN_HASH_PREFIX } from '@/lib/domain/share';
 import { DEFAULT_BASKET, EXAMPLE_ASSETS, exampleUnits, getExampleHoldings, getExampleQuotes } from '@/lib/demo/example';
 import { SiteFooter, SiteHeader } from './site-shell';
@@ -32,7 +34,9 @@ function displayUnits(value: string): string {
 }
 
 function AssetAvatar({ asset, small }: { asset?: Asset; small?: boolean }) {
-  return <span className={`asset-avatar ${assetClass(asset?.symbol ?? '')}${small ? ' small' : ''}`} aria-hidden="true">{asset?.symbol[0] ?? '?'}</span>;
+  const logo = asset?.logoUrl ?? logoPathForSymbol(asset?.symbol ?? '');
+  const [failedLogo, setFailedLogo] = useState<string | null>(null);
+  return <span className={`asset-avatar ${assetClass(asset?.symbol ?? '')}${small ? ' small' : ''}`} aria-hidden="true">{logo && failedLogo !== logo ? <Image className="asset-logo" src={logo} alt="" width={small ? 31 : 36} height={small ? 31 : 36} unoptimized onError={() => setFailedLogo(logo)} /> : asset?.symbol[0] ?? '?'}</span>;
 }
 
 function exampleView(basket: Basket) {

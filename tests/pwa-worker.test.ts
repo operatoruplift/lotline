@@ -52,7 +52,7 @@ describe('public offline cache boundary', () => {
     expect(paths).toContain('/offline');
     expect(paths).toContain('/_next/static/chunks/example.js');
     expect(paths).toContain('/_next/static/css/example.css');
-    expect(paths.every(path => path === '/offline' || path.startsWith('/_next/static/') || path.startsWith('/icons/') || path.startsWith('/brand/'))).toBe(true);
+    expect(paths.every(path => path === '/offline' || path.startsWith('/_next/static/') || path.startsWith('/icons/') || path.startsWith('/brand/') || path.startsWith('/logos/'))).toBe(true);
     for (const [, options] of w.fetch.mock.calls) expect(options?.credentials).toBe('omit');
     expect(w.self.skipWaiting).toHaveBeenCalledOnce();
   });

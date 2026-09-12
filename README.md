@@ -121,6 +121,6 @@ No hackathon submission is claimed. The [Stocklana check](docs/stocklana-check.m
 - `lib/supabase/`: public/browser and server clients plus cloud-plan validation.
 - `supabase/`: versioned migrations and database isolation verification.
 - `lib/demo/`: visibly synthetic Example fixtures.
-- `public/`: service worker, original logo assets, and PWA icons.
+- `public/`: service worker, original Lotline logo assets, bundled official xStocks logos, and PWA icons.
 - `tests/`: behavioral domain, service, and browser verification.
 - `docs/`: dated evidence, screenshots, setup details, product descriptions, design direction, and video materials.

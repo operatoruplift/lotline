@@ -8,7 +8,7 @@ const USDC = 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v';
 const PROGRAM = 'TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb';
 const OWNER = '11111111111111111111111111111111';
 const CLOCK = 'SysvarC1ock11111111111111111111111111111111';
-const issuer = { symbol: 'AAPLx', name: 'Apple xStock', isTradingHalted: false, trading: { isTradingHalted: false }, deployments: [{ network: 'Solana', address: AAPL }, { network: 'Ethereum', address: '0xnot-solana' }] };
+const issuer = { symbol: 'AAPLx', name: 'Apple xStock', isin: 'CH1436219187', underlyingSymbol: 'AAPL', underlyingIsin: 'US0378331005', logo: 'https://xstocks-metadata.backed.fi/logos/tokens/AAPLx.png', isTradingHalted: false, trading: { isTradingHalted: false }, deployments: [{ network: 'Solana', address: AAPL }, { network: 'Ethereum', address: '0xnot-solana' }] };
 const upstreamQuote = { inputMint: USDC, outputMint: AAPL, inAmount: '10000000', outAmount: '2968207', transaction: null, router: 'metis', feeBps: 10, feeMint: USDC, taker: null, signatureFeeLamports: 0 };
 const info = { decimals: 8, tokenProgram: PROGRAM, scaled: true };
 const account = (amount: string, pubkey = 'a') => ({ pubkey, account: { owner: PROGRAM, executable: false, data: { parsed: { type: 'account', info: { mint: AAPL, owner: OWNER, tokenAmount: { amount, decimals: 8, uiAmountString: 'IGNORE-ALREADY-SCALED' } } } } } });
@@ -24,6 +24,11 @@ describe('issuer and narrow inputs', () => {
     expect(() => parseIssuerAsset({ ...issuer, symbol: 'FAKEx' }, 'AAPLx')).toThrow();
     expect(() => parseIssuerAsset({ ...issuer, deployments: [{ network: 'solana', address: AAPL }] }, 'AAPLx')).toThrow();
     expect(() => parseIssuerAsset({ ...issuer, deployments: [...issuer.deployments, issuer.deployments[0]] }, 'AAPLx')).toThrow();
+  });
+  it('keeps issuer identity details and accepts only the matching official logo', async () => {
+    const { parseIssuerAsset } = await import('../lib/server/catalog');
+    expect(parseIssuerAsset(issuer, 'AAPLx')).toMatchObject({ issuerIsin: 'CH1436219187', underlyingSymbol: 'AAPL', underlyingIsin: 'US0378331005', logoSourceUrl: issuer.logo });
+    expect(parseIssuerAsset({ ...issuer, logo: 'https://example.com/wrong.png' }, 'AAPLx').logoSourceUrl).toBeUndefined();
   });
   it('missing RPC is explicit; missing Jupiter key alone is not configuration-required', async () => {
     vi.stubEnv('SOLANA_RPC_URL', '');

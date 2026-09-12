@@ -74,7 +74,7 @@ test('offline reload supports real Example math and export without caching live 
   });
   expect(cachedUrls.every(url => {
     const path = new URL(url).pathname;
-    return path === '/offline' || path.startsWith('/_next/static/') || path.startsWith('/brand/') || path.startsWith('/icons/');
+    return path === '/offline' || path.startsWith('/_next/static/') || path.startsWith('/brand/') || path.startsWith('/icons/') || path.startsWith('/logos/');
   })).toBe(true);
   await context.setOffline(true);
   await page.reload();

@@ -4,7 +4,7 @@
  */
 const CACHE = 'lotline-public-example-v1';
 const OFFLINE = '/offline';
-const STATIC_PATHS = ['/brand/', '/icons/', '/_next/static/'];
+const STATIC_PATHS = ['/brand/', '/icons/', '/logos/', '/_next/static/'];
 let preparing;
 
 function isStatic(url) {
@@ -20,7 +20,7 @@ async function prepareOffline() {
     const html = await response.clone().text();
     // Read only public same-origin static URLs; never precache a linked route,
     // image optimizer URL, API, third-party host, or authentication response.
-    const paths = new Set(['/icons/icon-192.png', '/icons/icon-512.png', '/icons/icon-maskable-512.png', '/icons/apple-touch-icon.png', '/brand/mark.svg', '/brand/favicon.svg']);
+    const paths = new Set(['/icons/icon-192.png', '/icons/icon-512.png', '/icons/icon-maskable-512.png', '/icons/apple-touch-icon.png', '/brand/mark.svg', '/brand/favicon.svg', '/logos/xstocks/AAPLx.png', '/logos/xstocks/MSFTx.png', '/logos/xstocks/NVDAx.png', '/logos/xstocks/TSLAx.png', '/logos/xstocks/SPYx.png', '/logos/xstocks/QQQx.png']);
     for (const match of html.matchAll(/(?:src|href)="([^"]+)"/g)) {
       const url = new URL(match[1].replaceAll('&amp;', '&'), self.location.origin);
       if (isStatic(url)) paths.add(url.pathname + url.search);

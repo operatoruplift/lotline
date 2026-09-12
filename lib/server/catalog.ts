@@ -1,26 +1,41 @@
 import 'server-only';
 import { z } from 'zod';
 import type { Asset, CatalogResponse } from '../domain/types';
+import { logoPathForSymbol, officialLogoUrlForSymbol, XSTOCK_LOGO_HOST } from '../domain/assets';
 import { addressSchema, BoundedCache, fetchJson, safeMessage, ServiceError } from './common';
 import { loadMint, rpcConfigured } from './solana';
 
 export const CURATED_SYMBOLS = ['AAPLx', 'MSFTx', 'NVDAx', 'TSLAx', 'SPYx', 'QQQx'] as const;
 const issuerSchema = z.object({
   symbol: z.string().max(16), name: z.string().min(1).max(120), isTradingHalted: z.boolean(),
+  isin: z.string().max(32).optional(), underlyingSymbol: z.string().max(16).optional(), underlyingIsin: z.string().max(32).optional(),
+  logo: z.string().max(300).optional(),
   trading: z.object({ isTradingHalted: z.boolean() }).optional(),
   deployments: z.array(z.object({ network: z.string(), address: z.string().max(120) })).max(100),
 });
-type IssuerAsset = { symbol: string; name: string; mint: string; halted: boolean; fetchedAt: string };
+type IssuerAsset = { symbol: string; name: string; mint: string; halted: boolean; fetchedAt: string; logoSourceUrl?: string; issuerIsin?: string; underlyingSymbol?: string; underlyingIsin?: string };
 const issuerCache = new BoundedCache<IssuerAsset>(12);
 const catalogCache = new BoundedCache<CatalogResponse>(1);
 let pendingCatalog: Promise<CatalogResponse> | undefined;
+
+function verifiedLogoUrl(value: string | undefined, symbol: string): string | undefined {
+  const expected = officialLogoUrlForSymbol(symbol);
+  if (!value || !expected) return undefined;
+  try {
+    const url = new URL(value);
+    if (url.protocol !== 'https:' || url.hostname !== XSTOCK_LOGO_HOST || url.pathname !== `/logos/tokens/${symbol}.png` || url.search || url.hash) return undefined;
+    return url.href === expected ? expected : undefined;
+  } catch {
+    return undefined;
+  }
+}
 
 export function parseIssuerAsset(payload: unknown, symbol: string): IssuerAsset {
   const parsed = issuerSchema.safeParse(payload);
   if (!parsed.success || parsed.data.symbol !== symbol) throw new ServiceError('unavailable', 'Issuer identity could not be verified.');
   const deployments = parsed.data.deployments.filter(item => item.network === 'Solana');
   if (deployments.length !== 1 || !addressSchema.safeParse(deployments[0].address).success) throw new ServiceError('unavailable', 'A unique Solana deployment is temporarily unavailable.');
-  return { symbol, name: parsed.data.name, mint: deployments[0].address, halted: parsed.data.isTradingHalted || Boolean(parsed.data.trading?.isTradingHalted), fetchedAt: new Date().toISOString() };
+  return { symbol, name: parsed.data.name, mint: deployments[0].address, halted: parsed.data.isTradingHalted || Boolean(parsed.data.trading?.isTradingHalted), fetchedAt: new Date().toISOString(), logoSourceUrl: verifiedLogoUrl(parsed.data.logo, symbol), issuerIsin: parsed.data.isin, underlyingSymbol: parsed.data.underlyingSymbol, underlyingIsin: parsed.data.underlyingIsin };
 }
 export async function getIssuerAsset(symbol: string): Promise<IssuerAsset> {
   if (!(CURATED_SYMBOLS as readonly string[]).includes(symbol)) throw new ServiceError('invalid-input', 'Choose an asset from the verified catalog.');
@@ -40,7 +55,7 @@ async function fetchCatalog(): Promise<CatalogResponse> {
       try {
         const issuer = await getIssuerAsset(symbol);
         const mint = await loadMint(issuer.mint);
-        assets.push({ symbol, name: issuer.name, mint: issuer.mint, decimals: mint.decimals, tokenProgram: mint.tokenProgram, halted: issuer.halted, verifiedAt: issuer.fetchedAt });
+        assets.push({ symbol, name: issuer.name, mint: issuer.mint, decimals: mint.decimals, tokenProgram: mint.tokenProgram, halted: issuer.halted, verifiedAt: issuer.fetchedAt, logoUrl: logoPathForSymbol(symbol), logoSourceUrl: issuer.logoSourceUrl, issuerIsin: issuer.issuerIsin, underlyingSymbol: issuer.underlyingSymbol, underlyingIsin: issuer.underlyingIsin });
       } catch (error) { unavailable.push({ symbol, message: safeMessage(error) }); }
     }));
   }

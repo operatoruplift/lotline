@@ -7,7 +7,7 @@ Lotline is an installable PWA with one responsive codebase for phone, tablet, an
 - **Safari on Mac:** choose **File → Add to Dock**.
 - Browsers that do not support installation can use the website normally or bookmark it. Browser versions and managed-device policies affect installation availability.
 
-The original Lotline three-bar mark is included as 192 px and 512 px PNG icons, a separately padded maskable icon, a 180 px Apple touch icon, and editable SVG sources. Standalone display supports safe-area insets and unrestricted page zoom.
+The original Lotline three-bar mark is included as 192 px and 512 px PNG icons, a separately padded maskable icon, a 180 px Apple touch icon, and editable SVG sources. Official xStocks logos for the six curated symbols are bundled as local 400 px PNGs and included in the public Example cache. Standalone display supports safe-area insets and unrestricted page zoom.
 
 ## Offline behavior
 

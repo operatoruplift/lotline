@@ -29,6 +29,9 @@ export function VerificationReceipt({ basket, assets, mode, quotes }: { basket: 
           <dl>
             <div><dt>Solana mint</dt><dd><a href={`https://explorer.solana.com/address/${asset.mint}`} target="_blank" rel="noopener noreferrer">{asset.mint}<ExternalLink size={11} /><span className="sr-only"> (opens Solana Explorer in a new tab)</span></a></dd></div>
             <div><dt>Issuer source</dt><dd><a href={`https://api.xstocks.fi/api/v2/public/assets/${encodeURIComponent(asset.symbol)}`} target="_blank" rel="noopener noreferrer">xStocks asset metadata <ExternalLink size={11} /><span className="sr-only"> (opens in a new tab)</span></a></dd></div>
+            {asset.underlyingSymbol && <div><dt>Underlying</dt><dd>{asset.underlyingSymbol}{asset.underlyingIsin ? ` · ${asset.underlyingIsin}` : ''}</dd></div>}
+            {asset.issuerIsin && <div><dt>xStock ISIN</dt><dd>{asset.issuerIsin}</dd></div>}
+            {asset.logoSourceUrl && <div><dt>Logo source</dt><dd><a href={asset.logoSourceUrl} target="_blank" rel="noopener noreferrer">Official issuer logo <ExternalLink size={11} /><span className="sr-only"> (opens in a new tab)</span></a></dd></div>}
             {mode === 'live' && <div><dt>Identity checked</dt><dd><time dateTime={asset.verifiedAt}>{utcTime(asset.verifiedAt)}</time></dd></div>}
             <div><dt>Token program</dt><dd className="receipt-mint">{asset.tokenProgram}</dd></div>
             {quote && <><div><dt>{mode === 'example' ? 'Synthetic source' : 'Quote source'}</dt><dd>{quote.source ?? (mode === 'example' ? 'Example fixture' : 'Jupiter')}</dd></div><div><dt>Retrieved</dt><dd><time dateTime={quote.fetchedAt}>{utcTime(quote.fetchedAt)}</time></dd></div>{expiry !== null && Number.isFinite(expiry) && <div><dt>Fresh until</dt><dd><time dateTime={new Date(expiry).toISOString()}>{utcTime(new Date(expiry).toISOString())}</time></dd></div>}</>}

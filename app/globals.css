@@ -90,7 +90,8 @@ h1,h2,h3{font-weight:550;line-height:1.18}
 .product-preview>.allocation-bar{margin-top:20px}
 .preview-labels{display:flex;justify-content:space-between;font-size:8px;color:#778275;letter-spacing:1px;margin-top:26px;margin-bottom:3px}
 .preview-row{display:flex;align-items:center;gap:12px;padding:16px 0;border-bottom:1px solid #EAEDE6}
-.asset-avatar{height:36px;width:36px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-weight:650;font-size:17px;flex-shrink:0;font-family:Arial,Helvetica,sans-serif}
+.asset-avatar{height:36px;width:36px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-weight:650;font-size:17px;flex-shrink:0;font-family:Arial,Helvetica,sans-serif;overflow:hidden}
+.asset-logo{display:block;width:100%;height:100%;object-fit:cover;border-radius:inherit}
 .asset-avatar.apple{color:#28402F;background:#EBEEE7}
 .asset-avatar.microsoft{color:#647863;background:#EFF2E8}
 .asset-avatar.nvidia{color:#426029;background:#E4EFDA}

@@ -3,6 +3,13 @@ export type State = 'success' | 'partial' | 'unavailable' | 'invalid-input' | 'c
 export type Asset = {
   symbol: string; name: string; mint: string; decimals: number; tokenProgram: string;
   halted: boolean; verifiedAt: string;
+  /** Local bundled logo path. Live responses only expose this for curated symbols. */
+  logoUrl?: string;
+  /** The issuer URL from which the bundled logo and identity were verified. */
+  logoSourceUrl?: string;
+  issuerIsin?: string;
+  underlyingSymbol?: string;
+  underlyingIsin?: string;
 };
 export type CatalogResponse = { state: State; assets: Asset[]; unavailable: {symbol: string; message: string}[]; message?: string; };
 export type BasketItem = { mint: string; percent: string };

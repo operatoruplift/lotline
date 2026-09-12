@@ -1,11 +1,13 @@
 import Link from 'next/link';
+import Image from 'next/image';
 import { ArrowRight, ArrowUpRight, Check, CheckCheck, CircleDollarSign, ClipboardList, LockKeyhole, ScanLine } from 'lucide-react';
 import { SiteHeader, SiteFooter } from '@/components/site-shell';
+import { logoPathForSymbol } from '@/lib/domain/assets';
 
 const previewRows = [
-  { initial: 'A', symbol: 'AAPLx', name: 'Apple', share: '50', amount: '500.00', units: '2.500000', cls: 'apple' },
-  { initial: 'M', symbol: 'MSFTx', name: 'Microsoft', share: '30', amount: '300.00', units: '0.750000', cls: 'microsoft' },
-  { initial: 'N', symbol: 'NVDAx', name: 'NVIDIA', share: '20', amount: '200.00', units: '1.600000', cls: 'nvidia' },
+  { initial: 'A', symbol: 'AAPLx', name: 'Apple xStock', share: '50', amount: '500.00', units: '2.500000', cls: 'apple' },
+  { initial: 'M', symbol: 'MSFTx', name: 'Microsoft xStock', share: '30', amount: '300.00', units: '0.750000', cls: 'microsoft' },
+  { initial: 'N', symbol: 'NVDAx', name: 'NVIDIA xStock', share: '20', amount: '200.00', units: '1.600000', cls: 'nvidia' },
 ];
 
 export default function Home() {
@@ -25,7 +27,7 @@ export default function Home() {
           <div className="preview-amount">1,000<span>.00</span> <small>USDC</small></div>
           <div className="allocation-bar" role="img" aria-label="50 percent Apple, 30 percent Microsoft, 20 percent NVIDIA"><span style={{ width: '50%' }} /><span style={{ width: '30%' }} /><span style={{ width: '20%' }} /></div>
           <div className="preview-labels"><span>YOUR SPLIT</span><span>CONTRIBUTION</span></div>
-          {previewRows.map((row) => <div className="preview-row" key={row.symbol}><span className={`asset-avatar ${row.cls}`}>{row.initial}</span><div className="preview-asset"><strong>{row.symbol}</strong><span>{row.name}</span></div><span className="preview-weight">{row.share}%</span><strong className="preview-usdc">{row.amount}<small>USDC</small></strong></div>)}
+          {previewRows.map((row) => <div className="preview-row" key={row.symbol}><span className={`asset-avatar ${row.cls}`}>{logoPathForSymbol(row.symbol) ? <Image className="asset-logo" src={logoPathForSymbol(row.symbol)!} alt="" width={36} height={36} unoptimized /> : row.initial}</span><div className="preview-asset"><strong>{row.symbol}</strong><span>{row.name}</span></div><span className="preview-weight">{row.share}%</span><strong className="preview-usdc">{row.amount}<small>USDC</small></strong></div>)}
           <div className="preview-bottom"><span><CheckCheck size={15} /> Every micro-USDC accounted for</span><ArrowUpRight size={17} /></div>
         </div>
         <div className="preview-note"><span className="annotation-line" /> Your contribution split. Set by you.</div>
