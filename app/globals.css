@@ -544,8 +544,10 @@ h1,h2,h3{font-weight:550;line-height:1.18}
 .landing-page .intent-section p{font-size:12px;line-height:1.85;margin-top:9px}
 .landing-page .intent-section .text-button{position:relative;z-index:1;padding:11px 0}
 
-@keyframes landing-rise{from{opacity:0;transform:translateY(15px)}to{opacity:1;transform:translateY(0)}}
-@keyframes landing-fade-slide{from{opacity:0;transform:translate3d(0,24px,0) scale(.98)}to{opacity:1;transform:translate3d(0,0,0) scale(1)}}
+/* Content reveals move into place without fading foreground/background colors
+   through low-contrast intermediate values while accessibility tooling samples. */
+@keyframes landing-rise{from{transform:translateY(15px)}to{transform:translateY(0)}}
+@keyframes landing-fade-slide{from{transform:translate3d(0,24px,0) scale(.98)}to{transform:translate3d(0,0,0) scale(1)}}
 @keyframes landing-orb-drift{0%,100%{transform:translate3d(0,0,0) scale(1)}50%{transform:translate3d(-12px,17px,0) scale(1.04)}}
 @keyframes landing-glow{0%,100%{opacity:.55;transform:scale(.98)}50%{opacity:.95;transform:scale(1.03)}}
 @keyframes landing-card-float{0%,100%{transform:translate3d(0,0,0) rotate(0)}50%{transform:translate3d(0,-5px,0) rotate(.15deg)}}
