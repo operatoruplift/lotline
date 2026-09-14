@@ -46,8 +46,8 @@ Optional Tokens.xyz context remains disabled unless both `TOKENS_XYZ_ENABLED=tru
 
 The repository contains four migrations. The first three were applied in timestamp order on the earlier authorized target; the execution journal is a separate pending migration:
 
-1. `20260911163835_shared_provider_limits.sql`
-2. `20260911163838_contribution_plans.sql`
+1. `20260911170809_shared_provider_limits.sql`
+2. `20260911170815_contribution_plans.sql`
 3. `20260912094113_expanded_stock_plans.sql`
 4. `20260914090000_execution_journal.sql` (pending; keep execution disabled until reviewed and applied)
 

@@ -10,8 +10,8 @@ Set `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` at bui
 
 For an authorized new database, apply all three files in `supabase/migrations/` in timestamp order:
 
-1. `20260911163835_shared_provider_limits.sql`: server-only provider request coordination.
-2. `20260911163838_contribution_plans.sql`: `public.lotline_contribution_plans` and helpers in the non-exposed `lotline_private` schema.
+1. `20260911170809_shared_provider_limits.sql`: server-only provider request coordination.
+2. `20260911170815_contribution_plans.sql`: `public.lotline_contribution_plans` and helpers in the non-exposed `lotline_private` schema.
 3. `20260912094113_expanded_stock_plans.sql`: expanded issuer allowlist and up to ten assets per plan.
 
 The account API needs explicit SELECT, INSERT, and DELETE grants for the authenticated role; the plan migrations supply them together with forced row-level security. There is no UPDATE permission. Existing unrelated table grants are preserved. Shared provider coordination uses a separate privileged server credential; account and plan requests use the user's verified session. The current local task does not apply migrations or change hosted settings.

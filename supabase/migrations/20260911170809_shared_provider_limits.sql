@@ -45,3 +45,4 @@ end;
 $$;
 revoke all on function public.lotline_reserve_provider_slot(text) from public, anon, authenticated;
 grant execute on function public.lotline_reserve_provider_slot(text) to service_role;
+;

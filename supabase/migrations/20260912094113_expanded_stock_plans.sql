@@ -864,3 +864,4 @@ begin
   return total = 10000;
 end;
 $$;
+;

@@ -83,3 +83,4 @@ $$;
 revoke all on function lotline_private.limit_plan_count() from public, anon;
 grant execute on function lotline_private.limit_plan_count() to authenticated;
 create trigger lotline_contribution_plans_limit before insert on public.lotline_contribution_plans for each row execute function lotline_private.limit_plan_count();
+;
