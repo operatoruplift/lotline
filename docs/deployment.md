@@ -1,6 +1,6 @@
 # Deployment status and history
 
-Updated September 14, 2026 after the execution-path release. **The selected redesign, 832-asset Example, contribution fixes, refreshed narrated films, downloadable brand kit and gated execution routes are deployed.** The [release verification](release-verification.md) records the exact application deployment, fresh hosted provider smoke, video identity and browser evidence. The latest release is Vercel deployment `dpl_BXnepEdDrxPDfrfWHjuwnd6tGXC7`, built from commit `c1819b0`, and is aliased to both production domains. Earlier observations below retain their historical dates; account/email checks are not implied by the new public release.
+Updated September 14, 2026 after the execution-path release. **The selected redesign, 832-asset Example, contribution fixes, refreshed narrated films, downloadable brand kit and gated execution routes are deployed.** The [release verification](release-verification.md) records the exact application deployment, fresh hosted provider smoke, video identity and browser evidence. The execution feature release is represented by Vercel deployment `dpl_9hpdApXXDWCKgk3AkaeYEWmJ5pDL`, built from source including feature commit `c1819b0`, and is aliased to both production domains. Earlier observations below retain their historical dates; account/email checks are not implied by the new public release.
 
 - Production website: https://lotlineonsolana.vercel.app
 - Interactive Example: https://lotlineonsolana.vercel.app/app?mode=example
@@ -9,7 +9,7 @@ Updated September 14, 2026 after the execution-path release. **The selected rede
 - Vercel project: `lotline`, connected to the public source repository, Next.js framework, Node 22, `npm ci` installation.
 - Dedicated Supabase project recorded by the earlier setup: `uemunksopacicpbjubtg`, named Lotline, region `us-east-1`. No project, billing or production configuration changes are part of the current task.
 
-The execution journal migration (`20260914090000_execution_journal.sql`) is present in source but remains pending on the linked Supabase project. The deployed readiness endpoint is therefore intentionally `503 configuration-required`; no wallet prompt or transaction can be created. A production check at `2026-09-14T16:53:20Z` returned HTTP 200 for `/`, `/app?mode=example`, `/brand-kit` and `/demo`, HTTP 200 for the favicon and manifest, and HTTP 503 for `/api/execution/config` with only capability reasons. See [execution readiness](execution.md) for the deliberate enablement gates.
+The execution journal migration (`20260914090000_execution_journal.sql`) is present in source but remains pending on the linked Supabase project. The deployed readiness endpoint is therefore intentionally `503 configuration-required`; no wallet prompt or transaction can be created. A production check at `2026-09-14T16:56:53Z` returned HTTP 200 for `/`, `/app?mode=example`, `/brand-kit` and `/demo`, HTTP 200 for the favicon and manifest, and HTTP 503 for `/api/execution/config` with only capability reasons. See [execution readiness](execution.md) for the deliberate enablement gates.
 
 ## Evidence boundaries
 
