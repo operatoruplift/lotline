@@ -12,6 +12,26 @@ The execution flow is:
 
 The state machine is append-only in `lotline_execution_events`: `planned → quoting → review-required → awaiting-wallet → signed → submitted → confirming → confirmed`. Rejection, on-chain failure, expiry, and an inconclusive provider response are terminal or retry-blocked states. A missing receipt never creates a second order.
 
+```mermaid
+stateDiagram-v2
+  [*] --> planned
+  planned --> quoting
+  quoting --> review-required
+  review-required --> awaiting-wallet
+  review-required --> expired-unbroadcast
+  awaiting-wallet --> signed
+  awaiting-wallet --> rejected
+  signed --> submitted
+  signed --> unknown
+  submitted --> confirming
+  submitted --> unknown
+  confirming --> confirmed
+  confirming --> failed-onchain
+  confirming --> unknown
+  unknown --> confirming
+  unknown --> failed-onchain
+```
+
 The first adapter intentionally supports only Jupiter v0 transactions with a wallet payer, a single wallet signer, the `iris` or `metis` router, bounded provider fees and a fresh lifetime. Other routers, extra signer requirements, malformed lookup-account layouts, and unsupported instruction combinations fail closed before the wallet prompt. This is a supported subset, not a universal Solana transaction policy.
 
 ## Configuration gates
@@ -35,6 +55,16 @@ Apply `supabase/migrations/20260914090000_execution_journal.sql` in the linked p
 Guest execution and automated scheduled purchases are not enabled. Schedules are saved as a device-local reminder and can export a calendar event; they remain manual review points. No private key, wallet address, or signed transaction is saved in browser storage.
 
 Signed-in users also have an owner-scoped `/api/contribution-schedules` GET/POST/PATCH route backed by the journal migration. The current UI keeps the local reminder path available for guests; cloud synchronization remains opt-in.
+
+## Provider coverage
+
+| Boundary | Current release | Explicitly deferred |
+| --- | --- | --- |
+| Solana RPC | Wallet identity, issuer/mint checks and signature reconciliation | Custody, delegated signing or automatic SOL funding |
+| Jupiter Swap v2 | Server `/order` and `/execute` adapter for validated v0 `iris`/`metis` orders | Other routers, RFQ/counterparty signers and unchecked instruction layouts |
+| xStocks issuer catalog | Exact symbol plus Solana mint, halt status and logo provenance | Catalog presence as proof of legal eligibility or liquidity |
+| Supabase | Authenticated owner journal and schedule metadata with RLS | Browser access to execution journal or service keys |
+| Jupiter Recurring | Documentation reference only | Automated xStocks DCA; current Token-2022 support is not enabled |
 
 ## Local verification
 
