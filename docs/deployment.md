@@ -11,7 +11,7 @@ Updated September 14, 2026 after the brand-kit release. **The selected redesign,
 
 The execution journal migration (`20260914090000_execution_journal.sql`) is present in source but was not applied to production during this finish pass. The public deployment therefore remains planning-only; see [execution readiness](execution.md) for the deliberate enablement gates.
 
-The local finish-pass commit is `c2b6e89` (`Add gated contribution execution flow`). It was intentionally not pushed or deployed. A production check at `2026-09-14T16:28:31Z` returned HTTP 200 for `/` and `/app?mode=example`; `/api/execution/config` returned HTTP 404 because the new routes are not in the deployed build.
+The local finish-pass commit is `c2b6e89` (`Add gated contribution execution flow`). It was intentionally not pushed or deployed. A production check at `2026-09-14T16:34:10Z` returned HTTP 200 for `/` and `/app?mode=example`; `/api/execution/config` returned HTTP 404 because the new routes are not in the deployed build.
 
 ## Evidence boundaries
 
