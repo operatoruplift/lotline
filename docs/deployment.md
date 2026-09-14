@@ -1,6 +1,6 @@
 # Deployment status and history
 
-Updated September 12, 2026 after the authorized production release. **The selected redesign, 832-asset Example, contribution fixes and refreshed narrated films are deployed.** The [release verification](release-verification.md) records the exact production deployment, fresh hosted provider smoke, video identity and browser evidence. Earlier observations below retain their historical dates; account/email checks are not implied by the new public release.
+Updated September 14, 2026 after the brand-kit release. **The selected redesign, 832-asset Example, contribution fixes, refreshed narrated films and downloadable brand kit are deployed.** The [release verification](release-verification.md) records the exact application deployment, fresh hosted provider smoke, video identity and browser evidence. The brand-kit release is recorded by commit `cd70132`; its public route, ZIP and representative assets returned HTTP 200 after the Git-linked Vercel build. Earlier observations below retain their historical dates; account/email checks are not implied by the new public release.
 
 - Production website: https://lotlineonsolana.vercel.app
 - Interactive Example: https://lotlineonsolana.vercel.app/app?mode=example
@@ -22,6 +22,7 @@ Updated September 12, 2026 after the authorized production release. **The select
 | Public homepage, Example and updated films | Currently verified hosted | September 12, 16:25–16:27 UTC: current design/logo, 832 Example assets, both narrated films, HTTP 200 and zero overflow/page errors; see [release verification](release-verification.md) |
 | Finished application on the public origin | Deployed and verified | Production release created September 12 at 16:19:43 UTC; real hosted catalog, holdings, quote and scaled units passed at 16:22 UTC |
 | Public signup/recovery email; authenticated Tokens.xyz context | Externally blocked | Verified custom SMTP delivery; separately, approved Tokens API access, credentials and activation terms |
+| Downloadable brand kit | Deployed and verified | `/brand-kit` has 19 visual exports, individual same-origin downloads, a full ZIP and a usage guide; production checks passed for the route, ZIP, profile, phone wallpaper, X header, forest background and guide |
 
 ## Earlier hosted observation — September 12, 12:51 UTC
 
@@ -70,6 +71,6 @@ SUPABASE_SECRET_KEY='' LOTLINE_SHARED_LIMITS=false VERCEL=0 npm run dev -- --por
 
 For service-worker verification, run `npm run build` and `npm run start` sequentially under the same local overrides, rather than running a build concurrently with a development server using the same generated files. Open `http://127.0.0.1:3111`. The overrides do not disable public Supabase configuration; intercept auth for fixture tests and do not send actual emails or create accounts as part of a guest smoke.
 
-A future authorized release must publish the reviewed source, validate required environment variables and migration state, wait for its Vercel build, and recheck that exact deployed version: Example/returning draft/export, real read-only Live, account isolation where authorized, media and public-only offline behavior. The current task does not push, deploy, change production configuration, or submit a hackathon entry. See [accounts](accounts.md), [PWA behavior](pwa.md), and [submission preparation](stocklana-submission.md).
+A future authorized application release must publish the reviewed source, validate required environment variables and migration state, wait for its Vercel build, and recheck that exact deployed version: Example/returning draft/export, real read-only Live, account isolation where authorized, media and public-only offline behavior. The September 14 brand-kit release did not change Supabase, Vercel environment variables, migrations, authentication behavior or video files. See [accounts](accounts.md), [PWA behavior](pwa.md), and [submission preparation](stocklana-submission.md).
 
 References: [Supabase custom SMTP](https://supabase.com/docs/guides/auth/auth-smtp), [Auth redirects](https://supabase.com/docs/guides/auth/redirect-urls).
