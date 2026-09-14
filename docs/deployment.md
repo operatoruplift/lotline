@@ -9,6 +9,8 @@ Updated September 14, 2026 after the brand-kit release. **The selected redesign,
 - Vercel project: `lotline`, connected to the public source repository, Next.js framework, Node 22, `npm ci` installation.
 - Dedicated Supabase project recorded by the earlier setup: `uemunksopacicpbjubtg`, named Lotline, region `us-east-1`. No project, billing or production configuration changes are part of the current task.
 
+The execution journal migration (`20260914090000_execution_journal.sql`) is present in source but was not applied to production during this finish pass. The public deployment therefore remains planning-only; see [execution readiness](execution.md) for the deliberate enablement gates.
+
 ## Evidence boundaries
 
 | Capability | Evidence class | Record and limit |
@@ -42,11 +44,12 @@ Optional Tokens.xyz context remains disabled unless both `TOKENS_XYZ_ENABLED=tru
 
 ## Supabase
 
-The repository contains **three** migrations, applied in timestamp order on an authorized target:
+The repository contains four migrations. The first three were applied in timestamp order on the earlier authorized target; the execution journal is a separate pending migration:
 
 1. `20260911163835_shared_provider_limits.sql`
 2. `20260911163838_contribution_plans.sql`
 3. `20260912094113_expanded_stock_plans.sql`
+4. `20260914090000_execution_journal.sql` (pending; keep execution disabled until reviewed and applied)
 
 The initial hosted checkpoint applied the first two; the September 12 catalog checkpoint records the third. Historical database checks verified ownership, grants, invalid input, the 20-plan limit, ten assets and deletion with rolled-back fixtures. Provider-slot SQL was checked separately for spacing and bounded backlog. Its table deliberately has RLS with no browser policy or grant; only the privileged server role reserves slots. Current source supports ten plan assets while request batches remain limited to three. This task has not rerun privileged hosted SQL or changed migrations.
 

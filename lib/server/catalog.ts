@@ -53,10 +53,10 @@ export function parseIssuerPage(payload: unknown, expectedPage: number) {
   return parsed.data;
 }
 
-export async function getIssuerAsset(symbol: string): Promise<IssuerAsset> {
+export async function getIssuerAsset(symbol: string, options?: { fresh?: boolean }): Promise<IssuerAsset> {
   if (!identityForSymbol(symbol)) throw new ServiceError('invalid-input', 'Choose an asset from the verified catalog.');
   const cached = issuerCache.get(symbol);
-  if (cached) return cached;
+  if (cached && !options?.fresh) return cached;
   const parsed = parseIssuerAsset(await fetchJson(`https://api.xstocks.fi/api/v2/public/assets/${encodeURIComponent(symbol)}`), symbol);
   // Quotes always recheck halt flags against issuer data no older than 30 seconds.
   issuerCache.set(symbol, parsed, 30_000);

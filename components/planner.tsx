@@ -21,6 +21,8 @@ import { CloudPlans } from './cloud-plans';
 import { PlanTransfer } from './plan-transfer';
 import { AssetDetails } from './asset-details';
 import { utcTime, VerificationReceipt } from './verification-receipt';
+import { ExecutionReview } from './execution-review';
+import { ContributionSchedule } from './contribution-schedule';
 
 type Notice = { text: string; error?: boolean };
 const EMPTY_BASKET: Basket = { version: 1, budget: '1000', items: [] };
@@ -374,6 +376,8 @@ export function Planner({ initialMode, cloudEnabled = true }: { initialMode: Mod
       </section>
       <section className="panel handoff-panel" aria-labelledby="handoff-heading"><div className="handoff-top"><div><div className="panel-kicker">03 <span /> TAKE YOUR PLAN WITH YOU</div><h2 id="handoff-heading">Ready when you are.</h2></div><div className="export-actions"><button type="button" className="button secondary" disabled={!plan.valid || unknownSelected || quoteLoading} onClick={() => copy(buildPlanText({ mode, basket, assets, quotes: quotes?.quotes ?? [] }), 'Plan')}><Clipboard size={14} />Copy plan</button><button type="button" className="button secondary" disabled={!plan.valid || unknownSelected || quoteLoading} onClick={downloadCsv}><ArrowDownToLine size={14} />Download CSV</button></div></div><PlanTransfer basket={basket} mode={mode} assets={assets} disabled={!plan.valid || unknownSelected || quoteLoading} onLoad={applySharedPlan} /><p className="handoff-description">Copy an asset’s mint and exact USDC amount. Open Jupiter, select the asset, enter the amount, and review the trade there.</p>
         {selectedAssets.length > 0 && <div className="handoff-assets">{basket.items.map((item) => { const asset = assetMap.get(item.mint); const allocation = allocationByMint.get(item.mint); return asset ? <div className="handoff-row" key={item.mint}><div><AssetAvatar asset={asset} small /><strong>{asset.symbol}</strong><span className="mint-abbr" title={asset.mint}>{asset.mint.slice(0, 4)}…{asset.mint.slice(-4)}</span></div><div><button type="button" aria-label={`Copy ${asset.symbol} mint`} onClick={() => copy(asset.mint, `${asset.symbol} mint`)}>Copy mint <Clipboard size={12} /></button><button type="button" aria-label={`Copy ${asset.symbol} USDC amount`} disabled={!allocation} onClick={() => allocation && copy(formatUsdc(allocation.usdcRaw), `${asset.symbol} USDC amount`)}>Copy USDC amount <Clipboard size={12} /></button></div></div> : null; })}</div>}
+        <ExecutionReview mode={mode} basket={basket} assets={selectedAssets} quotes={quotes?.quotes ?? []} />
+        <ContributionSchedule basket={basket} mode={mode} />
         <div className="jupiter-handoff"><div><span className="jupiter-symbol" aria-hidden="true">↗</span><div><strong>Review on Jupiter</strong><span>You decide what happens next.</span></div></div><a href="https://jup.ag/" target="_blank" rel="noopener noreferrer" className="button primary">Open Jupiter <ExternalLink size={14} /></a></div><p className="handoff-footnote">Opens the official homepage in a new tab. Lotline never signs, submits, or records a purchase.</p>
       </section>
       </div>

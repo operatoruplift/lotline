@@ -4,7 +4,7 @@
 
 [Live website](https://lotlineonsolana.vercel.app) · [Try the example](https://lotlineonsolana.vercel.app/app?mode=example) · [Demo](https://lotlineonsolana.vercel.app/demo) · [Public source](https://github.com/operatoruplift/lotline)
 
-Lotline serves someone who already knows their chosen assets and split and wants to repeat a contribution accurately. Percentages apply to the new contribution, not target weights for an existing portfolio. It does not recommend allocations, rebalance holdings, custody funds, request signatures, or submit trades. Guest planning needs no registration or wallet extension. Existing Supabase users can explicitly save named plans across devices; public signup and recovery remain gated until SMTP delivery is verified.
+Lotline serves someone who already knows their chosen assets and split and wants to repeat a contribution accurately. Percentages apply to the new contribution, not target weights for an existing portfolio. Planning and Example mode are read-only. A staged Wallet Standard/Jupiter execution path is present but remains paused until its server readiness gates, durable journal, and reconciliation checks are deliberately enabled. Guest planning needs no registration or wallet extension. Existing Supabase users can explicitly save named plans across devices; public signup and recovery remain gated until SMTP delivery is verified.
 
 **Release status — September 14, 2026:** the selected L1/L4/L5/L6 redesign, reliability fixes, 832-asset Example, refreshed narrated films and downloadable brand kit are deployed at [lotlineonsolana.vercel.app](https://lotlineonsolana.vercel.app). The September 14 brand-kit release includes 19 visual exports, individual downloads, a full ZIP and a usage guide; production HTTP checks passed for the route, ZIP and representative phone/profile/header/background assets. The preceding production deployment created at **16:19:43 UTC** remains the recorded application release. Fresh hosted checks passed for the 832-asset catalog, holdings, a 10-USDC quote and scaled-unit conversion; both new films passed actual audio playback, seeking, captions and accessibility checks on mobile and desktop. See the [release verification](docs/release-verification.md) for the precise deployed build and full check results, and the [video release](docs/video-release.md) for film provenance. The [finish delivery](docs/stocklana-finish-delivery.md) and [redesign delivery](docs/redesign-delivery.md) preserve the preceding local checkpoints. No hackathon submission has been made.
 
@@ -35,6 +35,7 @@ SUPABASE_SECRET_KEY='' LOTLINE_SHARED_LIMITS=false VERCEL=0 npm run dev -- --por
 | `NEXT_PUBLIC_AUTH_EMAIL_ENABLED` | Public, build time | Set to the exact string `true` only after testing custom SMTP signup and recovery delivery. The launch deployment uses `false`; existing users can still sign in. |
 | `SUPABASE_SECRET_KEY` | Server only | Current `sb_secret_` key for shared provider request coordination; required on Vercel. Account and cloud-plan paths do not use this privileged key. |
 | `LOTLINE_SHARED_LIMITS` | Server only | Set to `true` to require the shared limiter locally. Vercel requires it automatically. |
+| `LOTLINE_EXECUTION_ENABLED`, `LOTLINE_EXECUTION_MIGRATIONS_READY`, `LOTLINE_EXECUTION_REPOSITORY`, `LOTLINE_EXECUTION_VALIDATOR_READY` | Server only | Execution safety gates. Keep execution disabled until the journal migration, server secret, Jupiter key, RPC, supported-instruction review and production reconciliation checks are complete; see [execution readiness](docs/execution.md). |
 | `TOKENS_XYZ_ENABLED`, `TOKENS_XYZ_API_KEY` | Server only | Optional exact-mint context, disabled by default. Requires approved `assets:read` access and the exact flag `true`; see [contract and activation requirements](docs/tokens-enrichment.md). |
 
 Never put a privileged key or credential-bearing RPC URL in a public variable. `.env.local` is ignored by Git. Public RPC and Jupiter endpoints may throttle requests.
@@ -48,7 +49,7 @@ The pinned issuer snapshot contains **832 Solana stocks and ETFs**, verified on 
 1. Select one to 10 assets, set percentages totaling exactly 100%, and enter a budget.
 2. Optionally load a public wallet's selected-token and USDC balances.
 3. Choose **Get estimates**. The results show exact USDC allocation, estimated received units, and estimated resulting units when balances are available.
-4. Copy the plan or download its CSV. To review a trade independently, copy the mint and exact USDC amount, open Jupiter, select that asset, and enter the amount there.
+4. Copy the plan or download its CSV. To review a trade independently, copy the mint and exact USDC amount, open Jupiter, select the asset, and enter the amount there. Live execution remains behind an explicit readiness gate; Example never signs or submits.
 5. Return to the saved device draft, change the contribution amount, and request new estimates. Optionally sign in and choose **Save this plan** to keep a separate named plan across devices. Signing in alone does not upload the draft.
 
 You can also choose **Split evenly** for a deterministic equal distribution, replace an asset without rebuilding the basket, or use **Copy plan link**. A link carries only the mode, budget, verified-mint choices, and percentages in a URL fragment. The recipient reviews it in a dialog before applying it; wallet addresses, balances, quotes, and account data never enter the link.
@@ -69,7 +70,7 @@ For a quick precision check, set **10.000001 USDC** at **50/30/20**. The exact a
 
 ## Storage and services
 
-Guest basket settings and budget are saved in versioned localStorage on the current browser/device, with safe recovery from corrupt values. Supabase handles optional email/password authentication and session cookies. An explicit cloud save stores a plan name, verified mints, basis-point weights, and exact budget under the signed-in owner. Wallet addresses, balances, quotes, and projections are excluded. The database enforces owner access with forced row-level security, validates plan content, and limits each account to 20 plans. Users can load or delete their saved plans. See [accounts](docs/accounts.md) and [privacy and storage](https://lotlineonsolana.vercel.app/privacy).
+Guest basket settings, budget, and the manual review cadence are saved in versioned localStorage on the current browser/device, with safe recovery from corrupt values. Supabase handles optional email/password authentication and session cookies. An explicit cloud save stores a plan name, verified mints, basis-point weights, and exact budget under the signed-in owner. Wallet addresses, balances, quotes, and projections are excluded. The database enforces owner access with forced row-level security, validates plan content, and limits each account to 20 plans. Users can load or delete their saved plans. See [accounts](docs/accounts.md) and [privacy and storage](https://lotlineonsolana.vercel.app/privacy).
 
 Live provider requests use narrow same-origin handlers; authentication uses the official Supabase browser client. Server adapters validate issuer, Solana RPC, and Jupiter response data and expose normalized fields. RPC URLs, API keys, and raw provider errors are not returned. Catalog caching is approximately one hour; holdings approximately 15 seconds; identical quotes only briefly within freshness. Requests have timeouts, queue bounds, and a user-driven retry path.
 
@@ -136,6 +137,7 @@ Lotline application code is [MIT licensed](LICENSE). It uses Next.js/React, Type
 - `components/`: responsive planner, account controls, installation UI, and shared visual components.
 - `lib/domain/`: pure exact math, plan identity, bounded share-link encoding, storage schema, text/CSV exports.
 - `lib/server/`: verified catalog, read-only Solana data, quote-only Jupiter adapter, and shared provider limits.
+- `lib/server/execution/`: disabled-by-default Jupiter order/execute boundary, exact transaction validation, and Supabase journal adapter.
 - `lib/supabase/`: public/browser and server clients plus cloud-plan validation.
 - `supabase/`: versioned migrations and database isolation verification.
 - `lib/demo/`: visibly synthetic Example fixtures.
