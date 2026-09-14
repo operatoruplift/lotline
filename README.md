@@ -121,6 +121,7 @@ Deployment was authorized after the local finish checkpoint. The [deployment rec
 - [MotionSites component recommendations and Dribbble references](docs/design-direction.md)
 - [Implemented selected redesign](docs/redesign-delivery.md) and [exact media provenance](docs/design-media.md)
 - [Current product and technical films, Ainsley narration, captions and transcripts](docs/video-release.md)
+- [Downloadable Lotline brand kit](https://lotlineonsolana.vercel.app/brand-kit) with profiles, wallpapers, social art, ads, backgrounds, headers, and SVG marks
 - [Pitch production and archival editable source](docs/video/README.md)
 - [Technical walkthrough and archival source](docs/technical-video.md)
 - [Historical deployed screenshots](docs/screenshots/); current local screenshot/capture paths are recorded in [redesign delivery](docs/redesign-delivery.md)
@@ -138,6 +139,6 @@ Lotline application code is [MIT licensed](LICENSE). It uses Next.js/React, Type
 - `lib/supabase/`: public/browser and server clients plus cloud-plan validation.
 - `supabase/`: versioned migrations and database isolation verification.
 - `lib/demo/`: visibly synthetic Example fixtures.
-- `public/`: service worker, original Lotline logo assets, bundled official xStocks logos, and PWA icons.
+- `public/`: service worker, original Lotline logo assets, downloadable brand kit, bundled official xStocks logos, and PWA icons.
 - `tests/`: behavioral domain, service, and browser verification.
 - `docs/`: dated evidence, screenshots, setup details, product descriptions, design direction, and video materials.

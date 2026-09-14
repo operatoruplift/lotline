@@ -4,6 +4,7 @@
   "private": true,
   "scripts": {
     "brand:generate": "node scripts/generate-brand-assets.mjs",
+    "brand:kit": "node scripts/generate-brand-kit.mjs",
     "dev": "next dev --hostname 127.0.0.1",
     "build": "next build",
     "start": "next start",

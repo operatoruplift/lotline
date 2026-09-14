@@ -26,3 +26,7 @@ Run `npm run brand:generate` to regenerate the SVG marks, favicon, PNG app icons
 The maskable foreground fits within the central 80%-diameter safe circle. The OS supplies the final icon mask. Versioned icon URLs and a new public offline cache version deliver the replacement artwork without changing the installed app's identity.
 
 The earlier pitch and technical videos and dated screenshot records retain the branding shown when they were produced. Their original records are historical evidence, not current-brand exports.
+
+## Social brand kit
+
+The complete downloadable kit is available at [`/brand-kit`](https://lotlineonsolana.vercel.app/brand-kit) and is generated with `npm run brand:kit`. It contains the current SVG marks and wordmarks, light and dark profile images, phone and desktop wallpapers, reusable paper and forest backgrounds, social square and story artwork, ad and Open Graph images, and X and LinkedIn headers. The page provides individual downloads for saving to a phone plus `lotline-brand-kit.zip` for the full package and `brand-guide.md` for usage notes.

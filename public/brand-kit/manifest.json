@@ -1,0 +1,96 @@
+{
+  "version": 1,
+  "updated": "2026-09",
+  "brand": "Lotline",
+  "palette": {
+    "forest": "#174D3C",
+    "deep": "#0B2A20",
+    "paper": "#F5F4EE",
+    "sage": "#BFD5A9",
+    "moss": "#6E8D6B",
+    "ink": "#18211D",
+    "clay": "#E7D8CE"
+  },
+  "assets": {
+    "lotline-mark.svg": {
+      "bytes": 376,
+      "sha256": "bd50c2badff9493cf9792870caf849cc8d30620e702ba4985e1aa517bd59078d"
+    },
+    "lotline-mark-light.svg": {
+      "bytes": 376,
+      "sha256": "ae0717298d8ed0c148fa82fdf010e64fc54279480003e36e6960c54392491618"
+    },
+    "lotline-mark-monochrome.svg": {
+      "bytes": 376,
+      "sha256": "ab652459952e7149d2f8c8715d222c21106c21f5a431edab6b2e11d460087663"
+    },
+    "lotline-wordmark.svg": {
+      "bytes": 597,
+      "sha256": "73c4b4f47e065b4371be76d16a54ea68592ec0d80bebfae7e3ef9bc64bbb5da5"
+    },
+    "lotline-wordmark-light.svg": {
+      "bytes": 597,
+      "sha256": "e072381b1bcfa680488afe5c76eca524814a7dcac1c1d370a31a0c06e0e6efa9"
+    },
+    "profile-light.svg": {
+      "bytes": 755,
+      "sha256": "5e17648c4533f4b237c6f4086c44380be56a4112eb30666287976dcd7dc86cde"
+    },
+    "profile-dark.svg": {
+      "bytes": 755,
+      "sha256": "3f24b7ea0a9996321288ca3514ce6fdf5dc629b80b59b98b61088308e600ab64"
+    },
+    "profile-light.png": {
+      "bytes": 29464,
+      "sha256": "6829a33619c6a97cbabc29c6ebcc16752e9bc905f80a54899e4f3b751f66e0dd"
+    },
+    "profile-dark.png": {
+      "bytes": 30777,
+      "sha256": "1bcc90d317d996e32ba5b7b8a1d9b2b6a650c74326791d1125076e502e252688"
+    },
+    "background-paper.svg": {
+      "bytes": 759,
+      "sha256": "2398b9133e5b2bd9ec9d265e28472b8a38d4eb80724438c6cd12668d651c05f3"
+    },
+    "background-forest.svg": {
+      "bytes": 759,
+      "sha256": "54b1a2c93168c8e0ba73d7bd3d30f4c59b0f9100a69d276f7ca1aed45873b78a"
+    },
+    "wallpaper-phone.png": {
+      "bytes": 78341,
+      "sha256": "15f903433f6e7b95aa7972d56350102cbcb8875c58882a5d43fe04075105470a"
+    },
+    "wallpaper-desktop.png": {
+      "bytes": 90405,
+      "sha256": "ac455a8cd02925f6d1243ecef122fe01f524300f7df63aa8820857ea6f4e6948"
+    },
+    "social-square.png": {
+      "bytes": 62332,
+      "sha256": "9e12010ed08d86a78104c5b67836faa207c760b6ebac513f7dd19a1c2a892b81"
+    },
+    "social-story.png": {
+      "bytes": 67585,
+      "sha256": "84ae1f45f4f4145a792c72f60ed0a889d36b52e78d19247d6326da9a9d3b1f0c"
+    },
+    "ad-landscape.png": {
+      "bytes": 48330,
+      "sha256": "e42ca92dbe82089b64b1d7860456467b3ca02819498aec35c7947d5bae781189"
+    },
+    "header-x.png": {
+      "bytes": 32078,
+      "sha256": "b2aabcd4ecf8979dea37598a6f7f1671f6cd44c6bf66508678edd688710a12d6"
+    },
+    "header-linkedin.png": {
+      "bytes": 32503,
+      "sha256": "48c9a82c9714b94e1508397852eb70e1390690ff43927eaa97662ac9384b6121"
+    },
+    "og-image.png": {
+      "bytes": 46625,
+      "sha256": "98afddc87d4f82bbcb8f10e600455d6e9cd8b1f6b96be4f53505822f2c04ada1"
+    },
+    "brand-guide.md": {
+      "bytes": 1621,
+      "sha256": "35cc640a4c5cb1fd828e8e37015839311e0599072634e4d3377fa96757ea8d75"
+    }
+  }
+}
