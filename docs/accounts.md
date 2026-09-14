@@ -8,13 +8,13 @@ This document describes current source behavior. Hosted observations below retai
 
 Set `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` at build time. The key must be a current `sb_publishable_` key. The public client deliberately rejects secret and legacy service-role keys. No privileged key is used for auth or cloud-plan requests.
 
-For an authorized new database, apply all three files in `supabase/migrations/` in timestamp order:
+For an authorized new database, apply all four files in `supabase/migrations/` in timestamp order:
 
 1. `20260911170809_shared_provider_limits.sql`: server-only provider request coordination.
 2. `20260911170815_contribution_plans.sql`: `public.lotline_contribution_plans` and helpers in the non-exposed `lotline_private` schema.
 3. `20260912094113_expanded_stock_plans.sql`: expanded issuer allowlist and up to ten assets per plan.
 
-The account API needs explicit SELECT, INSERT, and DELETE grants for the authenticated role; the plan migrations supply them together with forced row-level security. There is no UPDATE permission. Existing unrelated table grants are preserved. Shared provider coordination uses a separate privileged server credential; account and plan requests use the user's verified session. The current local task does not apply migrations or change hosted settings.
+The account API needs explicit SELECT, INSERT, and DELETE grants for the authenticated role; the plan migrations supply them together with forced row-level security. There is no UPDATE permission. Existing unrelated table grants are preserved. Shared provider coordination uses a separate privileged server credential; account and plan requests use the user's verified session. The execution journal and schedule migration adds service-role journal access plus owner-scoped authenticated schedule policies; execution remains disabled until its provider and validator gates pass.
 
 Enable email/password authentication and keep email confirmation enabled. Add the deployed origin’s `/auth/callback` and `/auth/callback?next=/auth/update-password` to the Auth redirect allowlist. Add equivalent local URLs only for development. On a shared project preserve the existing Site URL and existing allowlist entries. Set `NEXT_PUBLIC_AUTH_EMAIL_ENABLED=true` only after a custom SMTP sender has delivered both a confirmation and a recovery message. Until then, `/sign-up` and `/auth/reset-password` deliberately explain that guest planning is ready while existing-user sign-in remains available.
 

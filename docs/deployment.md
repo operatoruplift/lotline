@@ -44,14 +44,14 @@ Optional Tokens.xyz context remains disabled unless both `TOKENS_XYZ_ENABLED=tru
 
 ## Supabase
 
-The repository contains four migrations. The first three were applied in timestamp order on the earlier authorized target; the execution journal is a separate pending migration:
+The repository contains four migrations. All four are now aligned with and applied to the linked Lotline project:
 
 1. `20260911170809_shared_provider_limits.sql`
 2. `20260911170815_contribution_plans.sql`
 3. `20260912094113_expanded_stock_plans.sql`
-4. `20260914090000_execution_journal.sql` (pending; keep execution disabled until reviewed and applied)
+4. `20260914090000_execution_journal.sql` (applied September 15, 2026; keep execution disabled until validator and provider gates are reviewed)
 
-The initial hosted checkpoint applied the first two; the September 12 catalog checkpoint records the third. Historical database checks verified ownership, grants, invalid input, the 20-plan limit, ten assets and deletion with rolled-back fixtures. Provider-slot SQL was checked separately for spacing and bounded backlog. Its table deliberately has RLS with no browser policy or grant; only the privileged server role reserves slots. Current source supports ten plan assets while request batches remain limited to three. This task has not rerun privileged hosted SQL or changed migrations.
+The initial hosted checkpoint applied the first two; the September 12 catalog checkpoint records the third. The September 15 deployment applied the additive execution journal and schedule tables after reconciling the remote migration history. Historical database checks verified ownership, grants, invalid input, the 20-plan limit, ten assets and deletion with rolled-back fixtures. Provider-slot SQL was checked separately for spacing and bounded backlog. Its table deliberately has RLS with no browser policy or grant; only the privileged server role reserves slots. Current source supports ten plan assets while request batches remain limited to three.
 
 `supabase/config.toml` manages the Lotline Auth settings: Site URL, exact production/local callback URLs, minimum password length 12, and required email confirmation. The earlier post-push comparison reported zero managed differences. Preview URLs are not wildcard-allowlisted. Before a future authorized release, verify the actual intended origin and callbacks without replacing unrelated shared-project settings.
 
