@@ -2,7 +2,8 @@ import { expect, test } from '@playwright/test';
 
 test('execution reports its disabled server boundary and Example never signs', async ({ page, request }) => {
   const config = await request.get('/api/execution/config');
-  expect(config.status()).toBe(503);
+  // The resource is always retrievable; "disabled" is its content, not a 5xx.
+  expect(config.status()).toBe(200);
   const body = await config.json();
   expect(body.state).toBe('configuration-required');
   expect(body.enabled).toBe(false);
