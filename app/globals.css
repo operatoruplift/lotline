@@ -306,7 +306,10 @@ h1,h2,h3{font-weight:550;line-height:1.18}
 .mint-abbr{font-size:9px;font-family:ui-monospace,monospace;color:#84907D;margin-left:3px}
 .handoff-row button{background:none;border:0;min-height:36px;padding:6px 3px;font-size:9px;color:#56734D;gap:5px;white-space:nowrap}
 .handoff-row button:hover{color:var(--forest)}
-.handoff-row>div:last-child{gap:17px}
+.handoff-row>div:last-child{gap:17px;flex-wrap:wrap}
+.handoff-review{display:inline-flex;align-items:center;gap:5px;min-height:36px;padding:6px 10px;border:1px solid #D4DFC8;border-radius:6px;background:#EEF3E7;font-size:9px;color:var(--forest);white-space:nowrap;text-decoration:none;transition:background var(--duration-fast,150ms) ease,border-color var(--duration-fast,150ms) ease}
+.handoff-review:hover{background:#E3EBD9;border-color:#BFCFAF}
+.handoff-review:focus-visible{outline:2px solid var(--forest);outline-offset:2px}
 .jupiter-handoff{display:flex;align-items:center;justify-content:space-between;gap:18px;border-top:1px solid var(--line);padding-top:20px;margin-top:14px}
 .jupiter-handoff>div{display:flex;align-items:center;gap:11px}
 .jupiter-symbol{display:flex;align-items:center;justify-content:center;border:1px solid #D4DFC8;background:#EEF3E7;border-radius:50%;width:34px;height:34px;font-size:22px;line-height:1;color:var(--forest)}
@@ -321,7 +324,13 @@ h1,h2,h3{font-weight:550;line-height:1.18}
 .execution-card>p{font-size:10px;line-height:1.8;color:var(--muted);margin-top:13px;max-width:600px}
 .execution-gate{margin-top:14px;padding:13px 15px;background:#F7F9F3;border:1px solid #E1E9DB;border-radius:8px}
 .execution-gate>p{margin:0;color:var(--forest);font-size:10px;line-height:1.7}
-.execution-gate ul{margin:9px 0 0;padding-left:17px;color:var(--muted);font-size:9px;line-height:1.8}
+.execution-gate ul{margin:7px 0 0;padding-left:17px;color:var(--muted);font-size:9px;line-height:1.8}
+.execution-readiness{margin-top:9px}
+.execution-readiness summary{cursor:pointer;width:fit-content;padding:4px 0;color:#60775B;font-size:9px;list-style:none}
+.execution-readiness summary::-webkit-details-marker{display:none}
+.execution-readiness summary::before{content:"+ ";font-family:ui-monospace,monospace}
+.execution-readiness[open] summary::before{content:"− "}
+.execution-readiness summary:focus-visible{outline:2px solid var(--forest);outline-offset:2px}
 .execution-gate>span,.execution-note{display:flex;align-items:flex-start;gap:6px;margin-top:11px;color:#60775B;font-size:8px;line-height:1.6}
 .execution-gate svg,.execution-note svg{flex-shrink:0;margin-top:1px}
 .execution-wallets{margin-top:16px}
@@ -344,6 +353,8 @@ h1,h2,h3{font-weight:550;line-height:1.18}
 .execution-example{padding-bottom:13px}
 .execution-progress{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:14px;padding:10px 12px;background:#EEF3E7;border-radius:6px;color:var(--forest);font-size:9px}
 .execution-progress small{color:#60775B;font-size:8px}
+.execution-progress>span{display:flex;flex-direction:column;gap:3px;min-width:0}
+.execution-progress .execution-confirmed{font-size:8px;color:#60775B;overflow-wrap:anywhere}
 .schedule-card{margin-top:22px;padding-top:20px;border-top:1px solid var(--line)}
 .schedule-heading{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
 .schedule-heading>svg{color:var(--forest);margin-top:4px}
@@ -356,8 +367,9 @@ h1,h2,h3{font-weight:550;line-height:1.18}
 .schedule-status{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:13px;font-size:9px;color:var(--muted)}
 .schedule-status>span{display:flex;align-items:center;gap:6px;color:var(--forest)}
 .schedule-status>span.paused{color:var(--warning)}
-.schedule-actions{display:flex;gap:8px;margin-top:14px}
+.schedule-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}
 .schedule-actions .button{min-height:35px;font-size:9px}
+.schedule-cloud-status{margin-top:10px!important;color:var(--forest)!important;font-size:9px!important}
 .schedule-note{display:flex;align-items:flex-start;gap:6px;margin-top:12px;font-size:8px;color:#60775B;line-height:1.6}
 .schedule-note svg{flex-shrink:0;margin-top:1px}
 .planner-footnote{display:flex;align-items:center;gap:7px;margin:24px 0 2px;font-size:9px;color:var(--muted)}
@@ -687,7 +699,10 @@ h1,h2,h3{font-weight:550;line-height:1.18}
 /* Shared redesign tokens; semantic warning/error/success colors remain distinct. */
 :root{--paper:#FDF5EB;--forest:#08150C;--forest-dark:#1A2E1F;--ink:#08150C;--soft:#F4F1EC;--line:#DDDCD0;--radius:16px;--font-editorial:Georgia,'Times New Roman',serif}
 .brand{color:#174D3C}.button,.header-cta{border-radius:12px}
-html[data-motion="paused"] *,html[data-motion="paused"] *:before,html[data-motion="paused"] *:after,html[data-motion="hidden"] *,html[data-motion="hidden"] *:before,html[data-motion="hidden"] *:after{animation-play-state:paused!important}
+html[data-motion="hidden"] *,html[data-motion="hidden"] *:before,html[data-motion="hidden"] *:after{animation-play-state:paused!important}
 html[data-motion="reduced"] *,html[data-motion="reduced"] *:before,html[data-motion="reduced"] *:after{animation:none!important;scroll-behavior:auto!important}
 /* A paused entrance must never hide controls or educational content. */
-html[data-motion="paused"] [data-reveal],html[data-motion="reduced"] [data-reveal]{opacity:1!important;filter:none!important;transform:none!important}
+html[data-motion="reduced"] [data-reveal]{opacity:1!important;filter:none!important;transform:none!important}
+@media(max-width:600px){.schedule-actions{flex-direction:column}.schedule-actions .button{width:100%}}
+/* Three actions do not fit one narrow row; the review link takes its own full-width line. */
+@media(max-width:600px){.handoff-row>div:last-child{gap:16px;row-gap:9px}.handoff-review{width:100%;justify-content:center;min-height:40px;font-size:10px}}

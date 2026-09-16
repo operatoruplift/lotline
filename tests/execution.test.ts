@@ -41,6 +41,11 @@ describe('execution intent and review schedules', () => {
     expect(validateIntentShape({ ...intent, legs: [{ ...intent.legs[0], id: 'a', allocationBps: 5000, maximumInputRaw: '1000000' }, { ...intent.legs[0], id: 'b', issuerId: 'MSFTx', mint: 'H1nR2Lz3W4xY5vU6tS7qP8oN9mKjHgF2dC3bA4eZ5yX', allocationBps: 5000, maximumInputRaw: '0' }] })).toContain('match');
   });
 
+  it('keeps zero-amount legs in the immutable split for tiny budgets', () => {
+    const tiny = { ...intent, legs: [{ ...intent.legs[0], id: 'a', allocationBps: 5000, maximumInputRaw: '1' }, { ...intent.legs[0], id: 'b', issuerId: 'MSFTx', mint: 'H1nR2Lz3W4xY5vU6tS7qP8oN9mKjHgF2dC3bA4eZ5yX', allocationBps: 5000, maximumInputRaw: '0' }], budgetRaw: '1' };
+    expect(validateIntentShape(tiny)).toBeNull();
+  });
+
   it('fails closed when Jupiter omits an executable transaction', () => {
     const asset = { symbol: 'AAPLx', name: 'Apple', mint: intent.legs[0].mint, decimals: 6, tokenProgram: 'TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb', halted: false, verifiedAt: new Date().toISOString() };
     expect(() => parseOrder({ requestId: 'req', inputMint: intent.inputMint, outputMint: asset.mint, inAmount: '1000000', outAmount: '2', otherAmountThreshold: '1', router: 'metis', transaction: null }, intent, asset, intent.reviewedLimits, new Date().toISOString())).toThrow(/unsupported order|No wallet approval/);

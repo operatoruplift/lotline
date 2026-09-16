@@ -1,6 +1,6 @@
 # Lotline — product descriptions
 
-**Last updated:** September 12, 2026.
+**Last updated:** September 16, 2026.
 
 ## Short description
 
@@ -62,4 +62,4 @@ The application uses Next.js, TypeScript, React, and Tailwind, with narrow serve
 
 ## Publication note
 
-The selected redesign, expanded Example and refreshed narrated films are deployed at [lotlineonsolana.vercel.app](https://lotlineonsolana.vercel.app). The production deployment created on September 12, 2026 at **16:19:43 UTC** is ready; the [release verification](release-verification.md) identifies its build and checks. The [current product and technical films](video-release.md) use fresh application captures and Higgsfield-generated Ainsley narration, with synthetic Example values and separately dated Live observations disclosed. Both films passed hosted mobile and desktop playback, audio, seeking, caption and accessibility checks. The September 11 films remain archival production records. No native App Store or Play Store package is shipped. Public account email and authenticated Tokens.xyz enrichment remain externally blocked. See [local redesign evidence](redesign-delivery.md) and the [submission draft](stocklana-submission.md); do not present historical checks as a current deployed result or claim user feedback, investment performance, guaranteed liquidity, organizer endorsement or executed trades.
+The selected redesign, expanded Example, continuous visible motion treatment and refreshed narrated films are deployed at [lotlineonsolana.vercel.app](https://lotlineonsolana.vercel.app). The current production deployment is `dpl_9FSoQKHERwL3qzL8BADFgZfiTK1P` and is ready. The [current product and technical films](video-release.md) use fresh application captures and Higgsfield-generated Ainsley narration, with synthetic Example values and separately dated Live observations disclosed. Both films passed hosted mobile and desktop playback, audio, seeking, caption and accessibility checks. No native App Store or Play Store package is shipped. Public account email, authenticated Tokens.xyz enrichment and live execution remain externally gated. See [local redesign evidence](redesign-delivery.md) and the [submission draft](stocklana-submission.md); do not claim user feedback, investment performance, guaranteed liquidity, organizer endorsement or executed trades.

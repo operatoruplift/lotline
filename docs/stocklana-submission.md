@@ -49,6 +49,7 @@ Signup/recovery await verified SMTP delivery. Optional Tokens.xyz context awaits
 - [Current narrated technical film](https://lotlineonsolana.vercel.app/videos/release-20260912/technical.mp4)
 - [Current transcripts, captions and production evidence](video-release.md)
 - [Optional 115-second live presentation script](stocklana-demo-script.md) — a separate recording/presentation outline, not the transcript or duration of the current product film
+- [Execution walkthrough script](execution-demo-script.md) — staged review, receipt recovery and manual reminder flow; live signing requires separate authorization
 
 The current films use fresh captures of the redesigned application, ten-asset plan limit, expanded Example catalog and Ainsley narration generated through Higgsfield. Their Example values are synthetic. The September 11 films and source records remain clearly labeled archives; use the current links above for judging.
 

@@ -19,7 +19,7 @@ For catalog-search checks, use the current local build: it includes all 832 snap
 5. Open a provided share-review link and cancel it. Confirm they can return to their original draft; do not instruct them to overwrite it accidentally.
 6. Find the independent Jupiter handoff and describe the next steps. Stop before trading. Ask whether opening the link means a purchase has happened.
 
-Use keyboard-only navigation for at least the amount, percentage and primary action, then repeat the central flow at mobile width. Ask whether motion is distracting and whether they can find **Pause motion**. Observe rather than coaching; record assistance separately from unassisted success.
+Use keyboard-only navigation for at least the amount, percentage and primary action, then repeat the central flow at mobile width. Ask whether the continuously playing motion is distracting and whether the reduced-motion preference is respected. Observe rather than coaching; record assistance separately from unassisted success.
 
 ## Recording sheet
 

@@ -67,6 +67,23 @@ describe('honest example fixtures and exports', () => {
   const allocations = validatePlan(DEFAULT_BASKET).allocations;
   const quotes = getExampleQuotes(allocations).quotes;
   const input = { mode: 'example' as const, basket: DEFAULT_BASKET, assets: EXAMPLE_ASSETS, quotes };
+  it('carries a per-asset Jupiter review link with the exact allocation prefilled', () => {
+    const csv = buildPlanCsv(input);
+    const text = buildPlanText(input);
+    const [header, firstRow] = csv.split('\r\n');
+    // The link must be the final column in both the header and every data row.
+    expect(header.endsWith('"Review on Jupiter"')).toBe(true);
+    const link = firstRow.split(',').at(-1)!.slice(1, -1);
+    const url = new URL(link);
+    expect(url.origin + url.pathname).toBe('https://jup.ag/swap');
+    expect(url.searchParams.get('buy')).toBe(allocations[0].mint);
+    expect(url.searchParams.get('sell')).toBe('EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v');
+    expect(url.searchParams.get('inAmount')).toBe('500');
+    // The legacy path form silently swaps the output mint for SOL; it must never ship.
+    expect(csv).not.toContain('jup.ag/swap/');
+    expect(text).not.toContain('jup.ag/swap/');
+    expect(text).toContain(`Review on Jupiter: ${link}`);
+  });
   it('uses nonunit scaling and scheduled multiplier activation on raw sums', () => {
     const mint = EXAMPLE_ASSETS[0].mint;
     expect(exampleUnits(mint, '200000000')).toBe('2.5');

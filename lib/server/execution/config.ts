@@ -25,8 +25,9 @@ export function executionConfig(): ExecutionConfig {
   if (!process.env.SOLANA_RPC_URL?.trim()) reasons.push('A server-side Solana RPC URL is required for transaction checks and reconciliation.');
   if (!process.env.SUPABASE_SECRET_KEY?.trim()) reasons.push('The private execution journal is not configured.');
   else if (!process.env.SUPABASE_SECRET_KEY.trim().startsWith('sb_secret_')) reasons.push('The execution journal requires a current sb_secret_ key.');
-  if (!process.env.NEXT_PUBLIC_SUPABASE_URL?.trim() || !process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY?.trim()) reasons.push('Supabase authentication must be configured for an owner-scoped execution review.');
+  if (!process.env.NEXT_PUBLIC_SUPABASE_URL?.trim()) reasons.push('Supabase must be configured for the private execution journal.');
   if (process.env.LOTLINE_EXECUTION_MIGRATIONS_READY !== 'true') reasons.push('Execution journal migrations have not been confirmed.');
+  if (process.env.LOTLINE_EXECUTION_GUEST_MIGRATIONS_READY !== 'true') reasons.push('Guest execution journal migration has not been confirmed.');
   if (process.env.LOTLINE_EXECUTION_REPOSITORY !== 'supabase') reasons.push('The durable execution repository is not enabled.');
   if (process.env.LOTLINE_EXECUTION_VALIDATOR_READY !== 'true') reasons.push('The supported-instruction validator still needs an explicit operator review.');
   return {

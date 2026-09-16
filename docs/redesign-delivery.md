@@ -10,7 +10,7 @@ This change integrates L1 Kova, L4 Veloce, L5 Heritage Grove and L6 Liquid Glass
 - Square supporting film alongside the existing three educational steps; precision, share, install and user-control explanations remain.
 - Supplied landscape footer with copy in its quiet sky. At 1,100px and below, the 16:9 artwork follows the copy in normal flow.
 - Existing optional account screens use real video-pixel WebGL refraction beneath native controls. Rendering is limited to 24fps, 600,000 output pixels and a 960px source texture. It handles cover coordinates, resize, offscreen/background pause, cleanup, rejected playback and unavailable graphics.
-- One persisted motion preference governs CSS motion and decorative media. Device reduced-motion changes take effect immediately. Paused entrances remain readable. Only visible scenes receive video sources; no decorative video is fetched while offline.
+- Decorative media plays continuously while visible; there is no manual pause control. Device reduced-motion changes take effect immediately, autoplay rejection keeps a retry fallback, and paused entrances remain readable. Only visible scenes receive video sources; no decorative video is fetched while offline.
 - A real footer still is added to the public offline cache. Videos, auth pages, private plans and API responses remain outside it.
 
 The supplied font references did not provide an approved usable font asset in this checkout. Editorial headings consistently use the documented Georgia/system serif fallback; controls retain the existing system sans and tabular numerals. No remote font dependency or unverified font file was added.
@@ -26,8 +26,8 @@ Media provenance, source/output hashes, sizes, full decode verification and boom
 | Current logo, favicon, PWA icons and issuer logos | Retained unchanged |
 | Ambient orbs/grid, underline, floating previews, signal, split bars/sheens | Retained in scoped home styles; entrance and float transforms use separate wrappers |
 | Three-step meters, continuity connector, device pulses, intent arrow | Repositioned beside their original explanations |
-| Lower-section reveals | Once in view; pause/resume does not create a new reveal instance |
-| Existing route loader and hover feedback | Retained; shared pause/reduced-motion policy applies |
+| Lower-section reveals | Once in view; visibility changes do not create a new reveal instance |
+| Existing route loader and hover feedback | Retained; shared visibility/reduced-motion policy applies |
 | 54s narrated product film and 160s silent technical film | Original source URLs, audio behavior, native controls, captions, transcripts and technical anchor retained |
 | Live / Example / public offline Example | Retained and explicitly distinguished |
 | Budget/weights, add/change/remove, even split, ten assets, three-item API batches | Retained |
@@ -69,7 +69,7 @@ The baseline and final browser evidence are stored outside the repository so gen
 - `work/redesign-qa/accessibility.json`: no overflow or WCAG A/AA violations across home, sign-in and Example at 390×844, 844×390, 720×500 and 1440×1000.
 - `work/redesign-qa/demo-playback.json`: actual 1920px decoding, playback/time advancement, seeking to 15 seconds, controls, unmuted behavior, 13 product caption cues and 12 technical cues. Durations remain 54/160 seconds.
 
-The 720×500 CSS viewport represents a 1440×1000 display at 200% browser zoom; the account evidence additionally exercises CSS zoom. Browser checks cover video failure, reduced preference changes, persistent pause, navigation cleanup, actual refraction readback, account isolation, incoming-share review, offline math/export and the planner's error states.
+The 720×500 CSS viewport represents a 1440×1000 display at 200% browser zoom; the account evidence additionally exercises CSS zoom. Browser checks cover video failure, reduced preference changes, visibility cleanup, navigation cleanup, actual refraction readback, account isolation, incoming-share review, offline math/export and the planner's error states.
 
 Final source gates passed: `npm run lint`, `npm run typecheck`, `npm test` (**226 passed; one explicitly opt-in live test skipped**) and `npm run build` (all 18 static pages generated, dynamic routes retained). The skipped test is not counted as live integration evidence; the separate read-only 832-asset/holdings/Jupiter smoke checks are described above. The full gate output is `work/redesign-qa/final-verify.log`.
 

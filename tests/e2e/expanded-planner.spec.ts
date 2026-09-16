@@ -59,7 +59,9 @@ test('full catalog can be searched by company and ticker on mobile', async ({ pa
   const amazon = catalog.find(asset => asset.symbol === 'AMZNx')!;
   await page.getByLabel('Choose a verified xStock', { exact: true }).selectOption(amazon.mint);
   await expect(page.getByLabel('AMZNx percentage')).toBeVisible();
-  const logo = page.locator(`img[src$="${amazon.logoUrl}"]`).first();
+  // Vercel appends a deployment query to static asset URLs. Match the
+  // verified logo path while still checking that the image really decodes.
+  const logo = page.locator(`img[src*="${amazon.logoUrl}"]`).first();
   await expect(logo).toBeVisible();
   await expect.poll(() => logo.evaluate(node => (node as HTMLImageElement).naturalWidth)).toBeGreaterThan(0);
   await page.getByRole('button', { name: 'Add an asset', exact: true }).click();

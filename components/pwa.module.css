@@ -4,6 +4,7 @@
   background: #eef0e7;
   color: #254537;
 }
+.hydrating { visibility: hidden; }
 .inner { max-width: 1184px; margin: auto; display: flex; gap: 24px; align-items: center; justify-content: space-between; }
 .copy { display: flex; flex-wrap: wrap; align-items: baseline; gap: 8px 16px; }
 .copy strong { font-size: 15px; font-weight: 600; }

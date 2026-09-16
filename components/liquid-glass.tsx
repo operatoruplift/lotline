@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState, type ReactNode } from 'react';
-import { Pause, Play } from 'lucide-react';
+import { Play } from 'lucide-react';
 import { useMotion } from './motion-provider';
 import { GLASS_POSITION, glassGeometry, type GlassGeometry } from '@/lib/media/glass-geometry';
 import { glassFramePump } from '@/lib/media/glass-frames';
@@ -18,7 +18,7 @@ export function LiquidGlass({ children }: { children: ReactNode }) {
   const video = useRef<HTMLVideoElement>(null);
   const controls = useRef<Controls | null>(null);
   const revealed = useRef(false);
-  const { motionAllowed, paused, reducedMotion, ready, togglePause } = useMotion();
+  const { motionAllowed, reducedMotion, ready } = useMotion();
   const [playback, setPlayback] = useState<'paused' | 'playing' | 'blocked' | 'unavailable'>('paused');
 
   useEffect(() => {
@@ -164,8 +164,6 @@ export function LiquidGlass({ children }: { children: ReactNode }) {
       <div className={styles.veil} aria-hidden="true" />
       <div className={styles.content}>{children}</div>
     </div>
-    <div className={styles.sceneFooter}><span>A little clarity. A fresh perspective.</span><button type="button" disabled={!ready || reducedMotion || playback === 'unavailable'} onClick={() => playback === 'blocked' ? controls.current?.retry() : togglePause()} aria-pressed={paused}>
-      {paused || playback === 'blocked' ? <Play size={14} aria-hidden="true" /> : <Pause size={14} aria-hidden="true" />}{reducedMotion && ready ? 'Reduced motion · still scene' : playback === 'unavailable' ? 'Still scene' : playback === 'blocked' ? 'Play background' : paused ? 'Resume background' : 'Pause background'}
-    </button></div>
+    <div className={styles.sceneFooter}><span>A little clarity. A fresh perspective.</span>{playback === 'blocked' && <button type="button" onClick={() => controls.current?.retry()}><Play size={14} aria-hidden="true" />Play background</button>}{reducedMotion && ready && <span>Still scene for reduced motion</span>}{playback === 'unavailable' && <span>Still scene</span>}</div>
   </div>;
 }

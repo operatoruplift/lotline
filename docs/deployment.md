@@ -1,6 +1,6 @@
 # Deployment status and history
 
-Updated September 14, 2026 after the execution-path release. **The selected redesign, 832-asset Example, contribution fixes, refreshed narrated films, downloadable brand kit and gated execution routes are deployed.** The [release verification](release-verification.md) records the exact application deployment, fresh hosted provider smoke, video identity and browser evidence. The execution feature release is represented by Vercel deployment `dpl_9hpdApXXDWCKgk3AkaeYEWmJ5pDL`, built from source including feature commit `c1819b0`, and is aliased to both production domains. Earlier observations below retain their historical dates; account/email checks are not implied by the new public release.
+Updated September 16, 2026 after the production release and execution audit. **The selected redesign, continuous visible motion treatment, 832-asset Example, contribution fixes, refreshed narrated films, downloadable brand kit and gated execution routes are deployed.** The [release verification](release-verification.md) records earlier application and hosted provider/media evidence; the [September 15 release audit](release-audit-20260915.md) records the capability boundary and audit fixes. The latest production deployment is `dpl_9FSoQKHERwL3qzL8BADFgZfiTK1P`, ready and aliased to both production domains. Execution remains deliberately paused while its external readiness gates stay incomplete. Earlier observations below retain their historical dates; account/email checks are not implied by the new public release.
 
 - Production website: https://lotlineonsolana.vercel.app
 - Interactive Example: https://lotlineonsolana.vercel.app/app?mode=example
@@ -9,7 +9,7 @@ Updated September 14, 2026 after the execution-path release. **The selected rede
 - Vercel project: `lotline`, connected to the public source repository, Next.js framework, Node 22, `npm ci` installation.
 - Dedicated Supabase project recorded by the earlier setup: `uemunksopacicpbjubtg`, named Lotline, region `us-east-1`. No project, billing or production configuration changes are part of the current task.
 
-The execution journal migration (`20260914090000_execution_journal.sql`) is present in source but remains pending on the linked Supabase project. The deployed readiness endpoint is therefore intentionally `503 configuration-required`; no wallet prompt or transaction can be created. A production check at `2026-09-14T16:56:53Z` returned HTTP 200 for `/`, `/app?mode=example`, `/brand-kit` and `/demo`, HTTP 200 for the favicon and manifest, and HTTP 503 for `/api/execution/config` with only capability reasons. See [execution readiness](execution.md) for the deliberate enablement gates.
+The execution journal migration (`20260914090000_execution_journal.sql`) was applied to the linked Supabase project on September 15, 2026 after reconciling its remote migration history. The guest-owner index/quota migration (`20260915090000_guest_execution_owner_index.sql`) remains local and unapplied remotely; its readiness flag remains false until it is separately applied and checked. The deployed readiness endpoint remains intentionally `503 configuration-required`; no wallet prompt or transaction can be created while the execution flag, server Jupiter key, guest migration and supported-instruction validator review are incomplete. After the September 16 production release, `/`, `/app?mode=example`, `/brand-kit`, `/demo`, the favicon and manifest returned HTTP 200; `/api/assets` returned 832 assets; and `/api/execution/config` returned HTTP 503 with explicit capability reasons. See [execution readiness](execution.md) for the deliberate enablement gates.
 
 ## Evidence boundaries
 
@@ -22,7 +22,7 @@ The execution journal migration (`20260914090000_execution_journal.sql`) is pres
 | All 832 snapshot assets available in Example | Implemented and verified locally | Original six synthetic rates preserved; extra 826 use generic one-unit-per-100-USDC estimates and zero illustrative holdings; [finish-pass results](stocklana-finish-delivery.md) are recorded separately |
 | Real password sign-in, cloud CRUD and cross-owner RLS | Historically verified hosted | [September 11 auth evidence](hosted-auth-verification.json), on the original `lotline-omega.vercel.app` alias; disposable users were deleted, no email sent |
 | Public homepage, Example and updated films | Currently verified hosted | September 12, 16:25–16:27 UTC: current design/logo, 832 Example assets, both narrated films, HTTP 200 and zero overflow/page errors; see [release verification](release-verification.md) |
-| Finished application on the public origin | Deployed and verified | Production release created September 12 at 16:19:43 UTC; real hosted catalog, holdings, quote and scaled units passed at 16:22 UTC |
+| Finished application on the public origin | Deployed and verified | Latest production release `dpl_9FSoQKHERwL3qzL8BADFgZfiTK1P` is READY; hosted routes, 832-asset catalog, brand kit and demo journeys passed after deployment |
 | Public signup/recovery email; authenticated Tokens.xyz context | Externally blocked | Verified custom SMTP delivery; separately, approved Tokens API access, credentials and activation terms |
 | Downloadable brand kit | Deployed and verified | `/brand-kit` has 19 visual exports, individual same-origin downloads, a full ZIP and a usage guide; production checks passed for the route, ZIP, profile, phone wallpaper, X header, forest background and guide |
 
@@ -44,14 +44,15 @@ Optional Tokens.xyz context remains disabled unless both `TOKENS_XYZ_ENABLED=tru
 
 ## Supabase
 
-The repository contains four migrations. All four are now aligned with and applied to the linked Lotline project:
+The repository contains five migrations. The first four are aligned with and applied to the linked Lotline project:
 
 1. `20260911170809_shared_provider_limits.sql`
 2. `20260911170815_contribution_plans.sql`
 3. `20260912094113_expanded_stock_plans.sql`
 4. `20260914090000_execution_journal.sql` (applied September 15, 2026; keep execution disabled until validator and provider gates are reviewed)
+5. `20260915090000_guest_execution_owner_index.sql` (current local implementation; apply only during an explicitly authorized Supabase change)
 
-The initial hosted checkpoint applied the first two; the September 12 catalog checkpoint records the third. The September 15 deployment applied the additive execution journal and schedule tables after reconciling the remote migration history. Historical database checks verified ownership, grants, invalid input, the 20-plan limit, ten assets and deletion with rolled-back fixtures. Provider-slot SQL was checked separately for spacing and bounded backlog. Its table deliberately has RLS with no browser policy or grant; only the privileged server role reserves slots. Current source supports ten plan assets while request batches remain limited to three.
+The initial hosted checkpoint applied the first two; the September 12 catalog checkpoint records the third. The September 15 deployment applied the additive execution journal and schedule tables after reconciling the remote migration history. Historical database checks verified ownership, grants, invalid input, the 20-plan limit, ten assets and deletion with rolled-back fixtures. Provider-slot SQL was checked separately for spacing and bounded backlog. Its table deliberately has RLS with no browser policy or grant; only the privileged server role reserves slots. Current source supports ten plan assets while request batches remain limited to three. Guest execution must remain disabled until the fifth migration is applied, because the old owner index coalesces guest runs and does not provide the per-capability quota, daily run quotas or shared HMAC-hashed edge/IP and global buckets.
 
 `supabase/config.toml` manages the Lotline Auth settings: Site URL, exact production/local callback URLs, minimum password length 12, and required email confirmation. The earlier post-push comparison reported zero managed differences. Preview URLs are not wildcard-allowlisted. Before a future authorized release, verify the actual intended origin and callbacks without replacing unrelated shared-project settings.
 

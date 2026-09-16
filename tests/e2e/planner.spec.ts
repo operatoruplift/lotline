@@ -35,13 +35,30 @@ test('Example journey: edit, request, export, persist, and safely hand off', asy
   expect(csv).toContain('XsbEhLAtcf6HdfpFZ5xEMdqW8nfAvcsP5bdudRLJzJp');
   await page.reload();
   await expect(page.getByLabel('USDC budget')).toHaveValue('10.000001');
-  const jupiter = page.getByRole('link', { name: /open jupiter/i });
+  const USDC = 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v';
+  const jupiter = page.locator('a[href*="jup.ag"]');
+  expect(await jupiter.count()).toBeGreaterThan(0);
   for (const link of await jupiter.all()) {
-    await expect(link).toHaveAttribute('href', 'https://jup.ag/');
     await expect(link).toHaveAttribute('target', '_blank');
     await expect(link).toHaveAttribute('rel', /noopener/);
+    const url = new URL((await link.getAttribute('href'))!);
+    // The legacy `/swap/USDC-<mint>` path form redirects to buy=SOL, silently
+    // replacing the planned asset. Only the query form preserves the mint.
+    expect(url.pathname).toBe('/swap');
+    expect(url.searchParams.get('sell')).toBe(USDC);
   }
-  expect(await jupiter.count()).toBeGreaterThan(0);
+  // Each leg links out with its own verified mint and its exact allocation.
+  const perAsset = page.locator('a.handoff-review');
+  await expect(perAsset).toHaveCount(3);
+  const prefilled = await Promise.all((await perAsset.all()).map(async link => {
+    const url = new URL((await link.getAttribute('href'))!);
+    return `${url.searchParams.get('buy')}:${url.searchParams.get('inAmount')}`;
+  }));
+  expect(prefilled).toEqual([
+    'XsbEhLAtcf6HdfpFZ5xEMdqW8nfAvcsP5bdudRLJzJp:5.000001',
+    'XspzcW1PRtgf6Wj92HCiZdjzKCyFekVD8P5Ueh3dRMX:3',
+    'Xsc9qvGR1efVDFGLrVsmkzv3qi45LTBjeUKSPmx9qEh:2',
+  ]);
   expect(pageErrors).toEqual([]);
 });
 

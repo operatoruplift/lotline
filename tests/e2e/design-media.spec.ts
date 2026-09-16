@@ -1,6 +1,6 @@
 import { expect, test } from '@playwright/test';
 
-test('decorative video really decodes, advances, pauses offscreen and obeys a persistent motion preference', async ({ page }) => {
+test('decorative video really decodes, advances, pauses offscreen and has no manual pause control', async ({ page }) => {
   await page.goto('/');
   const main = page.getByRole('main');
   await expect(main).toHaveCount(1);
@@ -12,15 +12,11 @@ test('decorative video really decodes, advances, pauses offscreen and obeys a pe
   expect(await hero.evaluate(video => ({ width: (video as HTMLVideoElement).videoWidth, muted: (video as HTMLVideoElement).muted, inline: (video as HTMLVideoElement).playsInline }))).toEqual({ width:1280, muted:true, inline:true });
   const before = await hero.evaluate(video => (video as HTMLVideoElement).currentTime);
   await expect.poll(() => hero.evaluate(video => (video as HTMLVideoElement).currentTime)).toBeGreaterThan(before + .25);
-  await page.getByRole('button', { name:'Pause motion', exact:true }).click();
-  await expect.poll(() => hero.evaluate(video => (video as HTMLVideoElement).paused)).toBe(true);
+  await expect(page.getByRole('button', { name:/Pause motion|Resume motion|Motion paused/, exact:true })).toHaveCount(0);
   await page.reload();
-  await expect(page.getByRole('button', { name:'Resume motion', exact:true })).toBeVisible();
-  await expect(page.getByRole('heading', { name:'Your next contribution, clearly.' })).toHaveCSS('opacity','1');
-  await expect(main.locator('[data-preview="contribution"]').locator('..')).toHaveCSS('opacity','1');
-  expect(await hero.getAttribute('src')).toBeNull();
-  await page.getByRole('button', { name:'Resume motion', exact:true }).click();
-  await expect.poll(() => hero.evaluate(video => (video as HTMLVideoElement).paused)).toBe(false);
+  await expect.poll(() => page.getByRole('heading', { name:'Your next contribution, clearly.' }).evaluate(node => Number(getComputedStyle(node).opacity))).toBeGreaterThan(.99);
+  await expect.poll(() => main.locator('[data-preview="contribution"]').locator('..').evaluate(node => Number(getComputedStyle(node).opacity))).toBeGreaterThan(.99);
+  await expect.poll(() => hero.evaluate(video => (video as HTMLVideoElement).currentTime)).toBeGreaterThan(.1);
   await main.locator('#features').scrollIntoViewIfNeeded();
   await expect.poll(() => hero.evaluate(video => (video as HTMLVideoElement).paused)).toBe(true);
   const feature = main.locator('[data-decorative-video="Verified assets"] video');
@@ -28,14 +24,14 @@ test('decorative video really decodes, advances, pauses offscreen and obeys a pe
   await expect.poll(() => feature.evaluate(video => (video as HTMLVideoElement).currentTime)).toBeGreaterThan(.1);
   await page.emulateMedia({ reducedMotion:'reduce' });
   await expect.poll(() => feature.evaluate(video => (video as HTMLVideoElement).paused)).toBe(true);
-  await expect(page.getByRole('button', { name:'Motion reduced by your device setting' })).toBeDisabled();
+  await expect(page.getByRole('button', { name:/Motion reduced|Pause motion|Resume motion/, exact:true })).toHaveCount(0);
 });
 
 test('reduced motion loads posters without video sources; autoplay rejection keeps a real fallback', async ({ page }) => {
   await page.emulateMedia({ reducedMotion:'reduce' }); await page.goto('/');
   const main = page.getByRole('main');
   await expect(main).toHaveCount(1);
-  await expect(page.getByRole('button', { name:'Motion reduced by your device setting' })).toBeDisabled();
+  await expect(page.getByRole('button', { name:/Motion reduced|Pause motion|Resume motion/, exact:true })).toHaveCount(0);
   expect(await page.locator('video[src]').count()).toBe(0);
   const poster = main.locator('[data-decorative-video="Hero boomerang"] img');
   await expect(poster).toHaveCount(1);

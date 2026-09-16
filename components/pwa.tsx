@@ -22,6 +22,10 @@ if (typeof window !== 'undefined') {
 }
 
 export function PwaSupport() {
+  // Keep the panel out of the initial client render until its event listeners
+  // are attached. This closes the small hydration window where a browser-owned
+  // beforeinstallprompt event could arrive before the effect subscribes.
+  const [hydrated, setHydrated] = useState(false);
   const [installPrompt, setInstallPrompt] = useState<InstallPromptEvent | null>(() => pendingInstallPrompt);
   const [installed, setInstalled] = useState(false);
   const [isIos, setIsIos] = useState(false);
@@ -85,6 +89,7 @@ export function PwaSupport() {
     window.addEventListener('offline', updateNetwork);
     display.addEventListener('change', updateInstalled);
     navigator.serviceWorker?.addEventListener('message', onWorkerMessage);
+    queueMicrotask(() => { if (active) setHydrated(true); });
     return () => {
       active = false;
       clearTimeout(preparationTimer);
@@ -112,7 +117,7 @@ export function PwaSupport() {
   }
 
   return <>
-    {!installed && <aside id="install-lotline" className={styles.install} aria-label="Install Lotline">
+    {!installed && <aside id="install-lotline" className={`${styles.install}${hydrated ? '' : ` ${styles.hydrating}`}`} aria-label="Install Lotline" aria-hidden={!hydrated}>
       <div className={styles.inner}>
         <div className={styles.copy}><strong>Your plan, one tap away.</strong><span>Add Lotline to your phone or desktop.</span></div>
         <button className={styles.button} type="button" onClick={install} disabled={installing} aria-expanded={instructions} aria-controls="lotline-install-help"><Download size={16} aria-hidden="true" />{installing ? 'Opening install prompt…' : 'Install Lotline'}</button>
@@ -126,7 +131,7 @@ export function PwaSupport() {
       </div>
       {message && <p className={styles.hint} role="status">{message}</p>}
     </aside>}
-    {installed && <aside id="install-lotline" className={styles.install} aria-label="Lotline is installed"><div className={styles.inner}><div className={styles.copy}><strong>Lotline is installed.</strong><span>Your planner is ready on this device.</span></div><a className={styles.button} href="/offline">Open the Example</a></div></aside>}
+    {installed && <aside id="install-lotline" className={`${styles.install}${hydrated ? '' : ` ${styles.hydrating}`}`} aria-label="Lotline is installed" aria-hidden={!hydrated}><div className={styles.inner}><div className={styles.copy}><strong>Lotline is installed.</strong><span>Your planner is ready on this device.</span></div><a className={styles.button} href="/offline">Open the Example</a></div></aside>}
     {offline && <div className={styles.banner} role="status"><WifiOff size={16} aria-hidden="true" /><span>You’re offline. Live estimates and sync are paused.</span><a href="/offline">Open offline Example</a></div>}
   </>;
 }

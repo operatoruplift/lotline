@@ -12,7 +12,7 @@ async function renderedGlass(page: Page) {
   return { scene, card, media };
 }
 
-test('samples real video pixels, advances frames, pauses, and releases its surface on navigation', async ({ page }) => {
+test('samples real video pixels, advances frames, has no pause control, and releases its surface on navigation', async ({ page }) => {
   const errors: string[] = [];
   page.on('pageerror', error => errors.push(error.message));
   const sources = new Set<string>();
@@ -29,12 +29,8 @@ test('samples real video pixels, advances frames, pauses, and releases its surfa
   await expect.poll(() => media.evaluate(video => (video as HTMLVideoElement).currentTime)).toBeGreaterThan(start + 0.1);
   const buffer = await card.locator('canvas').evaluate(canvas => ({ width: (canvas as HTMLCanvasElement).width, height: (canvas as HTMLCanvasElement).height }));
   expect(buffer.width * buffer.height).toBeLessThanOrEqual(600_000);
-  await page.getByRole('button', { name: 'Pause background', exact: true }).click();
-  await expect.poll(() => media.evaluate(video => (video as HTMLVideoElement).paused)).toBe(true);
-  const stopped = await card.getAttribute('data-refraction-frames');
-  await page.waitForTimeout(350);
-  expect(await card.getAttribute('data-refraction-frames')).toBe(stopped);
-  await page.getByRole('button', { name: 'Resume background', exact: true }).click();
+  await expect(page.getByRole('button', { name: 'Pause background', exact: true })).toHaveCount(0);
+  await expect.poll(() => media.evaluate(video => (video as HTMLVideoElement).currentTime)).toBeGreaterThan(start + 0.35);
   await expect(card).toHaveAttribute('data-refraction-state', 'video');
   expect(sources.size).toBe(1);
   await scene.evaluate(node => {

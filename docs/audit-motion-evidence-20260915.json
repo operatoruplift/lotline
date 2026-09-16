@@ -1,0 +1,46 @@
+{
+  "observedAt": "2026-09-15T07:36:48.078Z",
+  "evidenceNote": "Historical capture made before the September 16 removal of manual pause controls. pauseWorks and motionToggleDisabled are retained only as pre-removal observations.",
+  "production": {
+    "running": {
+      "errors": [],
+      "heroAdvances": true,
+      "heroTimes": [
+        0.727781,
+        1.356394
+      ],
+      "pauseWorks": true,
+      "featureAdvances": true,
+      "featureTimes": [
+        0.99277,
+        1.558383
+      ],
+      "heroPausesOffscreen": true,
+      "footerTime": 1.175162
+    },
+    "reduced": {
+      "videoSources": 0,
+      "postersWithPixels": 5,
+      "motionToggleDisabled": true
+    },
+    "glass": {
+      "state": "video",
+      "frames": 11,
+      "videoAdvances": true,
+      "videoTimes": [
+        0.293239,
+        0.763325
+      ],
+      "cleanup": {
+        "paused": true,
+        "src": null,
+        "connected": false
+      }
+    }
+  },
+  "local": {
+    "install": {
+      "accepted": true
+    }
+  }
+}

@@ -1,4 +1,5 @@
 import { formatUsdc, validatePlan } from './math';
+import { jupiterReviewUrl, jupiterSwapUrl } from './jupiter';
 import type { Asset, Basket, Mode, Quote } from './types';
 
 export type PlanExportInput = { mode: Mode; basket: Basket; assets: Asset[]; quotes: Quote[] };
@@ -34,6 +35,7 @@ function rows(input: PlanExportInput, now: number): string[][] {
       effectiveExpiry === null ? 'Unavailable' : new Date(effectiveExpiry).toISOString(),
       status,
       exportedAt,
+      jupiterReviewUrl(allocation.mint, allocation.usdcRaw) ?? 'Unavailable',
     ];
   });
 }
@@ -46,12 +48,12 @@ export function escapeCsvCell(value: string): string {
 }
 
 export function buildPlanCsv(input: PlanExportInput, now = Date.now()): string {
-  const header = ['Mode', 'Asset', 'Verified Solana mint', 'Contribution percentage', 'USDC allocation', 'Estimated units', 'Quote retrieved at (UTC)', 'Review notice', 'Quote source', 'Quote fresh until (UTC)', 'Estimate status at export', 'Exported at (UTC)'];
+  const header = ['Mode', 'Asset', 'Verified Solana mint', 'Contribution percentage', 'USDC allocation', 'Estimated units', 'Quote retrieved at (UTC)', 'Review notice', 'Quote source', 'Quote fresh until (UTC)', 'Estimate status at export', 'Exported at (UTC)', 'Review on Jupiter'];
   return [header, ...rows(input, now)].map(row => row.map(escapeCsvCell).join(',')).join('\r\n') + '\r\n';
 }
 
 export function buildPlanText(input: PlanExportInput, now = Date.now()): string {
   const mode = input.mode === 'example' ? 'Example mode — synthetic estimates, not live quotes' : 'Live mode — estimated quotes';
-  const lines = rows(input, now).map(row => `${row[1]} · ${row[3]} · ${row[4]} USDC\nMint: ${row[2]}\nEstimated units: ${row[5]}\nQuote retrieved: ${row[6]}\nQuote source: ${row[8]}\nFresh until: ${row[9]}\nEstimate status at export: ${row[10]}`);
-  return `Lotline contribution plan\n${mode}\nBudget: ${formatUsdc(BigInt(validatePlan(input.basket).allocations.reduce((total, item) => total + BigInt(item.usdcRaw), 0n)))} USDC\nExported at: ${new Date(now).toISOString()}\n\n${lines.join('\n\n')}\n\nEstimate status reflects export time only. Quotes expire within 30 seconds of retrieval, or sooner when the provider specifies. Exporting does not refresh estimates.\n${REVIEW_NOTICE}\nReview current amounts and fees on Jupiter.\nhttps://jup.ag/`;
+  const lines = rows(input, now).map(row => `${row[1]} · ${row[3]} · ${row[4]} USDC\nMint: ${row[2]}\nEstimated units: ${row[5]}\nQuote retrieved: ${row[6]}\nQuote source: ${row[8]}\nFresh until: ${row[9]}\nEstimate status at export: ${row[10]}\nReview on Jupiter: ${row[12]}`);
+  return `Lotline contribution plan\n${mode}\nBudget: ${formatUsdc(BigInt(validatePlan(input.basket).allocations.reduce((total, item) => total + BigInt(item.usdcRaw), 0n)))} USDC\nExported at: ${new Date(now).toISOString()}\n\n${lines.join('\n\n')}\n\nEstimate status reflects export time only. Quotes expire within 30 seconds of retrieval, or sooner when the provider specifies. Exporting does not refresh estimates. Each review link prefills the verified mint and exact USDC amount; it never signs or submits a trade.\n${REVIEW_NOTICE}\nReview current amounts and fees on Jupiter.\n${jupiterSwapUrl()}`;
 }

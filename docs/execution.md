@@ -41,6 +41,7 @@ Set these server-only values in the deployment environment before enabling the f
 ```text
 LOTLINE_EXECUTION_ENABLED=false
 LOTLINE_EXECUTION_MIGRATIONS_READY=false
+LOTLINE_EXECUTION_GUEST_MIGRATIONS_READY=false
 LOTLINE_EXECUTION_REPOSITORY=supabase
 LOTLINE_EXECUTION_VALIDATOR_READY=false
 JUPITER_API_KEY=...
@@ -50,9 +51,11 @@ NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=sb_publishable_...
 SUPABASE_SECRET_KEY=sb_secret_...
 ```
 
-Apply `supabase/migrations/20260914090000_execution_journal.sql` in the linked project, verify service-role access from the server, review the supported-instruction validator against representative Jupiter v0 transactions, and only then change the execution flags. The readiness endpoint is `GET /api/execution/config`; a `503 configuration-required` response is an intentional safety boundary.
+Apply `supabase/migrations/20260914090000_execution_journal.sql` and the additive `supabase/migrations/20260915090000_guest_execution_owner_index.sql` in the linked project, verify service-role access from the server, review the supported-instruction validator against representative Jupiter v0 transactions, and only then change the execution flags. Set `LOTLINE_EXECUTION_GUEST_MIGRATIONS_READY=true` only after the additive migration is applied and its quota/retention functions are checked. The guest-owner migration is currently local and pending; until it is applied, keep guest execution disabled. The readiness endpoint is `GET /api/execution/config`; a `503 configuration-required` response is an intentional safety boundary.
 
-Guest execution and automated scheduled purchases are not enabled. Schedules are saved as a device-local reminder and can export a calendar event; they remain manual review points. No private key, wallet address, or signed transaction is saved in browser storage.
+Guest execution uses a short-lived, HttpOnly SameSite capability cookie scoped to the execution API; the server stores only its SHA-256 hash and binds every run to the selected wallet. It is available only when the readiness gate is enabled. Guest writes pass a bounded per-browser guard plus shared HMAC-hashed edge/IP and global buckets (180 requests per minute per normalized edge address, with a 600-request global ceiling), and a database quota of 20 journal runs per capability. Terminal guest runs are retained for 30 days, then pruned in bounded batches; abandoned non-broadcast reviews older than two days are also pruned unless a signed, submitted, confirming or unknown attempt exists. Unresolved guest history has a 50,000-row global ceiling. The journal also caps authenticated owners at 100 new runs per rolling day and all owners at 5,000 new runs per UTC day; sampled cleanup and indexed timestamps keep the limit tables bounded. The application guard is intentionally a first-line control; the shared buckets and database quota remain the durable limits across instances. Automated scheduled purchases are not enabled. Schedules are saved as device-local reminders and can export a calendar event; they remain manual review points. No private key, wallet address, or signed transaction is saved in browser storage.
+
+If the same browser later signs in, the capability remains a separate guest owner and can be used to continue that browser's run; no guest record is relabeled as an account record and no wallet address supplied by the client is used as an ownership link.
 
 Signed-in users also have an owner-scoped `/api/contribution-schedules` GET/POST/PATCH route backed by the journal migration. The current UI keeps the local reminder path available for guests; cloud synchronization remains opt-in.
 
