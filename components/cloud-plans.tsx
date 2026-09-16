@@ -6,9 +6,10 @@ import { Cloud, LoaderCircle, Plus } from 'lucide-react';
 import type { Basket } from '@/lib/domain/types';
 import { formatUsdc } from '@/lib/domain/math';
 import { MAX_PLAN_ASSETS } from '@/lib/domain/limits';
-import { browserSupabase, runBrowserAuth } from '@/lib/supabase/client';
 import { authEmailEnabled } from '@/lib/supabase/config';
-import { basketToCloudPlan, cloudPlanRecord, cloudPlanToBasket, type CloudPlan } from '@/lib/supabase/plans';
+import type { CloudPlan } from '@/lib/supabase/plans';
+
+type PlansModule = typeof import('@/lib/supabase/plans');
 import styles from './auth.module.css';
 
 type Session = { state: 'loading' | 'signed-in' | 'guest' | 'configuration-required' | 'unavailable'; user?: { id: string; email?: string } | null };
@@ -22,7 +23,10 @@ export function CloudPlans({ basket, onLoad }: { basket: Basket; onLoad: (basket
   const [failed, setFailed] = useState(false);
   const generation = useRef(0);
   const accountId = useRef<string | null>(null);
-  const body = basketToCloudPlan(basket, name);
+  // Plan schemas (and the registry they validate against) load with the
+  // account, not with the page: a guest never saves or loads a cloud plan.
+  const [plansModule, setPlansModule] = useState<PlansModule | null>(null);
+  const body = plansModule ? plansModule.basketToCloudPlan(basket, name) : null;
 
   const clearPrivateState = useCallback((nextId: string | null) => {
     accountId.current = nextId;
@@ -61,6 +65,7 @@ export function CloudPlans({ basket, onLoad }: { basket: Basket; onLoad: (basket
       if (result.status === 401) { expireSession(); return; }
       const data = await result.json();
       if (revision !== generation.current) return;
+      const { cloudPlanRecord } = await import('@/lib/supabase/plans');
       const validated = cloudPlanRecord.array().safeParse(data.plans);
       if (!result.ok || !validated.success) { setFailed(true); setMessage('Your cloud plans could not be loaded. Retry when you’re online.'); return; }
       setPlans(validated.data);
@@ -70,19 +75,34 @@ export function CloudPlans({ basket, onLoad }: { basket: Basket; onLoad: (basket
 
   useEffect(() => {
     queueMicrotask(() => void refresh());
-    const supabase = browserSupabase();
-    // Account changes in another tab invalidate both private UI and late writes.
-    const listener = supabase?.auth.onAuthStateChange((event, next) => {
-      if (event === 'SIGNED_OUT') { generation.current += 1; clearPrivateState(null); setRefreshing(false); setSession({ state: 'guest' }); }
-      if ((event === 'SIGNED_IN' || event === 'USER_UPDATED') && next?.user.id !== accountId.current) {
-        generation.current += 1; clearPrivateState(next?.user.id ?? null); setRefreshing(false); setSession({ state: 'loading' });
-        // Auth callbacks must not await another Supabase operation while its
-        // session lock is held. Revalidate after the callback has returned.
-        queueMicrotask(() => void refresh());
-      }
+    return () => { generation.current += 1; };
+  }, [refresh]);
+
+  // The Supabase browser client exists to watch an account that is already
+  // signed in. A guest has nothing to watch, and the session check above is a
+  // plain fetch, so the client is loaded only once there is a session. That
+  // keeps ~68 KB of gzipped JS off every guest's first load.
+  useEffect(() => {
+    if (session.state !== 'signed-in') return;
+    let cancelled = false;
+    let subscription: { unsubscribe: () => void } | undefined;
+    void import('@/lib/supabase/plans').then(module => { if (!cancelled) setPlansModule(module); });
+    void import('@/lib/supabase/client').then(({ browserSupabase }) => {
+      if (cancelled) return;
+      // Account changes in another tab invalidate both private UI and late writes.
+      const listener = browserSupabase()?.auth.onAuthStateChange((event, next) => {
+        if (event === 'SIGNED_OUT') { generation.current += 1; clearPrivateState(null); setRefreshing(false); setSession({ state: 'guest' }); }
+        if ((event === 'SIGNED_IN' || event === 'USER_UPDATED') && next?.user.id !== accountId.current) {
+          generation.current += 1; clearPrivateState(next?.user.id ?? null); setRefreshing(false); setSession({ state: 'loading' });
+          // Auth callbacks must not await another Supabase operation while its
+          // session lock is held. Revalidate after the callback has returned.
+          queueMicrotask(() => void refresh());
+        }
+      });
+      subscription = listener?.data.subscription;
     });
-    return () => { generation.current += 1; listener?.data.subscription.unsubscribe(); };
-  }, [refresh, clearPrivateState]);
+    return () => { cancelled = true; subscription?.unsubscribe(); };
+  }, [session.state, refresh, clearPrivateState]);
 
   async function save(event: React.FormEvent) {
     event.preventDefault();
@@ -95,6 +115,7 @@ export function CloudPlans({ basket, onLoad }: { basket: Basket; onLoad: (basket
       if (response.status === 401) { expireSession(); return; }
       const data = await response.json();
       if (revision !== generation.current) return;
+      const { cloudPlanRecord } = await import('@/lib/supabase/plans');
       const validated = cloudPlanRecord.safeParse(data.plan);
       if (!response.ok || !validated.success) { setFailed(true); setMessage(data.message ?? 'The plan could not be saved. Please retry.'); return; }
       setPlans(current => [validated.data, ...current]);
@@ -125,6 +146,7 @@ export function CloudPlans({ basket, onLoad }: { basket: Basket; onLoad: (basket
     const revision = generation.current;
     const signingOutId = accountId.current;
     try {
+      const { runBrowserAuth } = await import('@/lib/supabase/client');
       const result = await runBrowserAuth(new AbortController().signal, auth => auth.signOut({ scope: 'local' }));
       if (accountId.current !== null && accountId.current !== signingOutId) return;
       if (!result || result.error) { setFailed(true); setMessage('Sign out could not be confirmed. Please try again.'); return; }
@@ -143,7 +165,7 @@ export function CloudPlans({ basket, onLoad }: { basket: Basket; onLoad: (basket
               <div className={styles.cloudHeading}><p className={styles.accountEmail}>Signed in as {session.user?.email ?? 'your account'}</p><button className={styles.textButton} onClick={signOut} disabled={busy || refreshing}>Sign out</button></div>
               <form onSubmit={save} className={styles.saveForm}><label htmlFor="cloud-plan-name">Plan name<input id="cloud-plan-name" value={name} onChange={event => setName(event.target.value)} maxLength={60} required disabled={busy || refreshing} /></label><button className={styles.primary} type="submit" disabled={busy || refreshing || !body || plans.length >= 20}>{busy || refreshing ? <LoaderCircle size={16} className={styles.spin} /> : <Plus size={16} />}Save this plan</button></form>
               {!body && <p>Choose one to {MAX_PLAN_ASSETS} supported assets, a positive budget, and a split totaling 100% before saving.</p>}
-              <ul className={styles.planList}>{plans.map(plan => <li key={plan.id}><div><strong>{plan.name}</strong><span>{formatUsdc(plan.budget_raw).replace(/0+$/, '').replace(/\.$/, '')} USDC · {plan.allocations.length} {plan.allocations.length === 1 ? 'asset' : 'assets'}</span></div><div className={styles.planActions}><button className={styles.textButton} disabled={busy || refreshing} aria-label={`Load ${plan.name}`} onClick={() => { if (busy || refreshing) return; onLoad(cloudPlanToBasket({ name: plan.name, budget_raw: plan.budget_raw, allocations: plan.allocations })); setFailed(false); setMessage(`Loaded ${plan.name}. Get fresh estimates when you’re ready.`); }}>Load</button><button className={styles.textButton} disabled={busy || refreshing} aria-label={`Delete ${plan.name}`} onClick={() => void remove(plan.id)}>Delete</button></div></li>)}</ul>
+              <ul className={styles.planList}>{plans.map(plan => <li key={plan.id}><div><strong>{plan.name}</strong><span>{formatUsdc(plan.budget_raw).replace(/0+$/, '').replace(/\.$/, '')} USDC · {plan.allocations.length} {plan.allocations.length === 1 ? 'asset' : 'assets'}</span></div><div className={styles.planActions}><button className={styles.textButton} disabled={busy || refreshing} aria-label={`Load ${plan.name}`} onClick={() => { if (busy || refreshing) return; if (!plansModule) return; onLoad(plansModule.cloudPlanToBasket({ name: plan.name, budget_raw: plan.budget_raw, allocations: plan.allocations })); setFailed(false); setMessage(`Loaded ${plan.name}. Get fresh estimates when you’re ready.`); }}>Load</button><button className={styles.textButton} disabled={busy || refreshing} aria-label={`Delete ${plan.name}`} onClick={() => void remove(plan.id)}>Delete</button></div></li>)}</ul>
               {plans.length === 0 && <p>No cloud plans yet. Your local draft is only uploaded when you choose Save this plan.</p>}
               <button className={styles.textButton} disabled={busy || refreshing} onClick={() => { setMessage(''); void refresh(); }}>Refresh saved plans</button>
             </>}
