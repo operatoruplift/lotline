@@ -10,7 +10,7 @@ export async function GET() {
     // Without this, concurrent visitors landing on separate cold instances each
     // rebuild the catalog against the public RPC — eight at once took 16–20s
     // where one takes 0.6s. Anything but success stays uncached.
-    const headers = body.state === 'success' ? { 'Cache-Control': 'public, s-maxage=300, stale-while-revalidate=3600' } : noStore;
+    const headers = body.state === 'success' ? { ...noStore, 'Cache-Control': 'public, s-maxage=300, stale-while-revalidate=3600' } : noStore;
     return Response.json(body, { status: httpStatus(body.state), headers });
   }
   catch (error) { const state = error instanceof ServiceError ? error.kind : 'unavailable'; return Response.json({ state, assets: [], unavailable: [], message: safeMessage(error) }, { status: httpStatus(state), headers: noStore }); }
