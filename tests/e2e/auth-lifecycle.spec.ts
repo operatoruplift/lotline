@@ -1,4 +1,4 @@
-import { expect, test } from '@playwright/test';
+import { expect, test } from './test';
 
 const tokenUrl = '**/auth/v1/token?grant_type=password';
 const userId = 'a1180b50-b02b-4a02-a86a-2e2da5af7d00';

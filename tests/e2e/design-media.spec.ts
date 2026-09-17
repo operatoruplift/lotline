@@ -1,4 +1,4 @@
-import { expect, test } from '@playwright/test';
+import { expect, test } from './test';
 
 test('decorative video really decodes, advances, pauses offscreen and has no manual pause control', async ({ page }) => {
   await page.goto('/');

@@ -1,4 +1,4 @@
-import { expect, test } from '@playwright/test';
+import { expect, test } from './test';
 import { readFile } from 'node:fs/promises';
 import { XSTOCK_REGISTRY } from '../../lib/domain/assets';
 import { BASKET_STORAGE_KEY } from '../../lib/domain/storage';

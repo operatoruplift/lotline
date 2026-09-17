@@ -1,4 +1,4 @@
-import { expect, test } from '@playwright/test';
+import { expect, test } from './test';
 import AxeBuilder from '@axe-core/playwright';
 import { DEFAULT_BASKET, EXAMPLE_ASSETS } from '../../lib/demo/example';
 import { decodePlanHash, encodePlanHash } from '../../lib/domain/share';

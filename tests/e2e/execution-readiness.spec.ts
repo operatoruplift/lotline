@@ -1,4 +1,4 @@
-import { expect, test } from '@playwright/test';
+import { expect, test } from './test';
 
 test('execution reports its disabled server boundary and Example never signs', async ({ page, request }) => {
   const config = await request.get('/api/execution/config');

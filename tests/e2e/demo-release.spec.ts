@@ -1,4 +1,4 @@
-import { expect, test } from '@playwright/test';
+import { expect, test } from './test';
 import AxeBuilder from '@axe-core/playwright';
 import release from '../../docs/video-release-manifest.json' with { type: 'json' };
 

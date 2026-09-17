@@ -1,4 +1,4 @@
-import { expect, test } from '@playwright/test';
+import { expect, test } from './test';
 
 test('account changes clear the previous owner’s plans before a new plan request completes', async ({ page }) => {
   let account = 'first';

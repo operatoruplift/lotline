@@ -1,4 +1,4 @@
-import { expect, test } from '@playwright/test';
+import { expect, test } from './test';
 import AxeBuilder from '@axe-core/playwright';
 
 test('brand kit provides complete, downloadable social assets', async ({ page }) => {

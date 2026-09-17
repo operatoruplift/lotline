@@ -1,4 +1,4 @@
-import { expect, test } from '@playwright/test';
+import { expect, test } from './test';
 
 test('three contribution previews keep labels, amounts and navigation separate at every layout', async ({ page }) => {
   await page.emulateMedia({ reducedMotion: 'reduce' });

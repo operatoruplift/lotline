@@ -1,4 +1,4 @@
-import { expect, test, type Page } from '@playwright/test';
+import { expect, test, type Page } from './test';
 import { DEFAULT_BASKET, EXAMPLE_ASSETS } from '../../lib/demo/example';
 import { BASKET_STORAGE_KEY } from '../../lib/domain/storage';
 async function openLive(page: Page) {
