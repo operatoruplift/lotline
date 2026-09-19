@@ -1,0 +1,113 @@
+
+Running 30 tests using 1 worker
+
+(node:41252) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓   1 tests/e2e/draft-persistence.spec.ts:5:1 › restores an existing draft and preserves edits when reloaded before any timer runs (2.8s)
+  ✓   2 tests/e2e/draft-persistence.spec.ts:31:1 › blocked local storage leaves the planner usable and reports unsaved edits (1.3s)
+  ✓   3 tests/e2e/expanded-planner.spec.ts:8:1 › ten-asset plans show batch progress, conserve micro-USDC, export, and persist (4.0s)
+  ✓   4 tests/e2e/expanded-planner.spec.ts:48:1 › full catalog can be searched by company and ticker on mobile (4.9s)
+  ✓   5 tests/e2e/first-use.spec.ts:15:1 › fresh Live visit shows search and an explicit current-catalog illustration, then exact estimates and provenance (6.3s)
+  ✓   6 tests/e2e/first-use.spec.ts:54:1 › a deliberately empty returning draft survives Example, Live, and reload without auto-seeding (2.7s)
+  ✓   7 tests/e2e/first-use.spec.ts:72:1 › catalog failure, successful empty response, and recovered catalog have distinct states (2.1s)
+  ✓   8 tests/e2e/first-use.spec.ts:93:1 › failed refresh retains selected identity and edits as unverified until recovery (2.4s)
+  ✓   9 tests/e2e/first-use.spec.ts:118:3 › first-use search, illustration, and controls fit at 1440px (3.4s)
+  ✓  10 tests/e2e/first-use.spec.ts:118:3 › first-use search, illustration, and controls fit at 768px (3.0s)
+  ✓  11 tests/e2e/first-use.spec.ts:118:3 › first-use search, illustration, and controls fit at 390px (3.1s)
+  ✓  12 tests/e2e/first-use.spec.ts:118:3 › first-use search, illustration, and controls fit at 320px (3.7s)
+  ✓  13 tests/e2e/states.spec.ts:11:1 › missing RPC leaves a clear path to the complete Example experience (2.1s)
+  ✓  14 tests/e2e/states.spec.ts:20:1 › zero balances, partial failures, insufficient USDC, and invalid wallet remain distinct (3.7s)
+  ✓  15 tests/e2e/states.spec.ts:45:1 › late quote response cannot replace a newer budget (2.7s)
+  ✓  16 tests/e2e/states.spec.ts:79:1 › no-route and unsupported-scaling estimates never become invented values (1.5s)
+  ✓  17 tests/e2e/states.spec.ts:97:1 › provider expiry marks estimates stale and offline mode remains explicit (3.1s)
+  ✓  18 tests/e2e/states.spec.ts:116:1 › estimates wait for the holdings read so projections use the completed snapshot (2.7s)
+(node:41457) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  19 tests/e2e/execution-journey.spec.ts:115:1 › one leg reviews exact units, signs with Wallet Standard and restores the confirmed receipt (3.6s)
+  ✓  20 tests/e2e/execution-journey.spec.ts:138:1 › wallet rejection, unsigned expiry and changed plan never submit stale bytes (3.6s)
+  ✓  21 tests/e2e/execution-journey.spec.ts:158:1 › lost execute response blocks another signature and recovers by the original receipt (4.0s)
+  ✓  22 tests/e2e/execution-journey.spec.ts:170:1 › expiry during wallet approval clears only after authoritative unsigned expiry (2.8s)
+  ✓  23 tests/e2e/execution-journey.spec.ts:182:1 › a second tab cannot prompt while the first wallet approval is pending (4.7s)
+  ✘  24 tests/e2e/execution-journey.spec.ts:203:1 › disconnect during approval never submits the returned bytes (12.4s)
+(node:41576) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  25 tests/e2e/execution-journey.spec.ts:215:3 › controlled execution walkthrough — fixtures only › four legs stop after two confirmations and an unknown third, then safely resume and save cadence (9.4s)
+  ✓  26 tests/e2e/execution-journey.spec.ts:256:1 › saved schedule restores exact snapshot, due state, pause, occurrence and updates the same cloud reminder (4.5s)
+  ✓  27 tests/e2e/execution-journey.spec.ts:285:1 › on-chain failure stops the basket and keeps the original failed receipt (3.6s)
+  ✘  28 tests/e2e/execution-journey.spec.ts:296:1 › receipt reconciliation remains available when new purchases are paused (13.1s)
+(node:41659) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  29 tests/e2e/execution-journey.spec.ts:315:1 › cloud acknowledgement preserves a newer device reminder edited during the request (2.4s)
+  ✓  30 tests/e2e/execution-journey.spec.ts:341:1 › catalog loss blocks resume and rejects an outstanding wallet approval even after catalog recovery (3.4s)
+
+
+  1) tests/e2e/execution-journey.spec.ts:203:1 › disconnect during approval never submits the returned bytes
+
+    Error: expect(locator).toBeVisible() failed
+
+    Locator: getByText('The plan or wallet changed during approval. The signed bytes were not submitted.')
+    Expected: visible
+    Timeout: 10000ms
+    Error: element(s) not found
+
+    Call log:
+      - Expect "toBeVisible" getByText('The plan or wallet changed during approval. The signed bytes were not submitted.') with timeout 10000ms
+      - waiting for getByText('The plan or wallet changed during approval. The signed bytes were not submitted.')
+
+
+      208 |   await expect.poll(() => signatures(page)).toBe(1);
+      209 |   await page.evaluate(() => { window.lotlineTestWallet.disconnect(); window.lotlineTestWallet.release?.(); });
+    > 210 |   await expect(page.getByText('The plan, wallet, or catalog changed during approval. The signed bytes were not submitted.')).toBeVisible();
+          |                                                                                                                    ^
+      211 |   expect(state.executions).toEqual([]);
+      212 | });
+      213 |
+        at /Users/rvaclassic/Documents/Codex/2026-09-11/files-pasted-by-the-user-you/outputs/lotline/tests/e2e/execution-journey.spec.ts:210:116
+
+    Error Context: ../../../../../../../../tmp/lotline-first-use-20260920/execution-journey-disconne-d50c8--submits-the-returned-bytes/error-context.md
+
+    attachment #2: trace (application/zip) ─────────────────────────────────────────────────────────
+    ../../../../../../../../tmp/lotline-first-use-20260920/execution-journey-disconne-d50c8--submits-the-returned-bytes/trace.zip
+    Usage:
+
+        npx playwright show-trace ../../../../../../../../tmp/lotline-first-use-20260920/execution-journey-disconne-d50c8--submits-the-returned-bytes/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  2) tests/e2e/execution-journey.spec.ts:296:1 › receipt reconciliation remains available when new purchases are paused
+
+    Error: expect(locator).toBeVisible() failed
+
+    Locator: getByText(/In-app purchases are not available/)
+    Expected: visible
+    Timeout: 10000ms
+    Error: element(s) not found
+
+    Call log:
+      - Expect "toBeVisible" getByText(/In-app purchases are not available/) with timeout 10000ms
+      - waiting for getByText(/In-app purchases are not available/)
+
+
+      304 |   await page.reload();
+      305 |   await expect(page.getByText('Live catalog unavailable', { exact: true })).toBeVisible();
+    > 306 |   await expect(page.getByText(/In-app purchases are not available/)).toBeVisible();
+          |                                                                      ^
+      307 |   await expect(page.getByRole('button', { name: 'Check original receipt', exact: true })).toBeEnabled();
+      308 |   await expect(page.getByRole('button', { name: 'Controlled test wallet', exact: true })).toHaveCount(0);
+      309 |   state.unknownLeg = -1;
+        at /Users/rvaclassic/Documents/Codex/2026-09-11/files-pasted-by-the-user-you/outputs/lotline/tests/e2e/execution-journey.spec.ts:306:70
+
+    Error Context: ../../../../../../../../tmp/lotline-first-use-20260920/execution-journey-receipt--f5ed8-en-new-purchases-are-paused/error-context.md
+
+    attachment #2: trace (application/zip) ─────────────────────────────────────────────────────────
+    ../../../../../../../../tmp/lotline-first-use-20260920/execution-journey-receipt--f5ed8-en-new-purchases-are-paused/trace.zip
+    Usage:
+
+        npx playwright show-trace ../../../../../../../../tmp/lotline-first-use-20260920/execution-journey-receipt--f5ed8-en-new-purchases-are-paused/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  2 failed
+    tests/e2e/execution-journey.spec.ts:203:1 › disconnect during approval never submits the returned bytes
+    tests/e2e/execution-journey.spec.ts:296:1 › receipt reconciliation remains available when new purchases are paused
+  28 passed (2.2m)

@@ -3,6 +3,8 @@ import { getAttemptByRequestId, transitionAttempt, recordSubmitted } from '@/lib
 import { executeOnJupiter, validateSignedTransaction } from '@/lib/server/execution/submit';
 import { ensureExecutionEnabled, enforceExecutionRateLimit, failure, json, requireSameOrigin, requireExecutionOwner } from '@/lib/server/execution/http';
 import { executeRequestSchema } from '@/lib/server/execution/schemas';
+import { requireSemanticProof } from '@/lib/server/execution/proof-policy';
+import { requireExecutionWallet } from '@/lib/server/execution/config';
 
 export const dynamic = 'force-dynamic';
 export const maxDuration = 30;
@@ -26,6 +28,8 @@ export async function POST(request: Request, context: { params: Promise<{ runId:
     }
     if (found.attempt.state === 'confirming' || found.attempt.state === 'submitted') return json({ state: 'success', status: 'confirming', message: 'This order was already submitted and is being verified.' });
     if (found.attempt.state !== 'review-required' && found.attempt.state !== 'awaiting-wallet') return json({ state: 'invalid-input', message: 'This order is no longer awaiting a wallet signature.' }, 409);
+    requireExecutionWallet(found.run.wallet);
+    requireSemanticProof(found.attempt.evidence, found.leg.input_raw, found.attempt.minimum_output_raw);
     const unsigned = found.attempt.evidence?.transaction;
     if (typeof unsigned !== 'string') throw new ServiceError('unavailable', 'The reviewed transaction is unavailable. Request a fresh order.');
     await transitionAttempt(owner, found.attempt.id, 'awaiting-wallet', { reason: 'The user chose to sign the reviewed order.' });

@@ -4,13 +4,14 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import Image from 'next/image';
 import { isAddress } from '@solana/kit';
 import { ArrowDownToLine, ArrowRight, ArrowUpRight, Check, ChevronDown, CircleHelp, Clipboard, Clock3, ExternalLink, FlaskConical, Info, LoaderCircle, Plus, RefreshCw, ShieldCheck, Trash2, Wallet, WifiOff, X } from 'lucide-react';
-import type { Asset, Basket, CatalogResponse, HoldingsResponse, Mode, ProjectionResponse, QuotesResponse } from '@/lib/domain/types';
+import type { Asset, Basket, CatalogResponse, HoldingsResponse, Mode, ProjectionResponse, Quote, QuotesResponse } from '@/lib/domain/types';
 import { formatUsdc, parsePercent, validatePlan } from '@/lib/domain/math';
 import { buildPlanCsv, buildPlanText } from '@/lib/domain/export';
 import { createPlanIdentity, isCurrentResponse } from '@/lib/domain/identity';
 import { loadBasket, saveBasket } from '@/lib/domain/storage';
 import { logoPathForSymbol } from '@/lib/domain/assets';
 import { PLAN_HASH_PREFIX } from '@/lib/domain/share';
+import { illustrativeStarter } from '@/lib/domain/starter';
 import { jupiterReviewUrl, jupiterSwapUrl } from '@/lib/domain/jupiter';
 import { DEFAULT_BASKET, EXAMPLE_ASSETS, exampleUnits, getExampleHoldings, getExampleQuotes } from '@/lib/demo/example';
 import { SiteFooter, SiteHeader } from './site-shell';
@@ -24,11 +25,16 @@ import { AssetDetails } from './asset-details';
 import { utcTime, VerificationReceipt } from './verification-receipt';
 import { ExecutionReview } from './execution-review';
 import { ContributionSchedule } from './contribution-schedule';
+import onboarding from './planner-onboarding.module.css';
 
 type Notice = { text: string; error?: boolean };
 const EMPTY_BASKET: Basket = { version: 1, budget: '1000', items: [] };
 const copyBasket = (basket: Basket): Basket => ({ ...basket, items: basket.items.map((item) => ({ ...item })) });
 const assetClass = (symbol: string) => ({ AAPLx: 'apple', MSFTx: 'microsoft', NVDAx: 'nvidia', TSLAx: 'tesla', SPYx: 'spy', QQQx: 'qqq' })[symbol] ?? 'apple';
+const quoteReasonLabels: Record<NonNullable<Quote['reasonCode']>, string> = {
+  'no-route': 'No route', 'issuer-halted': 'Issuer halt', 'unsupported-token': 'Unsupported token behavior',
+  'rate-limited': 'Provider rate limit', 'stale-verification': 'Stale verification', 'provider-unavailable': 'Provider unavailable',
+};
 
 function displayAmount(value: string, minimumDecimals = 2): string {
   const [whole, decimal = ''] = value.split('.');
@@ -68,8 +74,9 @@ async function readResponse<T>(response: Response): Promise<T> {
 export function Planner({ initialMode, cloudEnabled = true }: { initialMode: Mode; cloudEnabled?: boolean }) {
   const [mode, setMode] = useState<Mode>(initialMode);
   const [basket, setBasket] = useState<Basket>(() => copyBasket(initialMode === 'example' ? DEFAULT_BASKET : EMPTY_BASKET));
-  const [saved, setSaved] = useState<'pending' | 'saved' | 'unavailable'>('pending');
+  const [saved, setSaved] = useState<'pending' | 'ready' | 'saved' | 'unavailable'>('pending');
   const [catalog, setCatalog] = useState<CatalogResponse | null>(null);
+  const [knownLiveAssets, setKnownLiveAssets] = useState<Asset[]>([]);
   const [catalogLoading, setCatalogLoading] = useState(initialMode === 'live');
   const [catalogReload, setCatalogReload] = useState(0);
   const [wallet, setWallet] = useState('');
@@ -80,19 +87,26 @@ export function Planner({ initialMode, cloudEnabled = true }: { initialMode: Mod
   const [quoteLoading, setQuoteLoading] = useState(false);
   const [quoteProgress, setQuoteProgress] = useState(0);
   const [showPicker, setShowPicker] = useState(false);
+  const [pickerAutoFocus, setPickerAutoFocus] = useState(false);
+  const [firstVisit, setFirstVisit] = useState(false);
   const [replacingMint, setReplacingMint] = useState<string | null>(null);
   const [notice, setNotice] = useState<Notice | null>(null);
   const [scheduleOccurrence, setScheduleOccurrence] = useState<string | undefined>();
   const [online, setOnline] = useState(true);
   const [now, setNow] = useState(0);
   const revision = useRef(0);
+  const pristineLiveDraft = useRef(false);
   const activeQuote = useRef('');
   const quoteAbort = useRef<AbortController | null>(null);
   const holdingsAbort = useRef<AbortController | null>(null);
   const resultsRef = useRef<HTMLElement | null>(null);
   const walletRef = useRef<HTMLInputElement | null>(null);
-  const assets = useMemo(() => mode === 'example' ? EXAMPLE_ASSETS : catalog?.assets ?? [], [catalog, mode]);
+  const catalogReady = !catalogLoading && (catalog?.state === 'success' || catalog?.state === 'partial');
+  const assets = useMemo(() => mode === 'example' ? EXAMPLE_ASSETS : catalogReady ? catalog?.assets ?? [] : [], [catalog, catalogReady, mode]);
   const assetMap = useMemo(() => new Map(assets.map((asset) => [asset.mint, asset])), [assets]);
+  // Retain names for a failed refresh, but only current catalog entries authorize reads/reviews.
+  const displayAssetMap = useMemo(() => new Map((mode === 'example' ? EXAMPLE_ASSETS : knownLiveAssets).map(asset => [asset.mint, asset])), [knownLiveAssets, mode]);
+  const starter = useMemo(() => mode === 'live' && catalogReady ? illustrativeStarter(assets) : [], [assets, catalogReady, mode]);
   const plan = useMemo(() => validatePlan(basket), [basket]);
   const unknownSelected = basket.items.some((item) => !assetMap.has(item.mint));
   const canEstimate = plan.valid && !unknownSelected && !holdingsLoading && (mode === 'example' || online);
@@ -107,7 +121,7 @@ export function Planner({ initialMode, cloudEnabled = true }: { initialMode: Mod
   const projectionByMint = new Map(projections.map((projection) => [projection.mint, projection]));
   const allocationByMint = new Map(plan.allocations.map((item) => [item.mint, item]));
   // The panel's primary action reviews the first leg; per-asset links cover the rest.
-  const firstReviewUrl = plan.valid && plan.allocations.length > 0 ? jupiterReviewUrl(plan.allocations[0].mint, plan.allocations[0].usdcRaw) : null;
+  const firstReviewUrl = plan.valid && !unknownSelected && plan.allocations.length > 0 ? jupiterReviewUrl(plan.allocations[0].mint, plan.allocations[0].usdcRaw) : null;
   const successfulQuotes = quotes?.quotes.filter((quote) => quote.state === 'success') ?? [];
   const stale = successfulQuotes.some((quote) => now >= Math.min(Date.parse(quote.expiresAt), Date.parse(quote.fetchedAt) + 30_000));
   const oldestQuote = successfulQuotes.length ? Math.min(...successfulQuotes.map((quote) => Date.parse(quote.fetchedAt))) : null;
@@ -147,14 +161,20 @@ export function Planner({ initialMode, cloudEnabled = true }: { initialMode: Mod
     queueMicrotask(() => {
       if (cancelled) return;
       let initialBasket = copyBasket(initialMode === 'example' ? DEFAULT_BASKET : EMPTY_BASKET);
-      try { initialBasket = loadBasket(window.localStorage) ?? initialBasket; }
-      catch { /* A browser can block local storage. The planner still works. */ }
+      let stored: Basket | null = null;
+      let storageAvailable = true;
+      try { stored = loadBasket(window.localStorage); initialBasket = stored ?? initialBasket; }
+      catch { storageAvailable = false; /* A browser can block local storage. The planner still works. */ }
       const reviewingSharedPlan = window.location.hash.startsWith(PLAN_HASH_PREFIX);
-      // Seed an empty practice visit, but never replace a nonempty saved split
-      // just because its mint is absent from this bundled Example snapshot.
-      if (!reviewingSharedPlan && initialMode === 'example' && initialBasket.items.length === 0) initialBasket = copyBasket(DEFAULT_BASKET);
+      pristineLiveDraft.current = stored === null && initialMode === 'live' && !reviewingSharedPlan;
+      // A saved empty basket is deliberate intent, just like a saved custom split.
+      setFirstVisit(stored === null && !reviewingSharedPlan);
+      setShowPicker(initialMode === 'live' && initialBasket.items.length === 0 && !reviewingSharedPlan);
       setBasket(initialBasket);
-      persistBasket(initialBasket);
+      // An untouched Live default is not a deliberately cleared draft. Writing it
+      // here would make a later Example visit mistake first use for saved intent.
+      if (stored || initialMode === 'example') persistBasket(initialBasket);
+      else setSaved(storageAvailable ? 'ready' : 'unavailable');
       if (initialMode === 'example') {
         const example = exampleView(initialBasket);
         setHoldings(example.holdings);
@@ -178,9 +198,18 @@ export function Planner({ initialMode, cloudEnabled = true }: { initialMode: Mod
   useEffect(() => {
     if (mode === 'example') return;
     const controller = new AbortController();
-    fetch('/api/assets', { signal: controller.signal })
+    fetch('/api/assets', { cache: 'no-store', signal: AbortSignal.any([controller.signal, AbortSignal.timeout(30_000)]) })
       .then((response) => readResponse<CatalogResponse>(response))
-      .then((data) => { if (!controller.signal.aborted) setCatalog(data); })
+      .then((data) => {
+        if (!Array.isArray(data.assets) || !Array.isArray(data.unavailable) || !data.assets.every(asset =>
+          asset && typeof asset.symbol === 'string' && typeof asset.name === 'string' &&
+          typeof asset.mint === 'string' && isAddress(asset.mint) && typeof asset.tokenProgram === 'string' && isAddress(asset.tokenProgram) &&
+          Number.isInteger(asset.decimals) && asset.decimals >= 0 && asset.decimals <= 255 && typeof asset.halted === 'boolean' &&
+          typeof asset.verifiedAt === 'string' && Number.isFinite(Date.parse(asset.verifiedAt)))) throw new Error('Invalid catalog response.');
+        if (controller.signal.aborted) return;
+        setCatalog(data);
+        if (data.state === 'success' || data.state === 'partial') setKnownLiveAssets(previous => [...new Map([...previous, ...data.assets].map(asset => [asset.mint, asset])).values()]);
+      })
       .catch(() => { if (!controller.signal.aborted) setCatalog({ state: 'unavailable', assets: [], unavailable: [], message: 'The verified asset catalog could not be loaded. Check your connection and try again.' }); })
       .finally(() => { if (!controller.signal.aborted) setCatalogLoading(false); });
     return () => controller.abort();
@@ -189,11 +218,25 @@ export function Planner({ initialMode, cloudEnabled = true }: { initialMode: Mod
   useEffect(() => () => { quoteAbort.current?.abort(); holdingsAbort.current?.abort(); }, []);
 
   function updateBasket(next: Basket, selectionChanged = false) {
+    pristineLiveDraft.current = false;
     invalidate(selectionChanged);
+    if (selectionChanged) setFirstVisit(false);
     if (selectionChanged) { setReplacingMint(null); setShowPicker(false); }
     setBasket(next);
     persistBasket(next);
     if (selectionChanged && mode === 'example') setHoldings(getExampleHoldings(next.items.map((item) => item.mint)));
+  }
+
+  function refreshCatalog() {
+    invalidate(true);
+    setCatalogLoading(true);
+    setCatalogReload(count => count + 1);
+  }
+
+  function openPicker(mint: string | null = null) {
+    setReplacingMint(mint);
+    setPickerAutoFocus(true);
+    setShowPicker(true);
   }
 
   function switchMode(next: Mode) {
@@ -206,7 +249,8 @@ export function Planner({ initialMode, cloudEnabled = true }: { initialMode: Mod
     setReplacingMint(null);
     setCatalogLoading(next === 'live');
     if (next === 'example') {
-      const nextBasket = basket.items.length === 0 ? copyBasket(DEFAULT_BASKET) : basket;
+      const nextBasket = pristineLiveDraft.current && basket.items.length === 0 ? { ...copyBasket(DEFAULT_BASKET), budget: basket.budget } : basket;
+      pristineLiveDraft.current = false;
       const example = exampleView(nextBasket);
       setBasket(nextBasket);
       persistBasket(nextBasket);
@@ -219,9 +263,11 @@ export function Planner({ initialMode, cloudEnabled = true }: { initialMode: Mod
   }
 
   function applySharedPlan(next: Basket, nextMode: Mode) {
+    pristineLiveDraft.current = false;
     invalidate(true);
     setWallet('');
     setShowPicker(false);
+    setFirstVisit(false);
     setReplacingMint(null);
     if (nextMode !== mode) setCatalogLoading(nextMode === 'live');
     setMode(nextMode);
@@ -334,7 +380,7 @@ export function Planner({ initialMode, cloudEnabled = true }: { initialMode: Mod
     } catch { setNotice({ text: 'The CSV could not be created. Check your plan and try again.', error: true }); }
   }
 
-  const validationMessage = !plan.valid ? plan.message : unknownSelected ? (mode === 'example' ? 'A selected asset is outside the bundled Example catalog. Change or remove it, or switch to Live for current verification.' : 'A selected asset is not currently verified. Remove it or retry the asset catalog.') : null;
+  const validationMessage = !plan.valid ? (basket.items.length ? plan.message : null) : unknownSelected ? (mode === 'example' ? 'A selected asset is outside the bundled Example catalog. Change or remove it, or switch to Live for current verification.' : 'Selected assets are temporarily unverified. Your split is preserved; refresh the catalog before estimates or purchase review.') : null;
   const selectedAssets = basket.items.map((item) => assetMap.get(item.mint)).filter((asset): asset is Asset => !!asset);
 
   return <><SiteHeader active="app" dataMode={mode} /><main id="main" className="planner-page page-width">
@@ -343,14 +389,25 @@ export function Planner({ initialMode, cloudEnabled = true }: { initialMode: Mod
     {!online && <div className="inline-notice warning" role="status"><WifiOff size={17} /><span>You’re offline. {mode === 'example' ? 'Example mode still works. Your local plan remains available.' : 'Live balances and estimates need a connection. Your local plan remains available.'}</span></div>}
     <div className="workspace">
       <div className="plan-column"><section className="panel plan-panel" aria-labelledby="plan-heading">
-        <div className="panel-kicker">01 <span /> BUILD YOUR SPLIT</div><div className="panel-title"><h2 id="plan-heading">Your plan</h2><span className="save-state">{saved === 'saved' ? <Check size={12} /> : saved === 'pending' ? <Clock3 size={12} /> : <Info size={12} />}{saved === 'saved' ? 'Draft saved here' : saved === 'pending' ? 'Saving draft…' : 'Local saving unavailable'}</span></div>
+        <div className="panel-kicker">01 <span /> BUILD YOUR SPLIT</div><div className="panel-title"><h2 id="plan-heading">Your plan</h2><span className="save-state">{saved === 'saved' ? <Check size={12} /> : saved === 'pending' ? <Clock3 size={12} /> : <Info size={12} />}{saved === 'saved' ? 'Draft saved here' : saved === 'pending' ? 'Loading draft…' : saved === 'ready' ? 'Draft ready' : 'Local saving unavailable'}</span></div>
         <label className="field-label" htmlFor="budget">USDC budget</label><div className="budget-input-wrap"><span className="usdc-icon" aria-hidden="true">$</span><input id="budget" name="budget" aria-describedby="budget-help" autoComplete="off" inputMode="decimal" value={basket.budget} onChange={(event) => updateBasket({ ...basket, budget: event.target.value })} /><span>USDC</span></div><p id="budget-help" className="field-hint">The amount you want to contribute next. Your budget and split save on this device as you edit; estimates are temporary.</p>
         <div className="split-label"><span className="field-label">Contribution split</span><span>{basket.items.length} / {MAX_PLAN_ASSETS} assets</span></div>
+        {mode === 'live' && <div className={`${onboarding.catalog}${!catalogLoading && !catalogReady ? ` ${onboarding.catalogError}` : ''}`}>
+          {catalogLoading ? <LoaderCircle size={15} className="spinning" /> : catalogReady ? <ShieldCheck size={15} /> : <Info size={15} />}
+          <div><div role="status" aria-live="polite"><strong>{catalogLoading ? 'Checking the Live catalog…' : !catalogReady ? 'Live catalog unavailable' : assets.length === 0 ? 'Catalog loaded without available assets' : `${assets.length} issuer-verified ${assets.length === 1 ? 'asset' : 'assets'}`}</strong>
+            <p>{catalogLoading ? 'Your budget and split stay here while identity checks load.' : !catalogReady ? catalog?.message ?? 'The catalog could not be verified. Retry or explore the labeled Example mode.' : assets.length === 0 ? 'The provider returned no selectable assets. Your draft is unchanged; retry later.' : 'Choose exact Solana mints. Catalog identity does not guarantee a trading route; source times are in Verify this plan.'}</p>
+            {catalogReady && catalog?.state === 'partial' && <p>{catalog.unavailable.length} {catalog.unavailable.length === 1 ? 'identity is' : 'identities are'} temporarily excluded. Available entries can still be used.</p>}
+          </div>{!catalogLoading && <><button type="button" onClick={refreshCatalog}>{catalogReady && assets.length ? 'Refresh catalog' : 'Retry catalog'} <RefreshCw size={12} /></button>{!assets.length && <button type="button" onClick={() => switchMode('example')}>Try Example mode <ArrowRight size={12} /></button>}</>}
+          </div></div>}
+        {mode === 'live' && basket.items.length === 0 && saved !== 'pending' && <div className={onboarding.intro}>
+          <h3>{firstVisit ? 'Make your first split.' : 'Your empty draft is preserved.'}</h3>
+          <p>{firstVisit ? 'Search for an asset below, or explicitly apply the illustration when the catalog is ready. You choose the budget and percentages.' : 'Add an asset when you’re ready. Lotline has kept your budget and will not add a starter automatically.'}</p>
+          {firstVisit && starter.length === 3 && <><ul className={onboarding.starter} aria-label="Illustrative allocation">{starter.map(item => <li key={item.mint}>{assetMap.get(item.mint)?.symbol} · {item.percent}%</li>)}</ul><p>Illustrative only, not a recommendation. Uses this verified catalog; no holdings or prices are prefilled.</p><button type="button" className="button secondary" onClick={() => { updateBasket({ ...basket, items: starter.map(item => ({ ...item })) }, true); setNotice({ text: 'Illustrative split applied. Adjust any asset or percentage, then get fresh estimates.' }); }}>Apply illustrative split <ArrowRight size={14} /></button></>}
+        </div>}
         <div className="basket-list">
-          {basket.items.map((item, index) => { const asset = assetMap.get(item.mint); return <div className="basket-row" key={item.mint}><AssetAvatar asset={asset} /><div className="basket-asset"><button type="button" className="asset-change" aria-label={`Change ${asset?.symbol ?? 'unverified asset'}`} onClick={() => { setReplacingMint(item.mint); setShowPicker(true); }} disabled={catalogLoading || !assets.length}>{asset?.symbol ?? 'Unverified asset'}<ChevronDown size={11} /></button><span>{asset?.name ?? `${item.mint.slice(0, 5)}…${item.mint.slice(-4)}`}</span></div><div className="percent-field"><label htmlFor={`weight-${index}`} className="sr-only">{asset?.symbol ?? `Asset ${index + 1}`} percentage</label><input id={`weight-${index}`} inputMode="decimal" autoComplete="off" value={item.percent} onChange={(event) => updateBasket({ ...basket, items: basket.items.map((entry, i) => i === index ? { ...entry, percent: event.target.value } : entry) })} /><span>%</span></div><button type="button" className="icon-button remove-button" aria-label={`Remove ${asset?.symbol ?? 'unverified asset'}`} onClick={() => updateBasket({ ...basket, items: basket.items.filter((_, i) => i !== index) }, true)}><Trash2 size={15} /></button></div>; })}
+          {basket.items.map((item, index) => { const asset = displayAssetMap.get(item.mint); const unverified = mode === 'live' && !assetMap.has(item.mint); return <div className={`basket-row${unverified ? ` ${onboarding.unverifiedRow}` : ''}`} key={item.mint}><AssetAvatar asset={asset} /><div className="basket-asset"><button type="button" className="asset-change" aria-label={`Change ${asset?.symbol ?? 'unverified asset'}`} onClick={() => openPicker(item.mint)} disabled={catalogLoading || !assets.length}>{asset?.symbol ?? 'Unverified asset'}<ChevronDown size={11} /></button><span>{asset?.name ?? `${item.mint.slice(0, 5)}…${item.mint.slice(-4)}`}</span>{unverified && <span className={onboarding.unverified}>Temporarily unverified</span>}</div><div className="percent-field"><label htmlFor={`weight-${index}`} className="sr-only">{asset?.symbol ?? `Asset ${index + 1}`} percentage</label><input id={`weight-${index}`} inputMode="decimal" autoComplete="off" value={item.percent} onChange={(event) => updateBasket({ ...basket, items: basket.items.map((entry, i) => i === index ? { ...entry, percent: event.target.value } : entry) })} /><span>%</span></div><button type="button" className="icon-button remove-button" aria-label={`Remove ${asset?.symbol ?? 'unverified asset'}`} onClick={() => updateBasket({ ...basket, items: basket.items.filter((_, i) => i !== index) }, true)}><Trash2 size={15} /></button></div>; })}
         </div>
-        {(basket.items.length < MAX_PLAN_ASSETS || replacingMint !== null) && <div className="asset-picker-area">{showPicker ? <AssetPicker example={mode === 'example'} assets={assets.filter(asset => !basket.items.some(item => item.mint === asset.mint))} onSelect={mint => updateBasket({ ...basket, items: replacingMint ? basket.items.map(item => item.mint === replacingMint ? { ...item, mint } : item) : [...basket.items, { mint, percent: basket.items.length === 0 ? '100' : '0' }] }, true)} onClose={() => { setShowPicker(false); setReplacingMint(null); }} /> : <button type="button" className="add-asset-button" onClick={() => setShowPicker(true)} disabled={catalogLoading || !assets.length || (!replacingMint && basket.items.length >= assets.length)}><Plus size={16} />{catalogLoading ? 'Loading verified assets…' : 'Add an asset'}</button>}</div>}
-        {mode === 'live' && !catalogLoading && catalog && catalog.state !== 'success' && <div className="catalog-notice"><Info size={15} /><div><p>{catalog.message ?? 'Some issuer-verified assets are temporarily unavailable.'}</p>{catalog.unavailable.length > 0 && <p>{catalog.unavailable.map((item) => item.symbol).join(', ')} unavailable.</p>}<button type="button" onClick={() => { setCatalogLoading(true); setCatalogReload((count) => count + 1); }}>Retry catalog <RefreshCw size={12} /></button>{catalog.assets.length === 0 && <button type="button" onClick={() => switchMode('example')}>Try Example mode <ArrowRight size={12} /></button>}</div></div>}
+        {(basket.items.length < MAX_PLAN_ASSETS || replacingMint !== null) && <div className="asset-picker-area">{showPicker && assets.length > 0 ? <AssetPicker autoFocus={pickerAutoFocus} example={mode === 'example'} assets={assets.filter(asset => !basket.items.some(item => item.mint === asset.mint))} onSelect={mint => updateBasket({ ...basket, items: replacingMint ? basket.items.map(item => item.mint === replacingMint ? { ...item, mint } : item) : [...basket.items, { mint, percent: basket.items.length === 0 ? '100' : '0' }] }, true)} onClose={() => { setShowPicker(false); setReplacingMint(null); }} /> : <button type="button" className="add-asset-button" onClick={() => openPicker()} disabled={catalogLoading || !assets.length || (!replacingMint && basket.items.length >= assets.length)}><Plus size={16} />{catalogLoading ? 'Loading verified assets…' : 'Add an asset'}</button>}</div>}
         {basket.items.length > 0 && <><div className="allocation-bar plan-bar" aria-hidden="true">{basket.items.map((item, index) => { let bps = 0; try { bps = parsePercent(item.percent); } catch { /* Invalid percentages have no bar width. */ } return <span key={item.mint} style={{ width: `${Math.min(100, bps / 100)}%`, background: ['var(--forest)', 'var(--sage)', 'var(--mint)', '#437365', '#82946B'][index % 5] }} />; })}</div><div className={`weight-total ${splitComplete ? 'valid' : 'invalid'}`}><span>{splitComplete ? <Check size={13} /> : <Info size={13} />}{validPercentages ? `${displayAmount((totalBps / 100).toFixed(2), 0)}% allocated` : 'Check percentage fields'}</span><span>{splitHint}</span></div></>}
         <div className="split-tools">{basket.items.length > 1 && <button type="button" onClick={splitEvenly}>Split evenly</button>}{mode === 'example' && <button type="button" onClick={() => { const next = copyBasket(DEFAULT_BASKET); applySharedPlan(next, 'example'); const view = exampleView(next); setQuotes(view.quotes); setProjections(view.projections); setNow(Date.now()); setNotice({ text: 'Example reset to the illustrative 50 / 30 / 20 split.' }); }}>Reset example</button>}</div><p className="split-explainer">These percentages apply to your new contribution.</p>
         {validationMessage && !catalogLoading && <p className="validation-message" id="plan-validation"><Info size={14} /><span>{validationMessage}</span></p>}
@@ -363,7 +420,7 @@ export function Planner({ initialMode, cloudEnabled = true }: { initialMode: Mod
         <div className="results-top"><div><div className="panel-kicker">02 <span /> REVIEW YOUR CONTRIBUTION</div><h2 id="results-heading">A clear view of what comes next.</h2></div><span className="results-mode">{mode === 'example' ? <FlaskConical size={13} /> : <span className="tiny-dot" />}{mode === 'example' ? 'Example estimates' : quoteLoading ? 'Requesting quotes' : quotes ? successfulQuotes.length ? stale ? 'Quotes need refresh' : 'Live quotes received' : 'Quotes unavailable' : 'Ready for Live quotes'}</span></div>
         <div className="contribution-summary"><div><span className="summary-label">YOUR NEW CONTRIBUTION</span><p>{allocatedTotal !== null ? displayAmount(formatUsdc(allocatedTotal)) : '—'}<span>USDC</span></p></div><div className="summary-count"><span>{basket.items.length.toString().padStart(2, '0')}</span><span>{basket.items.length === 1 ? 'chosen asset' : 'chosen assets'}<br />Your own split.</span></div></div>
         {basket.items.length > 0 && <div className="results-context"><p>Your balance + estimated addition = estimated resulting holdings.</p>{mode === 'live' && !holdings && <button type="button" onClick={focusWallet}>Add wallet context <ArrowRight size={12} /></button>}{mode === 'live' && holdings && <p>Using your <time dateTime={holdings.fetchedAt}>{utcTime(holdings.fetchedAt)}</time> balance snapshot.</p>}</div>}{basket.items.length > 0 ? <div className="results-table-wrap"><table className="results-table"><caption className="sr-only">Current holdings, exact USDC allocations, estimated additional units, and estimated resulting holdings</caption><thead><tr><th scope="col">Asset</th><th scope="col">Current units</th><th scope="col">USDC split</th><th scope="col">Estimated +units</th><th scope="col">Estimated after</th></tr></thead><tbody>{basket.items.map((item) => {
-          const asset = assetMap.get(item.mint);
+          const asset = displayAssetMap.get(item.mint);
           const holding = holdingsByMint.get(item.mint);
           const quote = quotesByMint.get(item.mint);
           const projected = projectionByMint.get(item.mint);
@@ -372,17 +429,17 @@ export function Planner({ initialMode, cloudEnabled = true }: { initialMode: Mod
           const holdingText = holdingsLoading ? 'Loading…' : holding?.state === 'success' && holding.units !== null ? displayUnits(holding.units) : holding ? 'Unavailable' : mode === 'example' ? 'Unavailable' : 'Not loaded';
           const outputText = quoteLoading && !quote ? 'Loading…' : zero ? '0' : quote?.state === 'success' ? quote.units !== null ? `+${displayUnits(quote.units)}` : 'Units unavailable' : quote ? 'Unavailable' : '—';
           const afterText = zero && holding?.state === 'success' && holding.units !== null ? displayUnits(holding.units) : quote?.state === 'success' && holding?.state === 'success' && holding.raw !== null ? projected?.units !== undefined && projected.units !== null ? displayUnits(projected.units) : quoteLoading ? 'Loading…' : 'Units unavailable' : !holdings ? 'Add a wallet' : '—';
-          return <tr key={item.mint}><th scope="row"><div className="result-asset"><AssetAvatar asset={asset} small /><div><strong>{asset?.symbol ?? 'Unverified'}</strong><span>{item.percent}% of contribution</span></div></div></th><td data-label="Current units" className={holding?.state === 'success' ? '' : 'muted-cell'}>{holdingText}</td><td data-label="USDC split" className="allocation-cell">{allocation ? displayAmount(formatUsdc(allocation.usdcRaw), 6) : '—'}</td><td data-label="Estimated +units" className={quote?.units !== null && quote?.state === 'success' ? 'estimate-cell' : 'muted-cell'}>{outputText}</td><td data-label="Estimated after" className={projected?.units ? 'after-cell' : 'muted-cell'}>{afterText}</td></tr>;
+          return <tr key={item.mint}><th scope="row"><div className="result-asset"><AssetAvatar asset={asset} small /><div><strong>{asset?.symbol ?? 'Unverified'}</strong><span>{item.percent}% of contribution</span>{mode === 'live' && !assetMap.has(item.mint) && <span className={onboarding.unverified}>Temporarily unverified</span>}</div></div></th><td data-label="Current units" className={holding?.state === 'success' ? '' : 'muted-cell'}>{holdingText}</td><td data-label="USDC split" className="allocation-cell">{allocation ? displayAmount(formatUsdc(allocation.usdcRaw), 6) : '—'}</td><td data-label="Estimated +units" className={quote?.units !== null && quote?.state === 'success' ? 'estimate-cell' : 'muted-cell'}>{outputText}</td><td data-label="Estimated after" className={projected?.units ? 'after-cell' : 'muted-cell'}>{afterText}</td></tr>;
         })}</tbody></table></div> : <div className="results-empty"><BrandMark className="empty-mark" /><h3>Every good plan starts with a choice.</h3><p>Add your first xStock, choose a percentage, and set your contribution amount.</p><span><span className="empty-dot" /> Your split will appear right here.</span></div>}
         {basket.items.length > 0 && !quotes && !quoteLoading && <div className="estimate-prompt"><CircleHelp size={16} /><p>{plan.valid ? 'Your split is ready. Get estimates to see approximately how many units your contribution could add.' : 'Complete your contribution split to see exact allocations and request estimates.'}</p></div>}
         {quotes && <div className={`quote-freshness${stale ? ' is-stale' : ''}`} role="status"><Clock3 size={14} /><span>{successfulQuotes.length > 0 ? stale ? `Estimates are stale · retrieved ${ageSeconds}s ago` : `${mode === 'example' ? 'Synthetic estimates' : 'Estimated'} · ${ageSeconds < 2 ? 'just now' : `${ageSeconds}s ago`} · stale after 30s` : 'No estimates available. Review the asset notes below.'}</span>{stale && <button type="button" onClick={getEstimates} disabled={!canEstimate || quoteLoading}>Refresh <RefreshCw size={12} /></button>}</div>}
-        {basket.items.some((item) => quotesByMint.get(item.mint)?.message || holdingsByMint.get(item.mint)?.message || projectionByMint.get(item.mint)?.message || assetMap.get(item.mint)?.halted) && <div className="asset-notices">{basket.items.map((item) => { const messages = [...new Set([assetMap.get(item.mint)?.halted && quotesByMint.get(item.mint)?.state !== 'success' ? 'Issuer previously reported a halt. Availability is rechecked when requesting estimates.' : undefined, quotesByMint.get(item.mint)?.message, holdingsByMint.get(item.mint)?.message, projectionByMint.get(item.mint)?.message].filter(Boolean))]; return messages.length > 0 ? <p key={item.mint}><Info size={14} /><span><strong>{assetMap.get(item.mint)?.symbol ?? 'Asset'}:</strong> {messages.join(' ')}</span></p> : null; })}</div>}
+        {basket.items.some((item) => quotesByMint.get(item.mint)?.message || holdingsByMint.get(item.mint)?.message || projectionByMint.get(item.mint)?.message || assetMap.get(item.mint)?.halted) && <div className="asset-notices">{basket.items.map((item) => { const reason = quotesByMint.get(item.mint)?.reasonCode; const messages = [...new Set([assetMap.get(item.mint)?.halted && quotesByMint.get(item.mint)?.state !== 'success' ? 'Issuer previously reported a halt. Availability is rechecked when requesting estimates.' : undefined, quotesByMint.get(item.mint)?.message, holdingsByMint.get(item.mint)?.message, projectionByMint.get(item.mint)?.message].filter(Boolean))]; return messages.length > 0 ? <p key={item.mint}><Info size={14} /><span><strong>{displayAssetMap.get(item.mint)?.symbol ?? 'Asset'}{reason ? ` · ${quoteReasonLabels[reason]}` : ''}:</strong> {messages.join(' ')}</span></p> : null; })}</div>}
         {successfulQuotes.length > 0 && <details className="quote-details"><summary>Quote details and fees <ChevronDown size={12} /></summary><div>{successfulQuotes.map((quote) => <p key={quote.mint}><strong>{assetMap.get(quote.mint)?.symbol ?? 'Asset'}</strong><span>{quote.source ?? 'Jupiter quote'}{quote.feeBps !== undefined ? ` · Quoted fee rate ${(quote.feeBps / 100).toFixed(2)}%` : ' · Fee details not supplied'}{quote.feeMint ? ` · Fee mint ${quote.feeMint.slice(0, 4)}…${quote.feeMint.slice(-4)}` : ''}</span><time dateTime={quote.fetchedAt}>{quote.fetchedAt.replace('T', ' ').replace(/\.\d{3}Z$/, ' UTC')}</time></p>)}<p className="quote-fee-note">Future network costs may not be included. Review current amounts and fees on Jupiter.</p></div></details>}
         <VerificationReceipt basket={basket} assets={assets} mode={mode} quotes={quotes?.quotes ?? []} /><AssetDetails assets={selectedAssets} mode={mode} /><div className="results-disclaimer"><ShieldCheck size={14} /><p>{mode === 'example' ? 'Synthetic figures for exploring the tool. Live mode requests real, quote-only estimates.' : 'Estimates can change. Review current amounts and fees on Jupiter.'}<span> Resulting units include current holdings only when their raw balance is verified.</span></p></div>
       </section>
-      <section className="panel handoff-panel" aria-labelledby="handoff-heading"><div className="handoff-top"><div><div className="panel-kicker">03 <span /> TAKE YOUR PLAN WITH YOU</div><h2 id="handoff-heading">Ready when you are.</h2></div><div className="export-actions"><button type="button" className="button secondary" disabled={!plan.valid || unknownSelected || quoteLoading} onClick={() => copy(buildPlanText({ mode, basket, assets, quotes: quotes?.quotes ?? [] }), 'Plan')}><Clipboard size={14} />Copy plan</button><button type="button" className="button secondary" disabled={!plan.valid || unknownSelected || quoteLoading} onClick={downloadCsv}><ArrowDownToLine size={14} />Download CSV</button></div></div><PlanTransfer basket={basket} mode={mode} assets={assets} disabled={!plan.valid || unknownSelected || quoteLoading} onLoad={applySharedPlan} /><p className="handoff-description">Open any asset on Jupiter with its verified mint and exact USDC allocation already filled in, or copy them to enter by hand. Jupiter links open a separate review; in-app purchase review is available only when signing is enabled.</p>
+      <div className={`panel ${onboarding.executionPanel}`}><ExecutionReview mode={mode} basket={basket} assets={selectedAssets} quotes={quotes?.quotes ?? []} catalogVerified={mode === 'example' || (online && catalogReady && !unknownSelected && selectedAssets.every(asset => !asset.halted))} scheduleOccurrenceId={scheduleOccurrence} /></div>
+      <section className="panel handoff-panel" aria-labelledby="handoff-heading"><div className="handoff-top"><div><div className="panel-kicker">04 <span /> TAKE YOUR PLAN WITH YOU</div><h2 id="handoff-heading">Ready when you are.</h2></div><div className="export-actions"><button type="button" className="button secondary" disabled={!plan.valid || unknownSelected || quoteLoading} onClick={() => copy(buildPlanText({ mode, basket, assets, quotes: quotes?.quotes ?? [] }), 'Plan')}><Clipboard size={14} />Copy plan</button><button type="button" className="button secondary" disabled={!plan.valid || unknownSelected || quoteLoading} onClick={downloadCsv}><ArrowDownToLine size={14} />Download CSV</button></div></div><PlanTransfer basket={basket} mode={mode} assets={assets} disabled={!plan.valid || unknownSelected || quoteLoading} onLoad={applySharedPlan} /><p className="handoff-description">Open any asset on Jupiter with its verified mint and exact USDC allocation already filled in, or copy them to enter by hand. Jupiter links open a separate review; in-app purchase review is available only when signing is enabled.</p>
         {selectedAssets.length > 0 && <div className="handoff-assets">{basket.items.map((item) => { const asset = assetMap.get(item.mint); const allocation = allocationByMint.get(item.mint); const reviewUrl = asset ? jupiterReviewUrl(asset.mint, allocation?.usdcRaw) : null; return asset ? <div className="handoff-row" key={item.mint}><div><AssetAvatar asset={asset} small /><strong>{asset.symbol}</strong><span className="mint-abbr" title={asset.mint}>{asset.mint.slice(0, 4)}…{asset.mint.slice(-4)}</span></div><div><button type="button" aria-label={`Copy mint for ${asset.symbol}`} onClick={() => copy(asset.mint, `${asset.symbol} mint`)}>Copy mint <Clipboard size={12} /></button><button type="button" aria-label={`Copy USDC amount for ${asset.symbol}`} disabled={!allocation} onClick={() => allocation && copy(formatUsdc(allocation.usdcRaw), `${asset.symbol} USDC amount`)}>Copy USDC amount <Clipboard size={12} /></button>{reviewUrl && <a className="handoff-review" href={reviewUrl} target="_blank" rel="noopener noreferrer" aria-label={allocation ? `Review on Jupiter: ${asset.symbol}, ${formatUsdc(allocation.usdcRaw)} USDC prefilled` : `Review on Jupiter: ${asset.symbol}`}>Review on Jupiter <ExternalLink size={12} /></a>}</div></div> : null; })}</div>}
-        <ExecutionReview mode={mode} basket={basket} assets={selectedAssets} quotes={quotes?.quotes ?? []} scheduleOccurrenceId={scheduleOccurrence} />
         <ContributionSchedule basket={basket} mode={mode} onReview={(next, nextMode, occurrence) => { applySharedPlan(next, nextMode); setScheduleOccurrence(nextMode === 'live' ? occurrence : undefined); setNotice({ text: 'Saved contribution loaded. Review your split and request fresh estimates.' }); }} />
         <div className="jupiter-handoff"><div><span className="jupiter-symbol" aria-hidden="true">↗</span><div><strong>Review on Jupiter</strong><span>You decide what happens next.</span></div></div><a href={firstReviewUrl ?? jupiterSwapUrl()} target="_blank" rel="noopener noreferrer" className="button primary">{firstReviewUrl ? 'Review first asset' : 'Open Jupiter'} <ExternalLink size={14} /></a></div><p className="handoff-footnote">{firstReviewUrl ? 'Opens Jupiter in a new tab with the mint and exact USDC amount prefilled. Review the amount, route and fees there before trading.' : 'Opens Jupiter’s swap page in a new tab.'} Opening this link never signs or submits a purchase.</p>
       </section>

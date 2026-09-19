@@ -2,6 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { address } from '@solana/kit';
 import { getMintEncoder } from '@solana-program/token-2022';
 import { XSTOCK_REGISTRY } from '../lib/domain/assets';
+import { MAINNET_GENESIS_HASH } from '../lib/server/solana-network';
 
 const PROGRAM = 'TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb';
 const OWNER = '11111111111111111111111111111111';
@@ -43,6 +44,7 @@ describe('verified large issuer catalog', () => {
         return Response.json({ nodes: XSTOCK_REGISTRY.slice(page * 100, (page + 1) * 100).map((_, index) => issuer(page * 100 + index)), page: { currentPage: page, hasNextPage: (page + 1) * 100 < XSTOCK_REGISTRY.length } });
       }
       const body = JSON.parse(init!.body as string);
+      if (body.method === 'getGenesisHash') return Response.json({ result: MAINNET_GENESIS_HASH });
       expect(body.method).toBe('getMultipleAccounts');
       expect(body.params[0].length).toBeLessThanOrEqual(100);
       return Response.json({ result: { context: { slot: 123 }, value: body.params[0].map(validAccount) } });
@@ -54,17 +56,18 @@ describe('verified large issuer catalog', () => {
     expect(first.state).toBe('success');
     expect(first.assets).toHaveLength(XSTOCK_REGISTRY.length);
     expect(first.assets.map(asset => asset.mint)).toEqual(XSTOCK_REGISTRY.map(asset => asset.mint));
-    expect(fetchMock).toHaveBeenCalledTimes(Math.ceil(XSTOCK_REGISTRY.length / 100) * 2);
+    expect(fetchMock).toHaveBeenCalledTimes(Math.ceil(XSTOCK_REGISTRY.length / 100) * 2 + 1);
     expect(await getCatalog()).toBe(first);
     expect(await getIssuerAsset('AAPLx')).toMatchObject({ mint: XSTOCK_REGISTRY[0].mint, halted: true });
     expect(await getIssuerAsset('AAPLx')).toMatchObject({ halted: true });
-    expect(fetchMock).toHaveBeenCalledTimes(Math.ceil(XSTOCK_REGISTRY.length / 100) * 2 + 1);
+    expect(fetchMock).toHaveBeenCalledTimes(Math.ceil(XSTOCK_REGISTRY.length / 100) * 2 + 2);
   }, 60_000);
 
   it('does not let duplicate issuer symbols pick a winner', async () => {
     vi.stubGlobal('fetch', vi.fn(async (input: string, init?: RequestInit) => {
       if (input.startsWith('https://api.xstocks.fi/')) return Response.json({ nodes: [issuer(0), issuer(0), issuer(1)], page: { currentPage: 0, hasNextPage: false } });
       const body = JSON.parse(init!.body as string);
+      if (body.method === 'getGenesisHash') return Response.json({ result: MAINNET_GENESIS_HASH });
       return Response.json({ result: { context: { slot: 123 }, value: body.params[0].map(validAccount) } });
     }));
     const { getCatalog } = await import('../lib/server/catalog');
@@ -80,23 +83,24 @@ describe('batched on-chain mint verification', () => {
     const mints = XSTOCK_REGISTRY.slice(0, 201).map(asset => asset.mint);
     const fetchMock = vi.fn(async (_input: string, init?: RequestInit) => {
       const body = JSON.parse(init!.body as string);
+      if (body.method === 'getGenesisHash') return Response.json({ result: MAINNET_GENESIS_HASH });
       return Response.json({ result: { context: { slot: 1 }, value: body.params[0].map((mint: string) => mint === mints[1] ? null : mint === mints[100] ? { ...validAccount(), owner: OWNER } : validAccount()) } });
     });
     vi.stubGlobal('fetch', fetchMock);
     const { loadMints } = await import('../lib/server/solana');
     const result = await loadMints(mints);
-    expect(fetchMock).toHaveBeenCalledTimes(3);
+    expect(fetchMock).toHaveBeenCalledTimes(4);
     expect(result.size).toBe(201);
     expect(result.get(mints[0])).toMatchObject({ decimals: 8, tokenProgram: PROGRAM, scaled: true });
     expect(result.get(mints[1])).toBeInstanceOf(Error);
     expect(result.get(mints[100])).toBeInstanceOf(Error);
     expect(result.get(mints[200])).toMatchObject({ decimals: 8 });
     await loadMints([mints[0], mints[200]]);
-    expect(fetchMock).toHaveBeenCalledTimes(3);
+    expect(fetchMock).toHaveBeenCalledTimes(4);
   });
 
   it('rejects truncated RPC responses instead of matching accounts to wrong mints', async () => {
-    vi.stubGlobal('fetch', vi.fn(async () => Response.json({ result: { context: { slot: 1 }, value: [validAccount()] } })));
+    vi.stubGlobal('fetch', vi.fn(async (_input: string, init?: RequestInit) => Response.json({ result: JSON.parse(init!.body as string).method === 'getGenesisHash' ? MAINNET_GENESIS_HASH : { context: { slot: 1 }, value: [validAccount()] } })));
     const { loadMints } = await import('../lib/server/solana');
     const mints = XSTOCK_REGISTRY.slice(0, 2).map(asset => asset.mint);
     const result = await loadMints(mints);

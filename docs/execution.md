@@ -1,3 +1,5 @@
+> Current contribution implementation and release status: [September 20 contribution release](contribution-release-20260920.md). Earlier dated observations below remain historical.
+
 # Lotline execution readiness
 
 Lotline separates planning from settlement. Example mode is always read-only. Live execution is an opt-in server capability and is disabled unless every readiness gate is present.

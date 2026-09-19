@@ -5,6 +5,7 @@ import { readSmallJson } from '@/lib/server/common';
 import { createRun } from '@/lib/server/execution/repository';
 import { ensureExecutionEnabled, enforceExecutionRateLimit, failure, json, requireSameOrigin, requireExecutionOwner } from '@/lib/server/execution/http';
 import { runRequestSchema } from '@/lib/server/execution/schemas';
+import { requireExecutionWallet } from '@/lib/server/execution/config';
 
 export const dynamic = 'force-dynamic';
 
@@ -15,6 +16,7 @@ export async function POST(request: Request) {
     if (ready.response) return ready.response;
     const parsed = runRequestSchema.safeParse(await readSmallJson(request));
     if (!parsed.success) return json({ state: 'invalid-input', message: 'Review a valid contribution before continuing.' }, 400);
+    requireExecutionWallet(parsed.data.intent.wallet);
     const owner = await requireExecutionOwner({ issueGuest: true });
     await enforceExecutionRateLimit(owner, request);
     const assets = await selectedAssets(parsed.data.intent.legs.map(leg => leg.mint));

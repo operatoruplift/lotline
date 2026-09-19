@@ -7,7 +7,9 @@ test('execution reports its disabled server boundary and Example never signs', a
   const body = await config.json();
   expect(body.state).toBe('configuration-required');
   expect(body.enabled).toBe(false);
-  expect(body.reasons.length).toBeGreaterThan(0);
+  expect(body.reasons).toBeUndefined();
+  expect(body.validatorVersion).toBe('jupiter-route-v2-raydium-clmm-v1');
+  expect(body.message).toContain('In-app purchases are not available');
 
   await page.goto('/app?mode=example');
   await expect(page.getByRole('heading', { name: 'Practice mode stays read-only.' })).toBeVisible();

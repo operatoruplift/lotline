@@ -1,6 +1,6 @@
 # Lotline — Stocklana submission draft
 
-**Last updated:** September 20, 2026. **Status:** draft, not submitted. The redesigned application, expanded Example, manual reminders and current demo package are deployed at [lotlineonsolana.vercel.app](https://lotlineonsolana.vercel.app). The [September 20 release record](release-20260920.md) identifies application commit `bae159d`, the production deployment and checks actually performed. Team/contact details still need to be supplied before submission. [Official requirements check](stocklana-check.md)
+**Last updated:** September 20, 2026. **Status:** draft, not submitted. The redesigned application, expanded Example, manual reminders and current demo package are deployed at [lotlineonsolana.vercel.app](https://lotlineonsolana.vercel.app). The current contribution release records exact deployment and evidence separately. Team/contact details still need to be supplied before submission. [Official requirements check](stocklana-check.md)
 
 ## Project and team
 
@@ -31,7 +31,7 @@ The responsive PWA's Example includes all 832 snapshot assets. Original six prac
 
 Issuer metadata establishes identity and halt status. Solana supplies mint configuration, raw balances and chain time. Official Token-2022 Scaled UI Amount conversion respects corporate-action multipliers: raw holdings and quoted output are added before formatting. Confirmed zero stays distinct from unavailable.
 
-Jupiter supplies amount-specific, quote-only estimates. Results expire within 30 seconds or earlier provider expiry and invalidate on edits. A spreadsheet alone cannot verify those chain facts and routes. The user opens the exact mint and USDC amount prefilled on official Jupiter, then independently reviews the current route and fees there. In-app execution remains disabled pending current swap-instruction validation and service configuration; fixture receipts are not real purchases.
+Jupiter supplies amount-specific, quote-only estimates. Results expire within 30 seconds or earlier provider expiry and invalidate on edits. A spreadsheet alone cannot verify those chain facts and routes. The user opens the exact mint and USDC amount prefilled on official Jupiter, then independently reviews the current route and fees there. In-app execution remains disabled pending authenticated provider access and restricted participant configuration; the implemented validator has passed a real unsigned mainnet simulation; fixture receipts are not real purchases.
 
 ## Evidence and limits
 
@@ -45,8 +45,8 @@ Signup/recovery await verified SMTP delivery. Optional Tokens.xyz context awaits
 - [Live website](https://lotlineonsolana.vercel.app)
 - [Interactive Example](https://lotlineonsolana.vercel.app/app?mode=example)
 - [Demo page with captions and transcripts](https://lotlineonsolana.vercel.app/demo)
-- [Current narrated product film](https://lotlineonsolana.vercel.app/videos/release-20260912/product.mp4)
-- [Current narrated technical film](https://lotlineonsolana.vercel.app/videos/release-20260912/technical.mp4)
+- [Preserved September 12 narrated product film](https://lotlineonsolana.vercel.app/videos/release-20260912/product.mp4)
+- [Preserved September 12 narrated technical film](https://lotlineonsolana.vercel.app/videos/release-20260912/technical.mp4)
 - [Current transcripts, captions and production evidence](video-release.md)
 - [Optional 115-second live presentation script](stocklana-demo-script.md) — a separate recording/presentation outline, not the transcript or duration of the current product film
 - [Execution walkthrough script](execution-demo-script.md) — staged review, receipt recovery and manual reminder flow; live signing requires separate authorization
@@ -61,4 +61,6 @@ The custom design follows L1 Kova, L4 Veloce, L5 Heritage Grove and L6 Liquid Gl
 
 ## Current completion evidence
 
-See the [September 20 release record](release-20260920.md) for the deployed source reference, CI, hosted browser/provider checks and outstanding execution requirements. The [September 19 finish report](finish-report-20260919.md) preserves detailed local implementation evidence. Team names/contact remain owner-supplied fields; no submission has been sent.
+See the [September 20 contribution release](contribution-release-20260920.md) for the deployed source reference, CI, hosted browser/provider checks and outstanding execution requirements. The [September 19 finish report](finish-report-20260919.md) preserves detailed local implementation evidence. Team names/contact remain owner-supplied fields; no submission has been sent.
+
+Current first-use and technical evidence recordings are on the demo page, labeled controlled rehearsal. [Current short/full description](lotline-description.md).

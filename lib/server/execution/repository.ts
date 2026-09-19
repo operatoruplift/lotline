@@ -1,4 +1,5 @@
 import 'server-only';
+import { isDeepStrictEqual } from 'node:util';
 import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 import { canTransition, type ContributionIntent, type ExecutionState } from '@/lib/domain/execution';
 import type { ExecutionOrder } from './orders';
@@ -161,7 +162,7 @@ export async function createAttempt(owner: ExecutionOwner, runId: string, legId:
   if (snapshot.attempts.some(attempt => ['review-required', 'awaiting-wallet', 'signed', 'submitted', 'confirming', 'unknown'].includes(attempt.state))) throw new ServiceError('invalid-input', 'Finish or reconcile the current leg before reviewing another purchase.');
   if (order.inputMint !== snapshot.run.input_mint || order.outputMint !== leg.mint || order.inAmount !== leg.input_raw) throw new ServiceError('invalid-input', 'This order does not match the immutable contribution leg.');
   const db = client();
-  const row = check(await db.from('lotline_execution_attempts').insert({ leg_id: legId, provider_request_id: order.requestId, transaction_message_hash: order.messageHash, original_blockhash: order.originalBlockhash, original_last_valid_block_height: order.lastValidBlockHeight ?? null, provider_expires_at: order.expiresAt, minimum_output_raw: order.minimumOutputRaw, state: 'review-required', evidence: { transaction: order.transaction, router: order.router, inputMint: order.inputMint, outputMint: order.outputMint, inAmount: order.inAmount, outAmount: order.outAmount, prioritizationFeeLamports: order.prioritizationFeeLamports, signatureFeeLamports: order.signatureFeeLamports, rentFeeLamports: order.rentFeeLamports, totalSolCostLamports: order.totalSolCostLamports, feeBps: order.feeBps, feeMint: order.feeMint, platformFee: order.platformFee ?? null, validation: order.validation } }).select('id,leg_id,provider_request_id,transaction_message_hash,original_blockhash,original_last_valid_block_height,provider_expires_at,minimum_output_raw,signature,state,state_version,evidence,created_at,updated_at').single()) as AttemptRow;
+  const row = check(await db.from('lotline_execution_attempts').insert({ leg_id: legId, provider_request_id: order.requestId, transaction_message_hash: order.messageHash, original_blockhash: order.originalBlockhash, original_last_valid_block_height: order.lastValidBlockHeight ?? null, provider_expires_at: order.expiresAt, minimum_output_raw: order.minimumOutputRaw, state: 'review-required', evidence: { transaction: order.transaction, router: order.router, inputMint: order.inputMint, outputMint: order.outputMint, inAmount: order.inAmount, outAmount: order.outAmount, prioritizationFeeLamports: order.prioritizationFeeLamports, signatureFeeLamports: order.signatureFeeLamports, rentFeeLamports: order.rentFeeLamports, totalSolCostLamports: order.totalSolCostLamports, feeBps: order.feeBps, feeMint: order.feeMint, platformFee: order.platformFee ?? null, validation: order.validation, slippageBps: order.slippageBps, semanticProof: order.semanticProof ?? null } }).select('id,leg_id,provider_request_id,transaction_message_hash,original_blockhash,original_last_valid_block_height,provider_expires_at,minimum_output_raw,signature,state,state_version,evidence,created_at,updated_at').single()) as AttemptRow;
   // The integrity migration updates leg/run projections and appends its event in
   // the same database transaction as the attempt insert.
   return row;
@@ -220,10 +221,12 @@ export async function transitionAttempt(owner: ExecutionOwner, attemptId: string
 /** Keep the reviewed order and prior chain evidence available after retries/reloads. */
 export function mergeAttemptEvidence(previous: Record<string, unknown> | null, next: Record<string, unknown>): Record<string, unknown> {
   const result = { ...previous, ...next };
-  for (const key of ['transaction', 'router', 'inputMint', 'outputMint', 'inAmount', 'outAmount', 'prioritizationFeeLamports', 'signatureFeeLamports', 'rentFeeLamports', 'totalSolCostLamports', 'feeBps', 'feeMint', 'platformFee', 'validation', 'expectedSignature', 'signedTransactionHash']) {
+  for (const key of ['transaction', 'router', 'inputMint', 'outputMint', 'inAmount', 'outAmount', 'prioritizationFeeLamports', 'signatureFeeLamports', 'rentFeeLamports', 'totalSolCostLamports', 'feeBps', 'feeMint', 'platformFee', 'validation', 'slippageBps', 'semanticProof', 'expectedSignature', 'signedTransactionHash']) {
     if (previous && Object.hasOwn(previous, key)) {
-      if (Object.hasOwn(next, key) && next[key] !== previous[key]) throw new ServiceError('invalid-input', 'The immutable execution evidence cannot be changed.');
+      if (Object.hasOwn(next, key) && !isDeepStrictEqual(next[key], previous[key])) throw new ServiceError('invalid-input', 'The immutable execution evidence cannot be changed.');
       result[key] = previous[key];
+    } else if (previous && ['semanticProof', 'slippageBps'].includes(key) && Object.hasOwn(next, key)) {
+      throw new ServiceError('invalid-input', 'An old execution attempt cannot acquire a new validation proof.');
     }
   }
   return result;

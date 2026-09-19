@@ -1,0 +1,32 @@
+{
+  "recordedAt": "2026-09-19T19:01:42.383202+00:00",
+  "evidenceClass": "local-source-and-production-build",
+  "baseline": "c4e48e108cc187d8cc233c7a58c1f4e8996c1505",
+  "lint": "passed",
+  "typecheck": "passed",
+  "productionBuild": "passed",
+  "unitTests": {
+    "passed": 420,
+    "skipped": 1,
+    "skipReason": "external live probe requires explicit opt-in"
+  },
+  "browserTests": {
+    "totalBehaviors": 91,
+    "focusedInitial": {
+      "passed": 28,
+      "failed": 2,
+      "correctedFixtureRecheckPassed": 2
+    },
+    "remainingInitial": {
+      "passed": 58,
+      "failed": 1,
+      "realDefect": "Untouched Live draft incorrectly persisted empty intent before following Example"
+    },
+    "finalFirstUseJudgeDraftPassed": 16,
+    "finalMediaPlaybackPassed": 2,
+    "note": "Combined bounded runs, not a single full local invocation. Remote full suite recorded separately."
+  },
+  "codeReview": "General and TypeScript/security reviews approved",
+  "noFinancialSigningOrBroadcast": true,
+  "deploymentVerified": false
+}

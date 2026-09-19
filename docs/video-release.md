@@ -1,3 +1,11 @@
+# Current contribution demonstration additions
+
+Two silent September 20 current-application recordings are available at `/demo`: `first-minute.mp4` and `technical-proof.mp4` under `/videos/release-20260920/`. Each permanently labels its catalog/quote responses as controlled fixtures and states that no funds moved. Captions, readable transcripts, posters, exact durations and hashes accompany them in that directory's manifest. Reproduce with `node scripts/record-contribution-release.mjs` against the local production server. They preserve the original narrated films and the September 19 recovery rehearsal.
+
+The first-minute recording demonstrates explicit starter selection, exact budget, estimates, mint provenance and the honest purchase gate. The technical recording demonstrates micro-USDC remainder handling, provenance, original quote time/expiry and fresh re-estimation. It then switches to clearly labeled explanatory slides showing metrics from the separate [unsigned mainnet evidence](releases/2026-09-20/unsigned-semantic-proof.json), raw/scaled context and the source flow for semantic validation, durable signature-before-submit and unknown-state recovery. These slides are not app receipt screens or a claim that the controlled UI performed the simulation.
+
+> Current contribution implementation and release status: [September 20 contribution release](contribution-release-20260920.md). Earlier dated observations below remain historical.
+
 # Lotline video releases and fixture walkthrough
 
 **Last updated:** September 20, 2026. Original narrated films: September 12.

@@ -1,0 +1,45 @@
+{
+  "recordedAt": "2026-09-19T18:59:02.858Z",
+  "source": "current local production build with controlled catalog/quotes; separate source and recorded unsigned-evidence explainer",
+  "realFundsMoved": false,
+  "films": {
+    "first-minute": {
+      "src": "/videos/release-20260920/first-minute.mp4",
+      "poster": "/videos/release-20260920/first-minute-poster.jpg",
+      "captions": "/videos/release-20260920/first-minute.en.vtt",
+      "description": "/videos/release-20260920/first-minute.transcript.txt",
+      "durationSeconds": 25.96,
+      "width": 1440,
+      "height": 1000,
+      "sha256": "f057dc6df83b51a4cb66fab09a51314a88d713057a652584d1e8602452ca7bf2",
+      "bytes": 1624950,
+      "silent": true,
+      "fixtureOnly": true,
+      "evidenceClasses": [
+        "controlled-local-ui"
+      ],
+      "settlementVerified": false,
+      "transcript": "CONTROLLED REHEARSAL · CATALOG / QUOTES MOCKED · NO WALLET OR FUNDS. Silent recording captured from the current local application on September 20, 2026.\n\nStart planning without an account. The searchable Live catalog here is a fixture.\n\nSearch by company, ticker, or exact mint. Nothing is selected automatically.\n\nExplicitly apply the illustrative 50 / 30 / 20 split. Every asset and percentage stays editable.\n\n10.000001 USDC is conserved exactly: 5.000001 + 3.000000 + 2.000000. Outputs shown are mocked.\n\nInspect the exact mint, issuer source, original quote time, and micro-USDC remainder.\n\nPurchase approval is gated. This clip proves planning UI, not wallet approval or real settlement.\n\nNo real wallet connected, transaction signed, or funds moved. UI catalog and quote responses are controlled fixtures. This is not evidence of a mainnet settlement. Original September 12 narrated films are preserved separately.\n"
+    },
+    "technical-proof": {
+      "src": "/videos/release-20260920/technical-proof.mp4",
+      "poster": "/videos/release-20260920/technical-proof-poster.jpg",
+      "captions": "/videos/release-20260920/technical-proof.en.vtt",
+      "description": "/videos/release-20260920/technical-proof.transcript.txt",
+      "durationSeconds": 57.04,
+      "width": 1440,
+      "height": 1000,
+      "sha256": "d6784d4c24ce90cd83246b5e881e81b45dd55173d6931a6934c6807f45d4ff3f",
+      "bytes": 2412661,
+      "silent": true,
+      "fixtureOnly": false,
+      "evidenceClasses": [
+        "controlled-local-ui",
+        "recorded-unsigned-mainnet-proof",
+        "source-call-path-explainer"
+      ],
+      "settlementVerified": false,
+      "transcript": "CONTROLLED REHEARSAL · CATALOG / QUOTES MOCKED · NO WALLET OR FUNDS. Silent recording captured from the current local application on September 20, 2026.\n\nTechnical walkthrough: exact integer allocation and explicit provenance; all quoted values are fixtures.\n\nExplicitly apply the illustrative 50 / 30 / 20 split. Every asset and percentage stays editable.\n\n10.000001 USDC is conserved exactly: 5.000001 + 3.000000 + 2.000000. Outputs shown are mocked.\n\nInspect the exact mint, issuer source, original quote time, and micro-USDC remainder.\n\nExpired estimates remain visibly stale. Saving or copying a plan cannot make its quotes fresh.\n\nRequest new estimates to obtain a new observation and expiry.\n\nPurchase approval is gated. This clip proves planning UI, not wallet approval or real settlement.\n\nRecorded unsigned mainnet evidence: 1 USDC, minimum 294240 raw AAPLx, 5162 network lamports, slot 448488963. No signing, broadcast, or verified settlement.\n\nSource path: createExecutionOrder → validateExecutableOrder → createAttempt → explicit wallet review. Exact signed message bytes and the required signature are verified before submission.\n\nPersist original signature before execute. An unknown result blocks replacement until original-signature reconciliation. Receipt checks and durable history protect partial contributions; real settlement remains unverified.\n\nAfter the controlled UI recording, separate explanatory slides summarize the sanitized unsigned mainnet proof from 2026-09-19T18:30:17.099Z, validator jupiter-route-v2-raydium-clmm-v1, message SHA-256 5e532264bf324de6…, and the implemented source call path. The original output unit context retains decimals 8 and clock-derived multiplier 1.0032690125398187; raw transaction amounts stay authoritative. These slides are not application screens or a recording of wallet approval. The simulation is unsigned; source and fixture evidence are not real settlement.\n\n\nNo real wallet connected, transaction signed, or funds moved. UI catalog and quote responses are controlled fixtures. This is not evidence of a mainnet settlement. Original September 12 narrated films are preserved separately.\n"
+    }
+  }
+}

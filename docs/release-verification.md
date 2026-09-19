@@ -1,3 +1,5 @@
+> Current contribution implementation and release status: [September 20 contribution release](contribution-release-20260920.md). Earlier dated observations below remain historical.
+
 # September 12 release verification
 
 The finished Lotline app and refreshed films are deployed at **https://lotlineonsolana.vercel.app**. This release includes the selected L1/L4/L5/L6 design, current logo and favicon, all 832 Example identities, plans of up to ten assets, the saved-draft and exact-allocation fixes, and freshness-aware exports. Prior uncommitted implementation was preserved and included.

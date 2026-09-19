@@ -49,8 +49,9 @@ test('full catalog can be searched by company and ticker on mobile', async ({ pa
   await page.setViewportSize({ width: 375, height: 900 });
   await page.route('**/api/assets', route => route.fulfill({ json: { state: 'success', assets: catalog, unavailable: [] } }));
   await page.goto('/app');
-  await page.getByRole('button', { name: 'Add an asset', exact: true }).click();
   const search = page.getByLabel('Search stocks and ETFs', { exact: true });
+  await expect(search).toBeVisible();
+  await search.click();
   await expect(search).toBeFocused();
   await search.fill('no-such-stock-xyz');
   await expect(page.getByText('No matches. Try a different company name or ticker.')).toBeVisible();

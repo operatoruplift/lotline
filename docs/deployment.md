@@ -1,6 +1,8 @@
+> Current contribution implementation and release status: [September 20 contribution release](contribution-release-20260920.md). Earlier dated observations below remain historical.
+
 # Deployment status and history
 
-The September 20 application release `bae159d` is deployed and READY as `dpl_4Q2kAnjTdDTsdYwidrkYgp93zgjy`, with both public aliases serving it. It includes the September 19 contribution recovery, receipt and manual-reminder fixes plus the controlled demonstration on `/demo`. Both pending Supabase migrations have been applied and verified; production configuration retains `LOTLINE_EXECUTION_ENABLED=false` and `LOTLINE_EXECUTION_VALIDATOR_READY=false`. The [current release record](release-20260920.md) separates local, hosted database and deployed application evidence. Historical observations below retain their dates.
+The current contribution release is tracked in [its deployment and evidence record](contribution-release-20260920.md). All seven Supabase migrations are applied and verified. Production preserves `LOTLINE_EXECUTION_ENABLED=false`, acknowledges `LOTLINE_EXECUTION_VALIDATOR_READY=jupiter-route-v2-raydium-clmm-v1`, and sets `LOTLINE_EXECUTION_PROOF_MIGRATIONS_READY=true`. The source validator has passed actual unsigned mainnet simulation; a server Jupiter key, reviewed restricted-launch participants and authorized settlement proof remain separate gates. Earlier deployment IDs below describe historical releases.
 
 - Production website: https://lotlineonsolana.vercel.app
 - Interactive Example: https://lotlineonsolana.vercel.app/app?mode=example
@@ -9,7 +11,7 @@ The September 20 application release `bae159d` is deployed and READY as `dpl_4Q2
 - Vercel project: `lotline`, connected to the public source repository, Next.js framework, Node 22, `npm ci` installation.
 - Dedicated Supabase project recorded by the earlier setup: `uemunksopacicpbjubtg`, named Lotline, region `us-east-1`. This release applies additive migrations and readiness configuration; it creates no project and changes no billing.
 
-The execution journal migration (`20260914090000_execution_journal.sql`) was applied to the linked Supabase project on September 15, 2026 after reconciling its remote migration history. The guest-owner index/quota migration (`20260915090000_guest_execution_owner_index.sql`) and integrity migration (`20260919090000_execution_integrity.sql`) were applied and checked during the September 20 release. The current deployed readiness endpoint returns HTTP 200 with `state: configuration-required`, `enabled: false` and `reconciliationAvailable: true`. Migration readiness is satisfied; new signing remains blocked by the missing encoded swap validator, server Jupiter key and paused execution flag. Issuer access policy and funded settlement evidence are also outstanding. The [September 20 hosted check](releases/2026-09-20/hosted-live-smoke.json) verified public routes, 832 catalog assets, holdings, a quote and scaled units without signing. Earlier September 16 observations included HTTP 503 from the readiness endpoint; that status is historical. See [execution readiness](execution.md).
+The execution journal migration (`20260914090000_execution_journal.sql`) was applied to the linked Supabase project on September 15, 2026 after reconciling its remote migration history. The guest-owner index/quota migration (`20260915090000_guest_execution_owner_index.sql`) and integrity migration (`20260919090000_execution_integrity.sql`) were applied and checked during the September 20 release. The current deployed readiness endpoint returns HTTP 200 with `state: configuration-required`, `enabled: false` and `reconciliationAvailable: true`. Migration readiness is satisfied; new signing remains blocked by the server Jupiter key, restricted-launch participant policy and paused execution flag. Issuer access policy and funded settlement evidence are also outstanding. The [September 20 hosted check](releases/2026-09-20/hosted-live-smoke.json) verified public routes, 832 catalog assets, holdings, a quote and scaled units without signing. Earlier September 16 observations included HTTP 503 from the readiness endpoint; that status is historical. See [execution readiness](execution.md).
 
 ## Evidence boundaries
 
@@ -44,7 +46,7 @@ Optional Tokens.xyz context remains disabled unless both `TOKENS_XYZ_ENABLED=tru
 
 ## Supabase
 
-All six repository migrations are aligned with and applied to the linked Lotline project:
+All seven repository migrations are aligned with and applied to the linked Lotline project:
 
 1. `20260911170809_shared_provider_limits.sql`
 2. `20260911170815_contribution_plans.sql`
@@ -52,8 +54,9 @@ All six repository migrations are aligned with and applied to the linked Lotline
 4. `20260914090000_execution_journal.sql` (applied September 15, 2026; keep execution disabled until validator and provider gates are reviewed)
 5. `20260915090000_guest_execution_owner_index.sql` (applied September 20 local time)
 6. `20260919090000_execution_integrity.sql` (applied September 20 local time; per-run attempt locking, immutable transaction identity, unsigned expiry and unresolved-evidence retention)
+7. `20260920090000_execution_proof_immutability.sql` (applied September 20 local time; immutable semantic proof and slippage, including rejection of legacy backfill)
 
-The initial hosted checkpoint applied the first two; the September 12 catalog checkpoint records the third. The September 15 deployment applied the additive execution journal and schedule tables after reconciling the remote migration history. Historical database checks verified ownership, grants, invalid input, the 20-plan limit, ten assets and deletion with rolled-back fixtures. Provider-slot SQL was checked separately for spacing and bounded backlog. Its table deliberately has RLS with no browser policy or grant; only the privileged server role reserves slots. Current source supports ten plan assets while request batches remain limited to three. The fifth migration now provides separate guest-owner indexes, quotas and shared HMAC-hashed buckets; the sixth enforces attempt integrity and retention. Applying these migrations does not satisfy the separate transaction-validator or issuer-access requirements.
+The initial hosted checkpoint applied the first two; the September 12 catalog checkpoint records the third. The September 15 deployment applied the additive execution journal and schedule tables after reconciling the remote migration history. Historical database checks verified ownership, grants, invalid input, the 20-plan limit, ten assets and deletion with rolled-back fixtures. Provider-slot SQL was checked separately for spacing and bounded backlog. Its table deliberately has RLS with no browser policy or grant; only the privileged server role reserves slots. Current source supports ten plan assets while request batches remain limited to three. The fifth migration now provides separate guest-owner indexes, quotas and shared HMAC-hashed buckets; the sixth enforces attempt integrity and retention. The seventh protects the new semantic proof against later alteration. Applying these migrations does not establish participant eligibility or real settlement.
 
 `supabase/config.toml` manages the Lotline Auth settings: Site URL, exact production/local callback URLs, minimum password length 12, and required email confirmation. The earlier post-push comparison reported zero managed differences. Preview URLs are not wildcard-allowlisted. Before a future authorized release, verify the actual intended origin and callbacks without replacing unrelated shared-project settings.
 

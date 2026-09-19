@@ -75,6 +75,7 @@ export async function reconcileExecution(request: Request, scope: Scope) {
         inputMint: found.run.input_mint, outputMint: found.leg.mint,
         maximumInputRaw: found.leg.input_raw, minimumOutputRaw: found.attempt.minimum_output_raw,
         maximumTotalSolCostLamports: found.run.intent.reviewedLimits.maximumTotalSolCostLamports,
+        semanticProof: found.attempt.evidence?.semanticProof,
       });
     } catch {
       verified = { state: 'unknown' as const, message: 'Solana history is temporarily unavailable. Reconcile the same signature later.', evidence: { reason: 'Receipt RPC unavailable; no replacement created.' } };

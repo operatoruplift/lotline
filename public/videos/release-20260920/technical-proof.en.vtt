@@ -1,0 +1,41 @@
+WEBVTT
+
+1
+00:00:00.766 --> 00:00:03.766
+Technical walkthrough: exact integer allocation and explicit provenance; all quoted values are fixtures.
+
+2
+00:00:04.231 --> 00:00:07.231
+Explicitly apply the illustrative 50 / 30 / 20 split. Every asset and percentage stays editable.
+
+3
+00:00:07.372 --> 00:00:11.372
+10.000001 USDC is conserved exactly: 5.000001 + 3.000000 + 2.000000. Outputs shown are mocked.
+
+4
+00:00:11.551 --> 00:00:15.551
+Inspect the exact mint, issuer source, original quote time, and micro-USDC remainder.
+
+5
+00:00:16.471 --> 00:00:20.471
+Expired estimates remain visibly stale. Saving or copying a plan cannot make its quotes fresh.
+
+6
+00:00:20.536 --> 00:00:23.036
+Request new estimates to obtain a new observation and expiry.
+
+7
+00:00:23.059 --> 00:00:27.059
+Purchase approval is gated. This clip proves planning UI, not wallet approval or real settlement.
+
+8
+00:00:27.102 --> 00:00:34.602
+Recorded unsigned mainnet evidence: 1 USDC, minimum 294240 raw AAPLx, 5162 network lamports, slot 448488963. No signing, broadcast, or verified settlement.
+
+9
+00:00:34.622 --> 00:00:42.122
+Source path: createExecutionOrder → validateExecutableOrder → createAttempt → explicit wallet review. Exact signed message bytes and the required signature are verified before submission.
+
+10
+00:00:42.147 --> 00:00:49.647
+Persist original signature before execute. An unknown result blocks replacement until original-signature reconciliation. Receipt checks and durable history protect partial contributions; real settlement remains unverified.

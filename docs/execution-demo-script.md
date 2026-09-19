@@ -1,3 +1,5 @@
+> Current September 20 technical opening: show `unsigned-semantic-proof.json`; explain that the actual order was decoded and simulated on mainnet without signing or broadcasting. Show route_v2 single RaydiumClmmV2 validation, canonical lookup resolution, encoded raw input/minimum, exact fee and same-bank balance checks. Explain that production credentials and reviewed participants are still needed before an authorized real purchase. The following recovery screens remain explicitly controlled rehearsal; never call their receipts live settlement.
+
 # Lotline execution demo script
 
 **Purpose:** a reviewable 3–4 minute presentation outline for the staged contribution path. The current public deployment keeps execution paused. A real purchase demonstration requires separately authorized funds and completed implementation/configuration gates; the current demonstration was captured locally with controlled fixtures and is published on [the demo page](https://lotlineonsolana.vercel.app/demo#controlled-demo).

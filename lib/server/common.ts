@@ -1,6 +1,7 @@
 import 'server-only';
 import { isAddress } from '@solana/kit';
 import { z } from 'zod';
+import type { DataFailureReason } from '../domain/types';
 
 export const USDC_MINT = 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v';
 export const TOKEN_PROGRAM = 'TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA';
@@ -13,7 +14,7 @@ export function isBoundedRaw(value: string, maximum = U64_MAX): boolean {
 }
 export const rawSchema = z.string().refine(value => isBoundedRaw(value));
 export class ServiceError extends Error {
-  constructor(public readonly kind: 'unavailable' | 'configuration-required' | 'invalid-input', message: string) { super(message); }
+  constructor(public readonly kind: 'unavailable' | 'configuration-required' | 'invalid-input', message: string, public readonly reasonCode?: DataFailureReason, public readonly upstreamStatus?: number) { super(message); }
 }
 export function safeMessage(error: unknown): string {
   return error instanceof ServiceError ? error.message : 'Service unavailable. Please try again.';
@@ -21,9 +22,9 @@ export function safeMessage(error: unknown): string {
 export async function fetchJson(url: string, init?: RequestInit): Promise<unknown> {
   try {
     const response = await fetch(url, { ...init, cache: 'no-store', signal: AbortSignal.timeout(12_000) });
-    if (response.status === 429) throw new ServiceError('unavailable', 'Service rate limit reached. Wait a moment, then refresh.');
-    if (response.status === 401 || response.status === 403) throw new ServiceError('unavailable', 'The service denied access. Check server configuration or try again later.');
-    if (!response.ok) throw new ServiceError('unavailable', 'The upstream service is temporarily unavailable. Please retry.');
+    if (response.status === 429) throw new ServiceError('unavailable', 'Service rate limit reached. Wait a moment, then refresh.', 'rate-limited', response.status);
+    if (response.status === 401 || response.status === 403) throw new ServiceError('unavailable', 'The service denied access. Check server configuration or try again later.', 'provider-unavailable', response.status);
+    if (!response.ok) throw new ServiceError('unavailable', 'The upstream service is temporarily unavailable. Please retry.', 'provider-unavailable', response.status);
     const body = await response.text();
     if (body.length > 2_000_000) throw new ServiceError('unavailable', 'The service returned an unsupported response.');
     return JSON.parse(body) as unknown;

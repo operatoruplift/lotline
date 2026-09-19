@@ -1,0 +1,9 @@
+
+Running 2 tests using 1 worker
+
+(node:45856) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  1 tests/e2e/demo-release.spec.ts:6:3 › preserved tours and current contribution demonstrations decode at 390px (12.2s)
+  ✓  2 tests/e2e/demo-release.spec.ts:6:3 › preserved tours and current contribution demonstrations decode at 1440px (11.1s)
+
+  2 passed (27.5s)

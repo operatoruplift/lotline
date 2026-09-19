@@ -6,13 +6,13 @@ import { getWallets } from '@wallet-standard/app';
 import { StandardConnect, StandardEvents, type StandardConnectFeature, type StandardEventsFeature } from '@wallet-standard/features';
 import { SolanaSignTransaction, type SolanaSignTransactionFeature } from '@solana/wallet-standard-features';
 import type { Wallet, WalletAccount } from '@wallet-standard/base';
-import type { Asset, Basket, Mode, Quote } from '@/lib/domain/types';
+import type { Asset, Basket, Mode, Quote, UnitContext } from '@/lib/domain/types';
 import { validateIntentShape, type ContributionIntent, type ExecutionState } from '@/lib/domain/execution';
 import { formatUsdc, validatePlan } from '@/lib/domain/math';
 
-type Props = { mode: Mode; basket: Basket; assets: Asset[]; quotes: Quote[]; scheduleOccurrenceId?: string };
+type Props = { mode: Mode; basket: Basket; assets: Asset[]; quotes: Quote[]; catalogVerified: boolean; scheduleOccurrenceId?: string };
 type ExecutionConfig = { state: string; enabled: boolean; reconciliationAvailable?: boolean; policyVersion?: string; limits?: { slippageBps: number; maximumPriorityFeeLamports: string; maximumTotalSolCostLamports: string; maximumTokenFeeBps: number }; reasons?: string[]; message?: string };
-type Review = { id: string; runId: string; legId: string; mint: string; requestId: string; messageHash: string; transaction: string; state: string; inputRaw: string; outputRaw: string; minimumOutputRaw: string; expiresAt: string; router: string; fingerprint: string; signature?: string; prioritizationFeeLamports?: string; signatureFeeLamports?: string; rentFeeLamports?: string; totalSolCostLamports?: string; feeBps?: number; feeMint?: string; platformFee?: { amount: string; feeMint: string; feeBps: number } };
+type Review = { id: string; runId: string; legId: string; mint: string; requestId: string; messageHash: string; transaction: string; state: string; inputRaw: string; outputRaw: string; minimumOutputRaw: string; expiresAt: string; router: string; fingerprint: string; signature?: string; prioritizationFeeLamports?: string; signatureFeeLamports?: string; rentFeeLamports?: string; totalSolCostLamports?: string; feeBps?: number; feeMint?: string; semanticProof?: { version: string; simulationSlot: number; issuerControlled: boolean; outputUnitContext?: UnitContext }; platformFee?: { amount?: string; feeMint: string; feeBps: number } };
 type RunLeg = { id: string; leg_key: string; mint: string; state: ExecutionState; input_raw: string; receipt?: Record<string, unknown> | null };
 type RunSnapshot = { run: { id: string; intent: ContributionIntent }; legs: RunLeg[]; attempts: Array<{ id: string; leg_id: string; state: ExecutionState; signature?: string | null; evidence?: Record<string, unknown> | null }> };
 const unresolvedStates: readonly string[] = ['signed', 'submitted', 'confirming', 'unknown'];
@@ -35,7 +35,7 @@ async function readSnapshot(runId: string): Promise<RunSnapshot> {
   return { run: data.run, legs: data.legs, attempts: data.attempts };
 }
 
-export function ExecutionReview({ mode, basket, assets, quotes, scheduleOccurrenceId }: Props) {
+export function ExecutionReview({ mode, basket, assets, quotes, catalogVerified, scheduleOccurrenceId }: Props) {
   const [config, setConfig] = useState<ExecutionConfig | null>(null);
   const [wallets, setWallets] = useState<readonly Wallet[]>([]);
   const [selectedWallet, setSelectedWallet] = useState<Wallet | null>(null);
@@ -56,12 +56,17 @@ export function ExecutionReview({ mode, basket, assets, quotes, scheduleOccurren
   const [receipts, setReceipts] = useState<RunSnapshot['attempts']>([]);
   const [now, setNow] = useState(0);
   const signing = useRef(false);
+  const approvalVersion = useRef(0);
   const plan = useMemo(() => validatePlan(basket), [basket]);
   const assetByMint = useMemo(() => new Map(assets.map(asset => [asset.mint, asset])), [assets]);
   const allQuotesReady = plan.valid && plan.allocations.every(item => item.usdcRaw === '0' || quotes.some(quote => quote.mint === item.mint && quote.state === 'success'));
   const currentFingerprint = useMemo(() => plan.valid ? intentFingerprint({ wallet: account?.address ?? '', budgetRaw: plan.allocations.reduce((sum, item) => sum + BigInt(item.usdcRaw), 0n).toString(), legs: plan.allocations.map((item, index) => ({ id: `leg-${index}`, issuerId: '', mint: item.mint, allocationBps: item.weightBps, maximumInputRaw: item.usdcRaw })), scheduleOccurrenceId }) : null, [account?.address, plan, scheduleOccurrenceId]);
   const latestFingerprint = useRef(currentFingerprint);
-  useEffect(() => { latestFingerprint.current = mode === 'live' ? currentFingerprint : null; }, [currentFingerprint, mode]);
+  useEffect(() => {
+    latestFingerprint.current = mode === 'live' && catalogVerified ? currentFingerprint : null;
+    approvalVersion.current += 1;
+    if (!catalogVerified) queueMicrotask(() => setReview(null));
+  }, [catalogVerified, currentFingerprint, mode]);
   useEffect(() => { const timer = window.setInterval(() => setNow(Date.now()), 1000); return () => window.clearInterval(timer); }, []);
 
   useEffect(() => {
@@ -109,9 +114,12 @@ export function ExecutionReview({ mode, basket, assets, quotes, scheduleOccurren
   }, [account?.address, selectedWallet]);
 
   const prepareOrder = useCallback(async (nextIntent: ContributionIntent, runId: string, leg: RunLeg) => {
+    const version = approvalVersion.current;
+    if (intentFingerprint(nextIntent) !== latestFingerprint.current) throw new Error('Refresh the catalog and review the saved split before requesting an order.');
     const orderResponse = await fetch(`/api/execution/runs/${encodeURIComponent(runId)}/legs/${encodeURIComponent(leg.id)}/order`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ intent: nextIntent, mint: leg.mint }) });
-    const orderData = await orderResponse.json() as { state: string; message?: string; attempt?: Pick<Review, 'id' | 'requestId' | 'messageHash' | 'state' | 'inputRaw' | 'outputRaw' | 'minimumOutputRaw' | 'router' | 'expiresAt' | 'prioritizationFeeLamports' | 'signatureFeeLamports' | 'rentFeeLamports' | 'totalSolCostLamports' | 'feeBps' | 'feeMint' | 'platformFee'>; transaction?: string };
+    const orderData = await orderResponse.json() as { state: string; message?: string; attempt?: Pick<Review, 'id' | 'requestId' | 'messageHash' | 'state' | 'inputRaw' | 'outputRaw' | 'minimumOutputRaw' | 'router' | 'expiresAt' | 'prioritizationFeeLamports' | 'signatureFeeLamports' | 'rentFeeLamports' | 'totalSolCostLamports' | 'feeBps' | 'feeMint' | 'platformFee' | 'semanticProof'>; transaction?: string };
     if (!orderResponse.ok || orderData.state !== 'success' || !orderData.attempt || !orderData.transaction) throw new Error(orderData.message ?? 'The executable order could not be prepared.');
+    if (version !== approvalVersion.current || intentFingerprint(nextIntent) !== latestFingerprint.current) throw new Error('The plan, wallet, or catalog changed while preparing this order. Request a fresh review.');
     setReview({ ...orderData.attempt, runId, legId: leg.id, mint: leg.mint, transaction: orderData.transaction, fingerprint: intentFingerprint(nextIntent) });
   }, []);
 
@@ -175,7 +183,7 @@ export function ExecutionReview({ mode, basket, assets, quotes, scheduleOccurren
   }, [config?.enabled, config?.reconciliationAvailable, loadRun, mode]);
 
   const createReview = useCallback(async () => {
-    if (!config?.enabled || !config.limits || !account || !plan.valid || !allQuotesReady || blocked || signing.current) return;
+    if (!config?.enabled || !config.limits || !account || !plan.valid || !allQuotesReady || !catalogVerified || blocked || signing.current) return;
     setBusy(true); setError(false); setMessage(null);
     try {
       const intent = { version: 1 as const, chain: 'solana:mainnet' as const, wallet: account.address, inputMint: 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v', budgetRaw: plan.allocations.reduce((sum, item) => sum + BigInt(item.usdcRaw), 0n).toString(), legs: plan.allocations.map((item, index) => ({ id: `${assetByMint.get(item.mint)?.symbol.toLowerCase() ?? `leg-${index}`}`, issuerId: assetByMint.get(item.mint)?.symbol ?? item.mint, mint: item.mint, allocationBps: item.weightBps, maximumInputRaw: item.usdcRaw })), policyVersion: config.policyVersion ?? 'unknown', reviewedLimits: config.limits, ...(scheduleOccurrenceId ? { scheduleOccurrenceId } : {}) };
@@ -186,14 +194,15 @@ export function ExecutionReview({ mode, basket, assets, quotes, scheduleOccurren
       await loadRun(data.run.id, true);
     } catch (err) { setMessage(err instanceof Error ? err.message : 'The review could not be created.'); setError(true); }
     finally { setBusy(false); }
-  }, [account, allQuotesReady, assetByMint, blocked, config, loadRun, plan, scheduleOccurrenceId]);
+  }, [account, allQuotesReady, assetByMint, blocked, catalogVerified, config, loadRun, plan, scheduleOccurrenceId]);
 
   const resumeRemaining = useCallback(() => {
-    if (runId && runFingerprint === currentFingerprint) void loadRun(runId, true);
-  }, [currentFingerprint, loadRun, runFingerprint, runId]);
+    if (catalogVerified && runId && runFingerprint === currentFingerprint) void loadRun(runId, true);
+  }, [catalogVerified, currentFingerprint, loadRun, runFingerprint, runId]);
 
   const signAndSubmit = useCallback(async () => {
-    if (!review || !selectedWallet || !account || signing.current || blocked || !hasCompleteFees(review)) return;
+    if (!review || !selectedWallet || !account || signing.current || blocked || !catalogVerified || !hasCompleteFees(review)) return;
+    const version = approvalVersion.current;
     if (review.fingerprint !== latestFingerprint.current) {
       setReview(null); setMessage('The plan changed after this review. Request fresh estimates and review again.'); setError(true); return;
     }
@@ -215,12 +224,12 @@ export function ExecutionReview({ mode, basket, assets, quotes, scheduleOccurren
         if (!leg || leg.state === 'confirmed' || unresolvedStates.includes(leg.state) || localStorage.getItem(pendingKey(review.runId))) {
           setReview(null); await loadRun(review.runId, false); return;
         }
-        if (review.fingerprint !== latestFingerprint.current || Date.parse(review.expiresAt) <= Date.now()) throw new Error('This review changed or expired. Request a fresh order before signing.');
+        if (version !== approvalVersion.current || review.fingerprint !== latestFingerprint.current || Date.parse(review.expiresAt) <= Date.now()) throw new Error('This review changed or expired. Request a fresh order before signing.');
         setMessage('Your wallet is waiting for approval. Check the transaction details there.');
         const signed = await feature.signTransaction({ account, transaction: fromBase64(review.transaction), chain: 'solana:mainnet' });
         const bytes = signed[0]?.signedTransaction;
         if (!bytes) throw new Error('The wallet returned no signed transaction.');
-        if (review.fingerprint !== latestFingerprint.current) throw new Error('The plan or wallet changed during approval. The signed bytes were not submitted.');
+        if (version !== approvalVersion.current || review.fingerprint !== latestFingerprint.current) throw new Error('The plan, wallet, or catalog changed during approval. The signed bytes were not submitted.');
         // Persist the uncertainty fence before the first possible network write.
         // A lost HTTP response cannot make this transaction signable again.
         localStorage.setItem(pendingKey(review.runId), review.id);
@@ -247,7 +256,7 @@ export function ExecutionReview({ mode, basket, assets, quotes, scheduleOccurren
       setMessage(submissionStarted ? 'The submission outcome is uncertain. Check the original receipt before any further approval; no replacement purchase was created.' : err instanceof Error ? err.message : 'The wallet rejected the signature. No purchase was submitted.');
       setError(true);
     } finally { signing.current = false; setBusy(false); }
-  }, [account, blocked, loadRun, review, selectedWallet]);
+  }, [account, blocked, catalogVerified, loadRun, review, selectedWallet]);
 
   function downloadReceipts() {
     const fields = ['confirmationStatus', 'slot', 'feeLamports', 'blockTime', 'proofAt', 'inputMint', 'outputMint', 'inputDebitRaw', 'outputCreditRaw', 'walletSolDebitLamports', 'transactionMessageHash', 'reason'];
@@ -257,7 +266,7 @@ export function ExecutionReview({ mode, basket, assets, quotes, scheduleOccurren
     window.setTimeout(() => URL.revokeObjectURL(url), 1000);
   }
 
-  if (mode === 'example') return <section className="execution-card execution-example" aria-labelledby="execution-heading"><div className="execution-card-heading"><div><div className="panel-kicker">04 <span /> EXECUTION READINESS</div><h2 id="execution-heading">Practice mode stays read-only.</h2></div><FlaskConical size={18} /></div><p>Example plans never connect a wallet, request a signature, or submit a purchase. Switch to Live for current issuer and chain checks.</p><div className="execution-note"><ShieldCheck size={15} /> No funds move in Example mode.</div></section>;
+  if (mode === 'example') return <section className="execution-card execution-example" aria-labelledby="execution-heading"><div className="execution-card-heading"><div><div className="panel-kicker">03 <span /> EXECUTION READINESS</div><h2 id="execution-heading">Practice mode stays read-only.</h2></div><FlaskConical size={18} /></div><p>Example plans never connect a wallet, request a signature, or submit a purchase. Switch to Live for current issuer and chain checks.</p><div className="execution-note"><ShieldCheck size={15} /> No funds move in Example mode.</div></section>;
 
   const hasMatchingRun = Boolean(runId && runFingerprint === currentFingerprint);
   const reviewMatchesPlan = Boolean(review && review.fingerprint === currentFingerprint);
@@ -266,18 +275,19 @@ export function ExecutionReview({ mode, basket, assets, quotes, scheduleOccurren
   const terminalFailure = runLegs.some(leg => leg.state === 'failed-onchain' || leg.state === 'rejected');
   const selectedAsset = review ? assetByMint.get(review.mint) : undefined;
   return <section className="execution-card" aria-labelledby="execution-heading">
-    <div className="execution-card-heading"><div><div className="panel-kicker">04 <span /> EXECUTION READINESS</div><h2 id="execution-heading">Review before you sign.</h2></div><LockKeyhole size={18} /></div>
-    {!config?.enabled ? <div className="execution-gate"><p>Signing is deliberately switched off in this public build. Lotline still computes the exact order for every asset — you complete the contribution yourself using the prefilled Jupiter links above.</p><details className="execution-readiness"><summary>Operator readiness detail</summary><ul>{(config?.reasons ?? ['Checking server readiness…']).map(reason => <li key={reason}>{reason}</li>)}</ul></details><span><ShieldCheck size={14} /> No wallet prompt or transaction is created while signing is switched off.</span></div> : null}
+    <div className="execution-card-heading"><div><div className="panel-kicker">03 <span /> EXECUTION READINESS</div><h2 id="execution-heading">Review before you sign.</h2></div><LockKeyhole size={18} /></div>
+    {!config?.enabled ? <div className="execution-gate"><p>{config?.message ?? 'Checking purchase availability…'}</p><span><ShieldCheck size={14} />Planning stays available. Opening Jupiter does not request a signature in Lotline.</span></div> : null}
     {(config?.enabled || runId) && <>
       <p>Each asset is a separate transaction. Review and approve one leg at a time; a later failure cannot undo a confirmed purchase.</p>
       {runLegs.length > 0 && <div className="execution-progress" role="status"><span>{confirmedCount} of {runLegs.length} legs confirmed{confirmedMints.length > 0 && <small className="execution-confirmed">Confirmed: {confirmedMints.map(mint => assetByMint.get(mint)?.symbol ?? mint.slice(0, 6)).join(', ')}</small>}</span><small>{blocked ? 'Reconciliation required' : confirmedCount === runLegs.length ? 'Run complete' : review ? `Leg ${Math.min(legIndex + 1, runLegs.length)} is in review` : 'Resume when ready'}</small></div>}
       {config?.enabled && (wallets.length === 0 ? <div className="execution-wallet-empty"><WalletCards size={17} /><span>No Wallet Standard wallet was detected in this browser.</span></div> : <div className="execution-wallets"><span className="field-label">Wallet</span>{account ? <div className="connected-wallet"><Check size={15} /><span>{shortAddress(account.address)}</span><small>{selectedWallet?.name ?? 'Wallet Standard'}</small></div> : <div className="wallet-options">{wallets.map(wallet => <button type="button" key={wallet.name} onClick={() => chooseWallet(wallet)} disabled={busy || restoring}>{wallet.name}<ArrowRight size={14} /></button>)}</div>}</div>)}
+      {!catalogVerified && <p className="execution-message error">Current asset verification is unavailable, an issuer halt is reported, or you’re offline. Refresh the catalog before a new approval. Existing receipts can still be checked online.</p>}
       <div className="execution-actions">
         {(blocked || !config?.enabled) ? <button type="button" className="button secondary" onClick={() => { if (runId) void loadRun(runId, false); }} disabled={busy || restoring || !runId}>{busy || restoring ? 'Checking receipt…' : 'Check original receipt'}</button> : review ? <>
           {!feesReady && <p className="execution-message error">Complete fee information is unavailable. No wallet approval can be requested.</p>}
           {(!reviewMatchesPlan || expired) && <p className="execution-message error">{expired ? 'This unsigned order expired. Refresh its review before signing.' : 'The plan changed. Request fresh estimates and review the updated amount.'}</p>}
-          {(!reviewMatchesPlan || expired) ? <button type="button" className="button secondary" onClick={() => setReview(null)} disabled={busy}>Update review</button> : <button type="button" className="button primary" onClick={() => void signAndSubmit()} disabled={busy || restoring || !feesReady}>{busy ? <><LoaderCircle size={15} className="spinning" />Waiting…</> : <>Sign this purchase <ArrowRight size={15} /></>}</button>}
-        </> : <button type="button" className="button primary" onClick={hasMatchingRun ? resumeRemaining : createReview} disabled={busy || restoring || !account || !plan.valid || (!hasMatchingRun && !allQuotesReady) || (hasMatchingRun && (confirmedCount === runLegs.length || terminalFailure))}>{busy || restoring ? <><LoaderCircle size={15} className="spinning" />{restoring ? 'Restoring review…' : 'Preparing review…'}</> : hasMatchingRun ? <>Resume remaining <ArrowRight size={15} /></> : <>Review purchase <ArrowRight size={15} /></>}</button>}
+          {(!reviewMatchesPlan || expired) ? <button type="button" className="button secondary" onClick={() => setReview(null)} disabled={busy}>Update review</button> : <button type="button" className="button primary" onClick={() => void signAndSubmit()} disabled={busy || restoring || !feesReady || !catalogVerified}>{busy ? <><LoaderCircle size={15} className="spinning" />Waiting…</> : <>Sign this purchase <ArrowRight size={15} /></>}</button>}
+        </> : <button type="button" className="button primary" onClick={hasMatchingRun ? resumeRemaining : createReview} disabled={busy || restoring || !account || !plan.valid || !catalogVerified || (!hasMatchingRun && !allQuotesReady) || (hasMatchingRun && (confirmedCount === runLegs.length || terminalFailure))}>{busy || restoring ? <><LoaderCircle size={15} className="spinning" />{restoring ? 'Restoring review…' : 'Preparing review…'}</> : hasMatchingRun ? <>Resume remaining <ArrowRight size={15} /></> : <>Review purchase <ArrowRight size={15} /></>}</button>}
       </div>
       {review && <div className="execution-review">
         <div><span>Asset / issuer</span><strong>{selectedAsset?.name ?? review.mint} · xStocks</strong></div>
@@ -291,9 +301,10 @@ export function ExecutionReview({ mode, basket, assets, quotes, scheduleOccurren
         <div><span>Account creation rent</span><strong>{review.rentFeeLamports ?? 'Unavailable'} lamports</strong></div>
         <div><span>Estimated total SOL debit</span><strong>{review.totalSolCostLamports ?? 'Unavailable'} lamports</strong></div>
         <div><span>Maximum total SOL cost</span><strong>{intent?.reviewedLimits.maximumTotalSolCostLamports} lamports</strong></div>
-        <div><span>Token fee</span><strong>{review.feeBps === undefined || !review.feeMint ? 'Unavailable' : `${review.feeBps} basis points (${review.feeMint})`}{review.platformFee ? `; platform portion ${review.platformFee.amount} raw units` : ''}</strong></div>
+        <div><span>Token fee</span><strong>{review.feeBps === undefined || !review.feeMint ? 'Unavailable' : `${review.feeBps} basis points (${review.feeMint})`}{review.platformFee?.amount ? `; platform portion ${review.platformFee.amount} raw units` : ''}</strong></div>
         <div><span>Slippage cap</span><strong>{intent?.reviewedLimits.slippageBps} basis points</strong></div>
         <div><span>Route</span><strong>{review.router}</strong></div>
+        {review.semanticProof && <><div><span>Transaction checks</span><strong>Direct Raydium CLMM · simulated at slot {review.semanticProof.simulationSlot}</strong></div>{review.semanticProof.outputUnitContext && <div><span>Display-unit observation</span><strong>Mint / Clock slot {review.semanticProof.outputUnitContext.mintSlot} · multiplier {review.semanticProof.outputUnitContext.multiplier}. Raw minimum above is enforced.</strong></div>}{review.semanticProof.issuerControlled && <p>Issuer controls apply: the issuer can freeze or administratively transfer tokens. Current technical checks do not establish eligibility or shareholder rights.</p>}</>}
         <div><span>Expires</span><strong>{new Date(review.expiresAt).toLocaleTimeString()}</strong></div>
         <p><ShieldCheck size={14} />Minimum output uses raw transferable token units. Your wallet approves this exact message; no automatic top-ups or later purchases.</p>
       </div>}

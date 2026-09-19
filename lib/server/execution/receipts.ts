@@ -1,10 +1,12 @@
 import 'server-only';
 import { getCompiledTransactionMessageDecoder, getTransactionDecoder } from '@solana/kit';
+import { amountToUiAmountForScaledUiAmountMintWithoutSimulation } from '@solana-program/token-2022';
 import { z } from 'zod';
 import { addressSchema, rawSchema, TOKEN_2022_PROGRAM, TOKEN_PROGRAM, U64_MAX, USDC_MINT } from '@/lib/server/common';
 import { validateSignedTransaction } from './submit';
+import { MAINNET_GENESIS_HASH } from '@/lib/server/solana-network';
 
-export const MAINNET_GENESIS_HASH = '5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp';
+export { MAINNET_GENESIS_HASH } from '@/lib/server/solana-network';
 // RPC JSON uses numeric u64s. Accept only exact safe numbers or canonical strings;
 // silently rounding an unsafe JSON number would manufacture settlement evidence.
 const rpcInteger = z.union([rawSchema, z.number().int().nonnegative().max(Number.MAX_SAFE_INTEGER).transform(String)]);
@@ -27,11 +29,25 @@ const transactionSchema = z.object({
     loadedAddresses: z.object({ writable: z.array(addressSchema).max(256), readonly: z.array(addressSchema).max(256) }).optional(),
   }),
 });
+const slotNumber = z.number().int().nonnegative().max(Number.MAX_SAFE_INTEGER);
+const unitContextSchema = z.object({
+  source: z.literal('clock-sysvar'), kind: z.literal('scaled'), decimals: z.number().int().min(0).max(18),
+  tokenProgram: z.literal(TOKEN_2022_PROGRAM), mintSlot: slotNumber, clockSlot: slotNumber,
+  observedAt: z.string().datetime({ offset: true }), unixTimestamp: rawSchema, multiplier: z.number().positive().finite(),
+});
+export const semanticProofSchema = z.object({
+  version: z.literal('jupiter-route-v2-raydium-clmm-v1'), genesisHash: z.literal(MAINNET_GENESIS_HASH), lookupContextSlot: slotNumber.nullable(),
+  loadedAddresses: z.object({ writable: z.array(addressSchema).max(256), readonly: z.array(addressSchema).max(256) }),
+  source: addressSchema, destination: addressSchema, pool: addressSchema, inputRaw: rawSchema, minimumOutputRaw: rawSchema, tokenFeeRaw: rawSchema,
+  simulationSlot: slotNumber, unitsConsumed: slotNumber, networkFeeLamports: rawSchema, rentLamports: rawSchema, totalSolCostLamports: rawSchema,
+  checkedAt: z.string().datetime({ offset: true }), outputUnitContext: unitContextSchema.optional(), issuerControlled: z.boolean(),
+});
 
 export type ReceiptExpectation = {
   wallet: string; signature: string; messageHash: string; transaction: string;
   originalBlockhash: string; inputMint: string; outputMint: string;
   maximumInputRaw: string; minimumOutputRaw: string; maximumTotalSolCostLamports: string;
+  semanticProof?: unknown;
 };
 export type ReceiptVerification = {
   state: 'confirmed' | 'failed-onchain' | 'confirming' | 'unknown';
@@ -61,14 +77,27 @@ export async function verifyExecutionReceipt(payload: { genesisHash: unknown; st
     const decoded = getTransactionDecoder().decode(Buffer.from(transaction.transaction[0], 'base64'));
     const message = getCompiledTransactionMessageDecoder().decode(decoded.messageBytes);
     if (!('lifetimeToken' in message) || message.lifetimeToken !== expected.originalBlockhash || message.staticAccounts[0] !== expected.wallet) return result('unknown', 'The returned transaction does not match the approved wallet or lifetime.');
-    if (message.version !== 0 || message.addressTableLookups?.length) return result('unknown', 'This receipt requires unsupported address lookup resolution.');
+    if (message.version !== 0) return result('unknown', 'This receipt requires an unsupported transaction version.');
+    const parsedProof = expected.semanticProof == null ? undefined : semanticProofSchema.safeParse(expected.semanticProof);
+    if (parsedProof && !parsedProof.success) return result('unknown', 'The original semantic validation proof is incomplete.');
+    const proof = parsedProof?.data;
+    const lookups = message.addressTableLookups ?? [];
+    if (lookups.length && !proof) return result('unknown', 'This lookup-table receipt needs its original approved account resolution.');
+    if (proof && (proof.inputRaw !== expected.maximumInputRaw || proof.minimumOutputRaw !== expected.minimumOutputRaw || (lookups.length > 0 && proof.lookupContextSlot === null))) return result('unknown', 'The original validation proof does not match the preserved contribution limits.');
     const meta = transaction.meta;
-    if ((meta.loadedAddresses?.writable.length ?? 0) !== 0 || (meta.loadedAddresses?.readonly.length ?? 0) !== 0 || meta.preBalances.length !== message.staticAccounts.length || meta.postBalances.length !== message.staticAccounts.length) return result('unknown', 'The transaction account and balance records are incomplete.');
+    const approvedLoaded = proof?.loadedAddresses ?? { writable: [], readonly: [] };
+    const actualLoaded = meta.loadedAddresses ?? { writable: [], readonly: [] };
+    if (approvedLoaded.writable.length !== lookups.reduce((count, lookup) => count + lookup.writableIndexes.length, 0)
+      || approvedLoaded.readonly.length !== lookups.reduce((count, lookup) => count + lookup.readonlyIndexes.length, 0)
+      || JSON.stringify(approvedLoaded.writable) !== JSON.stringify(actualLoaded.writable)
+      || JSON.stringify(approvedLoaded.readonly) !== JSON.stringify(actualLoaded.readonly)) return result('unknown', 'The confirmed lookup addresses differ from the original approved account resolution.');
+    const accountKeys = [...message.staticAccounts, ...approvedLoaded.writable, ...approvedLoaded.readonly];
+    if (new Set(accountKeys).size !== accountKeys.length || meta.preBalances.length !== accountKeys.length || meta.postBalances.length !== accountKeys.length) return result('unknown', 'The transaction account and balance records are incomplete.');
     const common = { signature: expected.signature, transactionMessageHash: expected.messageHash, signedTransactionHash: signed.signedTransactionHash, originalBlockhash: expected.originalBlockhash, genesisHash: MAINNET_GENESIS_HASH, confirmationStatus: receipt.confirmationStatus, slot: transaction.slot, feeLamports: meta.fee, blockTime: transaction.blockTime ?? null, proofAt: new Date().toISOString() };
     if ((receipt.err === null) !== (meta.err === null)) return result('unknown', 'The signature and transaction records disagree about an on-chain error.', common);
     if (meta.err !== null) return result('failed-onchain', 'The original Solana transaction failed on-chain. No replacement purchase was created.', { ...common, metaError: meta.err });
     if (expected.inputMint !== USDC_MINT || !rawSchema.safeParse(expected.maximumInputRaw).success || !rawSchema.safeParse(expected.minimumOutputRaw).success || !rawSchema.safeParse(expected.maximumTotalSolCostLamports).success) return result('unknown', 'The preserved contribution limits cannot be verified.');
-    const accountCount = message.staticAccounts.length;
+    const accountCount = accountKeys.length;
     const pre = tokenBalances(meta.preTokenBalances, accountCount);
     const post = tokenBalances(meta.postTokenBalances, accountCount);
     if (!pre || !post) return result('unknown', 'Token balance evidence contains duplicate or unsupported account records.', common);
@@ -86,8 +115,24 @@ export async function verifyExecutionReceipt(payload: { genesisHash: unknown; st
     const solDebit = BigInt(meta.preBalances[0]) - BigInt(meta.postBalances[0]);
     const deltas = { inputMint: expected.inputMint, outputMint: expected.outputMint, inputDebitRaw: inputDebit.toString(), outputCreditRaw: outputCredit.toString(), walletSolDebitLamports: solDebit.toString() };
     if (inputDebit !== BigInt(expected.maximumInputRaw) || inputDebit <= 0n || outputCredit < BigInt(expected.minimumOutputRaw) || outputCredit <= 0n) return result('unknown', 'The observed token deltas do not satisfy the reviewed purchase. Reconcile before taking another action.', { ...common, ...deltas });
+    if (proof) {
+      const sourceIndex = accountKeys.indexOf(proof.source);
+      const destinationIndex = accountKeys.indexOf(proof.destination);
+      const sourceBefore = pre.get(sourceIndex); const sourceAfter = post.get(sourceIndex);
+      const destinationBefore = pre.get(destinationIndex); const destinationAfter = post.get(destinationIndex);
+      const matches = (row: TokenBalance | undefined, mint: string, program: string) => row !== undefined && row.owner === expected.wallet && row.mint === mint && row.programId === program;
+      if (sourceIndex < 0 || destinationIndex < 0 || sourceIndex === destinationIndex
+        || !matches(sourceBefore, expected.inputMint, TOKEN_PROGRAM) || !matches(sourceAfter, expected.inputMint, TOKEN_PROGRAM)
+        || !matches(destinationAfter, expected.outputMint, TOKEN_2022_PROGRAM)
+        || (destinationBefore && !matches(destinationBefore, expected.outputMint, TOKEN_2022_PROGRAM))
+        || BigInt(sourceBefore!.uiTokenAmount.amount) - BigInt(sourceAfter!.uiTokenAmount.amount) !== inputDebit
+        || BigInt(destinationAfter!.uiTokenAmount.amount) - BigInt(destinationBefore?.uiTokenAmount.amount ?? '0') !== outputCredit) return result('unknown', 'The exact approved source and destination deltas cannot be verified.', { ...common, ...deltas });
+      if (proof.outputUnitContext && destinationAfter!.uiTokenAmount.decimals !== proof.outputUnitContext.decimals) return result('unknown', 'The receipt decimals differ from the original display context.', { ...common, ...deltas });
+    }
     if (BigInt(meta.fee) > BigInt(expected.maximumTotalSolCostLamports) || solDebit > BigInt(expected.maximumTotalSolCostLamports)) return result('unknown', 'The observed SOL debit exceeds the reviewed limit.', { ...common, ...deltas });
-    return result('confirmed', 'Solana confirmed the original transaction and its exact token deltas satisfy the reviewed purchase.', { ...common, ...deltas, metaError: null, rawTokenBalances: { before: meta.preTokenBalances, after: meta.postTokenBalances } });
+    const outputContext = proof?.outputUnitContext;
+    const outputUnits = outputContext ? amountToUiAmountForScaledUiAmountMintWithoutSimulation(outputCredit, outputContext.decimals, outputContext.multiplier) : undefined;
+    return result('confirmed', 'Solana confirmed the original transaction and its exact token deltas satisfy the reviewed purchase.', { ...common, ...deltas, metaError: null, rawTokenBalances: { before: meta.preTokenBalances, after: meta.postTokenBalances }, ...(proof ? { approvedLoadedAddresses: approvedLoaded, validatorVersion: proof.version, reviewedTokenFeeRaw: proof.tokenFeeRaw } : {}), ...(outputContext ? { outputUnitContext: outputContext, outputUnits } : {}) });
   } catch {
     return result('unknown', 'The returned transaction could not be matched to the approved signed message.');
   }

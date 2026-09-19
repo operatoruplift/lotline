@@ -5,13 +5,52 @@ import { BASKET_STORAGE_KEY } from '../../lib/domain/storage';
 test('a first Live visit cannot leave the linked Example empty', async ({ page }) => {
   await page.route('**/api/assets', route => route.fulfill({ json: { state: 'success', assets: EXAMPLE_ASSETS, unavailable: [] } }));
   await page.goto('/app');
-  await expect(page.getByText('Draft saved here', { exact: true })).toBeVisible();
+  await expect(page.getByText('Draft ready', { exact: true })).toBeVisible();
   await expect(page.getByLabel('AAPLx percentage')).toHaveCount(0);
+  expect(await page.evaluate(key => localStorage.getItem(key), BASKET_STORAGE_KEY)).toBeNull();
+  await page.reload();
+  await expect(page.getByText('Make your first split.', { exact: true })).toBeVisible();
+  expect(await page.evaluate(key => localStorage.getItem(key), BASKET_STORAGE_KEY)).toBeNull();
   await page.getByRole('link', { name: 'How it works', exact: true }).first().click();
   await page.getByRole('link', { name: /try the example/i }).first().click();
   await expect(page.getByLabel('AAPLx percentage')).toHaveValue('50');
   await expect(page.getByRole('button', { name: 'Refresh estimates', exact: true })).toBeEnabled();
   await expect(page.locator('.network-badge')).toHaveText('Synthetic example');
+});
+
+test('removing every asset preserves that empty draft across linked Example navigation', async ({ page }) => {
+  await page.route('**/api/assets', route => route.fulfill({ json: { state: 'success', assets: EXAMPLE_ASSETS, unavailable: [] } }));
+  await page.goto('/app');
+  await page.getByRole('button', { name: 'Apply illustrative split', exact: true }).click();
+  await page.getByLabel('USDC budget').fill('42.000007');
+  for (const symbol of ['AAPLx', 'MSFTx', 'NVDAx']) await page.getByRole('button', { name: `Remove ${symbol}`, exact: true }).click();
+  await expect(page.getByText('Your empty draft is preserved.', { exact: true })).toBeVisible();
+  await page.getByRole('link', { name: 'How it works', exact: true }).first().click();
+  await page.getByRole('link', { name: /try the example/i }).first().click();
+  await expect(page.getByText('0 / 10 assets', { exact: true })).toBeVisible();
+  await expect(page.getByLabel('USDC budget')).toHaveValue('42.000007');
+  await expect(page.getByLabel('AAPLx percentage')).toHaveCount(0);
+  await page.reload();
+  await expect(page.getByText('0 / 10 assets', { exact: true })).toBeVisible();
+});
+
+test('the Example toggle seeds only an untouched Live draft, preserving an edited empty one', async ({ page }) => {
+  await page.route('**/api/assets', route => route.fulfill({ json: { state: 'success', assets: EXAMPLE_ASSETS, unavailable: [] } }));
+  await page.goto('/app');
+  await expect(page.getByText('Draft ready', { exact: true })).toBeVisible();
+  await page.getByRole('button', { name: 'Example', exact: true }).click();
+  await expect(page.getByLabel('AAPLx percentage')).toHaveValue('50');
+  await expect(page.getByRole('button', { name: 'Refresh estimates', exact: true })).toBeEnabled();
+
+  await page.evaluate(key => localStorage.removeItem(key), BASKET_STORAGE_KEY);
+  await page.goto('/app');
+  await expect(page.getByText('Draft ready', { exact: true })).toBeVisible();
+  await page.getByLabel('USDC budget').fill('19.000005');
+  await expect(page.getByText('Draft saved here', { exact: true })).toBeVisible();
+  await page.getByRole('button', { name: 'Example', exact: true }).click();
+  await expect(page.getByText('0 / 10 assets', { exact: true })).toBeVisible();
+  await expect(page.getByLabel('USDC budget')).toHaveValue('19.000005');
+  await expect(page.getByLabel('AAPLx percentage')).toHaveCount(0);
 });
 
 test('replace an asset without losing its weight, split exactly, and reset deliberately', async ({ page }) => {

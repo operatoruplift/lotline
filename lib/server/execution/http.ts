@@ -3,7 +3,7 @@ import { createClient } from '@supabase/supabase-js';
 import { createHash, createHmac, randomBytes } from 'node:crypto';
 import { serverSupabase } from '@/lib/supabase/server';
 import { cookies } from 'next/headers';
-import { executionConfig } from './config';
+import { executionConfig, publicExecutionConfig } from './config';
 import { noStore } from '@/lib/server/requests';
 import { isSameOriginMutation } from '@/lib/supabase/plans';
 import { ServiceError } from '@/lib/server/common';
@@ -101,7 +101,7 @@ export function json(body: unknown, status = 200) {
 
 export function ensureExecutionEnabled() {
   const config = executionConfig();
-  if (!config.enabled) return { response: json({ state: 'configuration-required', ...config }, 503), config };
+  if (!config.enabled) return { response: json({ state: 'configuration-required', ...publicExecutionConfig(config) }, 503), config };
   return { config };
 }
 

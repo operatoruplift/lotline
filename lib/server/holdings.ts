@@ -2,7 +2,7 @@ import 'server-only';
 import type { Holding, HoldingsResponse, ProjectionResponse } from '../domain/types';
 import { selectedAssets } from './catalog';
 import { addressSchema, BoundedCache, safeMessage, ServiceError, USDC_MINT } from './common';
-import { convertRawUnits, loadRawBalance } from './solana';
+import { convertRawUnitsWithContext, loadRawBalanceWithContext } from './solana';
 
 const holdingsCache = new BoundedCache<HoldingsResponse>(100);
 export function unavailableHolding(mint: string, message: string): Holding {
@@ -23,9 +23,13 @@ export async function getHoldings(owner: string, mints: string[]): Promise<Holdi
   const fetchedAt = new Date().toISOString();
   const read = async (mint: string): Promise<Holding> => {
     try {
-      const raw = await loadRawBalance(owner, mint);
-      try { return { mint, state: 'success', raw, units: await convertRawUnits(mint, raw) }; }
-      catch (error) { return { mint, state: 'success', raw, units: null, message: safeMessage(error) }; }
+      const balance = await loadRawBalanceWithContext(owner, mint);
+      const observed = { mint, raw: balance.raw, balanceSlot: balance.slot, frozenRaw: balance.frozenRaw };
+      try {
+        const converted = await convertRawUnitsWithContext(mint, balance.raw);
+        return { ...observed, state: 'success', units: converted.units, unitContext: converted.context, ...(balance.frozenRaw !== '0' ? { message: 'Includes frozen token units that are not currently transferable.' } : {}) };
+      }
+      catch (error) { return { ...observed, state: 'success', units: null, message: safeMessage(error) }; }
     } catch (error) { return unavailableHolding(mint, safeMessage(error)); }
   };
   const holdings: Holding[] = [];
@@ -41,7 +45,7 @@ export async function getUnits(items: { mint: string; raw: string }[]): Promise<
   await selectedAssets(items.map(item => item.mint));
   const results: ProjectionResponse['items'] = [];
   for (const item of items) {
-    try { results.push({ mint: item.mint, units: await convertRawUnits(item.mint, item.raw) }); }
+    try { const converted = await convertRawUnitsWithContext(item.mint, item.raw); results.push({ mint: item.mint, units: converted.units, unitContext: converted.context }); }
     catch (error) { results.push({ mint: item.mint, units: null, message: safeMessage(error) }); }
   }
   const complete = results.filter(item => item.units !== null).length;

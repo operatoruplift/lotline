@@ -1,6 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { address } from '@solana/kit';
 import { getMintEncoder } from '@solana-program/token-2022';
+import { MAINNET_GENESIS_HASH } from '../lib/server/solana-network';
 
 const AAPL = 'XsbEhLAtcf6HdfpFZ5xEMdqW8nfAvcsP5bdudRLJzJp';
 const MSFT = 'XspzcW1PRtgf6Wj92HCiZdjzKCyFekVD8P5Ueh3dRMX';
@@ -11,7 +12,7 @@ const CLOCK = 'SysvarC1ock11111111111111111111111111111111';
 const issuer = { symbol: 'AAPLx', name: 'Apple xStock', isin: 'CH1436219187', underlyingSymbol: 'AAPL', underlyingIsin: 'US0378331005', logo: 'https://xstocks-metadata.backed.fi/logos/tokens/AAPLx.png', isTradingHalted: false, trading: { isTradingHalted: false }, deployments: [{ network: 'Solana', address: AAPL }, { network: 'Ethereum', address: '0xnot-solana' }] };
 const upstreamQuote = { inputMint: USDC, outputMint: AAPL, inAmount: '10000000', outAmount: '2968207', transaction: null, router: 'metis', feeBps: 10, feeMint: USDC, taker: null, signatureFeeLamports: 0 };
 const info = { decimals: 8, tokenProgram: PROGRAM, scaled: true };
-const account = (amount: string, pubkey = 'a') => ({ pubkey, account: { owner: PROGRAM, executable: false, data: { parsed: { type: 'account', info: { mint: AAPL, owner: OWNER, tokenAmount: { amount, decimals: 8, uiAmountString: 'IGNORE-ALREADY-SCALED' } } } } } });
+const account = (amount: string, pubkey = 'a') => ({ pubkey, account: { owner: PROGRAM, executable: false, data: { parsed: { type: 'account', info: { mint: AAPL, owner: OWNER, state: 'initialized', tokenAmount: { amount, decimals: 8, uiAmountString: 'IGNORE-ALREADY-SCALED' } } } } } });
 
 beforeEach(() => { vi.resetModules(); vi.stubEnv('SOLANA_RPC_URL', 'https://rpc.example.test/?secret=DO-NOT-LEAK'); vi.stubEnv('JUPITER_API_KEY', ''); });
 afterEach(() => { vi.unstubAllGlobals(); vi.unstubAllEnvs(); vi.useRealTimers(); });
@@ -70,9 +71,10 @@ describe('installed mint-aware conversion, including chain-time activation', () 
     const clock = Buffer.alloc(40); clock.writeBigInt64LE(timestamp, 32);
     vi.stubGlobal('fetch', vi.fn(async (_url, init) => {
       const body = JSON.parse(init.body);
-      expect(body.method).toBe('getAccountInfo');
-      const isClock = body.params[0] === CLOCK;
-      return Response.json({ jsonrpc: '2.0', id: 1, result: { context: { slot: 1 }, value: { owner: isClock ? 'Sysvar1111111111111111111111111111111111111' : PROGRAM, executable: false, lamports: 100, rentEpoch: 0, data: [Buffer.from(isClock ? clock : encoded).toString('base64'), 'base64'] } } });
+      if (body.method === 'getGenesisHash') return Response.json({ result: MAINNET_GENESIS_HASH });
+      expect(body.method).toBe('getMultipleAccounts');
+      expect(body.params[0]).toEqual([AAPL, CLOCK]);
+      return Response.json({ jsonrpc: '2.0', id: 1, result: { context: { slot: 1 }, value: body.params[0].map((key: string) => ({ owner: key === CLOCK ? 'Sysvar1111111111111111111111111111111111111' : PROGRAM, executable: false, lamports: 100, rentEpoch: 0, data: [Buffer.from(key === CLOCK ? clock : encoded).toString('base64'), 'base64'] })) } });
     }));
     const { convertRawUnits } = await import('../lib/server/solana');
     return convertRawUnits(AAPL, raw);

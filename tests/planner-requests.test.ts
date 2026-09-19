@@ -47,6 +47,30 @@ it('does not present an empty successful response as successful estimates', asyn
   expect(result.quotes.every(item => item.units === null)).toBe(true);
 });
 
+it('preserves per-asset failure categories from a valid503 body and rejects mismatched identities', async () => {
+  const failed = { ...quote(items[0]), state: 'unavailable', outRaw: null, units: null, reasonCode: 'issuer-halted', message: 'The issuer reports a halt.' };
+  vi.stubGlobal('fetch', vi.fn(async () => Response.json({ state: 'unavailable', quotes: [failed] }, { status: 503 })));
+  expect((await requestQuotes(items.slice(0, 1), new AbortController().signal, () => {})).quotes[0]).toMatchObject(failed);
+  for (const invalid of [{ ...failed, mint: items[1].mint }, { ...failed, usdcRaw: '999' }, quote(items[0])]) {
+    vi.stubGlobal('fetch', vi.fn(async () => Response.json({ state: 'unavailable', quotes: [invalid] }, { status: 503 })));
+    expect((await requestQuotes(items.slice(0, 1), new AbortController().signal, () => {})).quotes[0]).toMatchObject({ mint: items[0].mint, state: 'unavailable', outRaw: null, reasonCode: 'provider-unavailable' });
+  }
+});
+it('retains an HTTP429 reason without trusting malformed response bodies', async () => {
+  for (const response of [new Response('upstream rate limit', { status: 429 }), new Response('{garbage', { status: 429, headers: { 'content-type': 'application/json' } }), Response.json({ state: 'unavailable', quotes: [] }, { status: 429 }), Response.json({ state: 'unavailable', quotes: [{ ...quote(items[0]), outRaw: 'oops' }] }, { status: 429 })]) {
+    vi.stubGlobal('fetch', vi.fn(async () => response));
+    const failed = (await requestQuotes(items.slice(0, 1), new AbortController().signal, () => {})).quotes[0];
+    expect(failed).toMatchObject({ state: 'unavailable', reasonCode: 'rate-limited', outRaw: null, units: null });
+    expect(failed.message).not.toMatch(/BigInt|Cannot convert/);
+  }
+});
+it('rejects malformed, duplicate and unsafe-raw successful quotes', async () => {
+  for (const quotes of [[{ ...quote(items[0]), outRaw: '18446744073709551616' }], [quote(items[0]), quote(items[0])], [{ ...quote(items[0]), state: 'success', outRaw: null }]]) {
+    vi.stubGlobal('fetch', vi.fn(async () => Response.json({ state: 'success', quotes })));
+    expect((await requestQuotes(items.slice(0, 1), new AbortController().signal, () => {})).quotes[0]).toMatchObject({ state: 'unavailable', reasonCode: 'provider-unavailable' });
+  }
+});
+
 it('combines holdings batches without losing a verified zero USDC balance to a later failure', async () => {
   let count = 0;
   vi.stubGlobal('fetch', vi.fn(async (url: string) => {

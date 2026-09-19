@@ -9,6 +9,8 @@ import type { Asset } from '@/lib/domain/types';
 import type { ContributionIntent, ExecutionLimits } from '@/lib/domain/execution';
 import { addressSchema, fetchJson, isBoundedRaw, rawSchema, ServiceError, USDC_MINT } from '@/lib/server/common';
 import { reserveProviderSlot } from '@/lib/server/provider-limits';
+import { validateExecutableOrder, type SemanticProof } from './semantic-validation';
+import { unsupportedDexLabels } from './route-policy';
 
 const MAX_TRANSACTION_BASE64 = 1644;
 const supportedRouters = new Set(['metis']);
@@ -35,7 +37,7 @@ const orderSchema = z.object({
   rentFeePayer: addressSchema.nullable().optional(),
   feeBps: z.number().int().min(0).max(10_000),
   feeMint: addressSchema,
-  platformFee: z.object({ amount: rawSchema, feeBps: z.number().int().min(0).max(10_000), feeMint: addressSchema }).optional(),
+  platformFee: z.object({ amount: rawSchema.optional(), feeBps: z.number().int().min(0).max(10_000), feeMint: addressSchema }).optional(),
 }).passthrough();
 
 export type ExecutionOrder = {
@@ -56,9 +58,11 @@ export type ExecutionOrder = {
   rentFeeLamports: string;
   totalSolCostLamports: string;
   feeBps: number;
+  slippageBps: number;
   feeMint: string;
-  platformFee?: { amount: string; feeBps: number; feeMint: string };
-  validation: 'v0-payer-and-lifetime-checked';
+  platformFee?: { amount?: string; feeBps: number; feeMint: string };
+  validation: 'v0-payer-and-lifetime-checked' | 'jupiter-route-v2-raydium-clmm-v1';
+  semanticProof?: SemanticProof;
 };
 
 function assertBase64(value: string): Uint8Array {
@@ -72,6 +76,7 @@ function parseOrder(payload: unknown, intent: ContributionIntent, asset: Asset, 
   const parsed = orderSchema.safeParse(payload);
   if (!parsed.success) throw new ServiceError('unavailable', 'Jupiter returned an unsupported order. No wallet approval was requested.');
   const order = parsed.data;
+  if (order.errorCode !== undefined || order.error || order.errorMessage || order.referralAccount) throw new ServiceError('unavailable', 'The provider order includes an error or unsupported referral policy.');
   limits = stricterLimits(intent.reviewedLimits, limits);
   if (order.inputMint !== USDC_MINT || order.outputMint !== asset.mint || order.inAmount !== intent.legs.find(leg => leg.mint === asset.mint)?.maximumInputRaw) throw new ServiceError('unavailable', 'The executable order does not match this reviewed contribution. Refresh the review.');
   if (!supportedRouters.has(order.router)) throw new ServiceError('unavailable', 'This route uses a router Lotline cannot validate yet. Choose a different asset or review it on Jupiter.');
@@ -94,10 +99,10 @@ function parseOrder(payload: unknown, intent: ContributionIntent, asset: Asset, 
   const walletSignature = transaction.signatures[intent.wallet as Address];
   const unsupportedSigner = Object.keys(transaction.signatures).length !== 1;
   const staticAccounts = message.staticAccounts as readonly string[];
-  const accountSet = new Set(staticAccounts);
   const v0Message = message as Extract<CompiledTransactionMessage, { version: 0 }> & { lifetimeToken: string };
-  const instructionsValid = message.version === 0 && !v0Message.addressTableLookups?.length && v0Message.instructions.length > 0 && v0Message.instructions.every(instruction => instruction.programAddressIndex < staticAccounts.length && (instruction.accountIndices ?? []).every(index => index < staticAccounts.length));
-  if (message.version !== 0 || staticAccounts[0] !== intent.wallet || walletSignature === undefined || walletSignature !== null || unsupportedSigner || !accountSet.has(USDC_MINT) || !accountSet.has(asset.mint) || !instructionsValid) throw new ServiceError('unavailable', 'The order payer, mint accounts, or transaction layout does not match the reviewed contribution.');
+  const accountCount = staticAccounts.length + (v0Message.addressTableLookups ?? []).reduce((count, lookup) => count + lookup.writableIndexes.length + lookup.readonlyIndexes.length, 0);
+  const instructionsValid = message.version === 0 && v0Message.instructions.length > 0 && accountCount <= 100 && v0Message.instructions.every(instruction => instruction.programAddressIndex < accountCount && (instruction.accountIndices ?? []).every(index => index < accountCount));
+  if (message.version !== 0 || staticAccounts[0] !== intent.wallet || walletSignature === undefined || walletSignature !== null || unsupportedSigner || !instructionsValid) throw new ServiceError('unavailable', 'The order payer or transaction layout does not match the reviewed contribution.');
   const originalBlockhash = String(message.lifetimeToken);
   if (!originalBlockhash || originalBlockhash.length > 64) throw new ServiceError('unavailable', 'The executable order has no valid transaction lifetime.');
   const expiry = order.expireAt ? Date.parse(order.expireAt) : Date.parse(fetchedAt) + 30_000;
@@ -120,6 +125,7 @@ function parseOrder(payload: unknown, intent: ContributionIntent, asset: Asset, 
     rentFeeLamports: order.rentFeeLamports,
     totalSolCostLamports: (BigInt(order.prioritizationFeeLamports) + BigInt(order.signatureFeeLamports) + BigInt(order.rentFeeLamports)).toString(),
     feeBps: order.feeBps,
+    slippageBps: order.slippageBps,
     feeMint: order.feeMint,
     ...(order.platformFee ? { platformFee: order.platformFee } : {}),
     validation: 'v0-payer-and-lifetime-checked',
@@ -130,13 +136,16 @@ export async function createExecutionOrder(intent: ContributionIntent, asset: As
   const leg = intent.legs.find(item => item.mint === asset.mint);
   if (!leg || !isBoundedRaw(leg.maximumInputRaw) || BigInt(leg.maximumInputRaw) === 0n) throw new ServiceError('invalid-input', 'The selected execution leg has an invalid amount.');
   limits = stricterLimits(intent.reviewedLimits, limits);
-  const params = new URLSearchParams({ inputMint: USDC_MINT, outputMint: asset.mint, amount: leg.maximumInputRaw, taker: intent.wallet, swapMode: 'ExactIn', slippageBps: String(limits.slippageBps), priorityFeeLamports: limits.maximumPriorityFeeLamports, jitoTipLamports: '0', broadcastFeeType: 'maxCap', excludeRouters: 'jupiterz,dflow,okx' });
+  // Omitting the tip requests no explicit tip. The current provider rejects an explicit zero.
+  const params = new URLSearchParams({ inputMint: USDC_MINT, outputMint: asset.mint, amount: leg.maximumInputRaw, taker: intent.wallet, swapMode: 'ExactIn', slippageBps: String(limits.slippageBps), priorityFeeLamports: limits.maximumPriorityFeeLamports, broadcastFeeType: 'maxCap', excludeRouters: 'jupiterz,dflow,okx' });
   const apiKey = process.env.JUPITER_API_KEY?.trim();
   if (!apiKey) throw new ServiceError('configuration-required', 'Executable orders need a server-side Jupiter API key.');
-  const fetchedAt = new Date().toISOString();
+  params.set('excludeDexes', await unsupportedDexLabels(apiKey));
   await reserveProviderSlot('jupiter');
+  const fetchedAt = new Date().toISOString();
   const payload = await fetchJson(`https://api.jup.ag/swap/v2/order?${params}`, { headers: { 'x-api-key': apiKey } });
-  return parseOrder(payload, intent, asset, limits, fetchedAt);
+  const order = parseOrder(payload, intent, asset, limits, fetchedAt);
+  return validateExecutableOrder(order, intent, asset, limits);
 }
 
 /** Policy changes may tighten an existing approval, never broaden it. */

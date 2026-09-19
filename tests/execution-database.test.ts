@@ -24,10 +24,10 @@ async function leg(runId: string, key = 'one') {
   return result.rows[0].id;
 }
 
-async function attempt(legId: string, state = 'review-required') {
+async function attempt(legId: string, state = 'review-required', evidence: Record<string, unknown> | null = null) {
   const result = await db.query<{ id: string }>(`insert into public.lotline_execution_attempts
-    (leg_id, provider_request_id, transaction_message_hash, original_blockhash, minimum_output_raw, state)
-    values ($1, $2, $3, $4, '1', $5) returning id`, [legId, `test-${++sequence}`, hash(sequence), wallet, state]);
+    (leg_id, provider_request_id, transaction_message_hash, original_blockhash, minimum_output_raw, state, evidence)
+    values ($1, $2, $3, $4, '1', $5, $6) returning id`, [legId, `test-${++sequence}`, hash(sequence), wallet, state, evidence]);
   return result.rows[0].id;
 }
 
@@ -111,6 +111,17 @@ describe('execution migrations in isolated PostgreSQL', () => {
     await db.query("update public.lotline_execution_attempts set state='signed', signature=$1 where id=$2", ['5'.repeat(88), id]);
     await expect(db.query('update public.lotline_execution_attempts set signature=$1 where id=$2', ['6'.repeat(88), id])).rejects.toThrow(/execution_identity_immutable/);
     await expect(db.query('update public.lotline_execution_attempts set minimum_output_raw=$1 where id=$2', ['2', id])).rejects.toThrow(/execution_identity_immutable/);
+  });
+
+  it('preserves semantic proof and slippage under direct database writes while allowing receipt observations', async () => {
+    const evidence = { transaction: 'original', slippageBps: 100, semanticProof: { version: 'fixture', loadedAddresses: { writable: [wallet], readonly: [] } } };
+    const id = await attempt(await leg(await run()), 'review-required', evidence);
+    await db.query("update public.lotline_execution_attempts set evidence=evidence || '{\"reason\":\"observed\",\"slot\":\"123\"}' where id=$1", [id]);
+    for (const replacement of [{ ...evidence, semanticProof: null }, { ...evidence, slippageBps: 200 }, { ...evidence, transaction: 'different' }, { transaction: 'original', slippageBps: 100 }]) {
+      await expect(db.query('update public.lotline_execution_attempts set evidence=$1 where id=$2', [replacement, id])).rejects.toThrow(/execution_evidence_immutable/);
+    }
+    const legacy = await attempt(await leg(await run()));
+    await expect(db.query('update public.lotline_execution_attempts set evidence=$1 where id=$2', [{ semanticProof: evidence.semanticProof }, legacy])).rejects.toThrow(/execution_evidence_immutable/);
   });
 
   it('does not create a second intent for the same owner and schedule occurrence', async () => {

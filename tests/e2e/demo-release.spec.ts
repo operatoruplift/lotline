@@ -3,13 +3,31 @@ import AxeBuilder from '@axe-core/playwright';
 import release from '../../docs/video-release-manifest.json' with { type: 'json' };
 
 for (const width of [390, 1440]) {
-  test(`dated narrated tours and current controlled demonstration decode at ${width}px`, async ({ page }) => {
+  test(`preserved tours and current contribution demonstrations decode at ${width}px`, async ({ page, request }) => {
     await page.setViewportSize({ width, height: 1000 });
     await page.emulateMedia({ reducedMotion: 'reduce' });
     const errors: string[] = [];
     page.on('pageerror', error => errors.push(error.message));
     await page.goto('/demo');
     await expect(page.getByText(/Explore 832 Example assets, choose up to ten/)).toBeVisible();
+
+    for (const key of ['first-minute', 'technical-proof']) {
+      const player = page.locator(`[data-demo-video="${key}"]`);
+      await player.scrollIntoViewIfNeeded();
+      await player.evaluate(node => (node as HTMLVideoElement).play());
+      await expect.poll(() => player.evaluate(node => (node as HTMLVideoElement).currentTime)).toBeGreaterThan(.25);
+      const state = await player.evaluate(node => { const video = node as HTMLVideoElement; return { duration: video.duration, width: video.videoWidth, muted: video.muted, controls: video.controls }; });
+      expect(state.duration).toBeGreaterThan(15);
+      expect(state.width).toBeGreaterThanOrEqual(1280);
+      expect(state).toMatchObject({ muted: true, controls: true });
+      await expect.poll(() => player.evaluate(node => (node as HTMLVideoElement).textTracks[0]?.cues?.length ?? 0)).toBeGreaterThan(2);
+      await player.evaluate(node => { const video = node as HTMLVideoElement; video.currentTime = video.duration / 2; });
+      await expect.poll(() => player.evaluate(node => (node as HTMLVideoElement).seeking)).toBe(false);
+      await player.evaluate(node => (node as HTMLVideoElement).pause());
+      const transcript = await request.get(`/videos/release-20260920/${key}.transcript.txt`);
+      expect(transcript.ok()).toBe(true);
+      expect(await transcript.text()).toMatch(/controlled|mocked/i);
+    }
 
     for (const key of ['product', 'technical'] as const) {
       const film = release.films[key];

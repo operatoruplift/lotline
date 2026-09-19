@@ -82,7 +82,7 @@ test('no-route and unsupported-scaling estimates never become invented values', 
     const { items } = route.request().postDataJSON() as { items: { mint: string; usdcRaw: string }[] };
     const data: QuotesResponse = getExampleQuotes(items);
     data.state = 'partial';
-    data.quotes[0] = { ...data.quotes[0], state: 'unavailable', outRaw: null, units: null, message: 'Jupiter could not provide a usable route. Try again later.' };
+    data.quotes[0] = { ...data.quotes[0], state: 'unavailable', outRaw: null, units: null, message: 'Jupiter could not provide a usable route. Try again later.', reasonCode: 'no-route' };
     data.quotes[1] = { ...data.quotes[1], units: null, message: 'Mint scaling could not be verified. Units unavailable.' };
     return route.fulfill({ json: data });
   });
@@ -91,6 +91,7 @@ test('no-route and unsupported-scaling estimates never become invented values', 
   await expect(page.getByRole('row', { name: /AAPLx/ }).getByRole('cell', { name: 'Unavailable', exact: true })).toBeVisible();
   await expect(page.getByRole('row', { name: /MSFTx/ }).getByRole('cell', { name: 'Units unavailable', exact: true })).toBeVisible();
   await expect(page.getByText(/Jupiter could not provide a usable route/)).toBeVisible();
+  await expect(page.getByText('AAPLx · No route:', { exact: true })).toBeVisible();
 });
 
 test('provider expiry marks estimates stale and offline mode remains explicit', async ({ page, context }) => {

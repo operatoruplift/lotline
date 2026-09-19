@@ -54,7 +54,7 @@ async function fixture(context: BrowserContext, count = 1) {
   });
   await context.route('**/api/execution/**', async route => {
     const path = new URL(route.request().url()).pathname;
-    if (path.endsWith('/config')) return route.fulfill({ json: { state: 'success', enabled: !state.paused, reconciliationAvailable: true, limits, policyVersion: '2026-09-14.v1' } });
+    if (path.endsWith('/config')) return route.fulfill({ json: { state: state.paused ? 'configuration-required' : 'success', enabled: !state.paused, reconciliationAvailable: true, limits, policyVersion: '2026-09-14.v1', ...(state.paused ? { message: 'In-app purchases are not available in this release. You can plan a contribution and review it independently on Jupiter.' } : {}) } });
     if (path.endsWith('/runs') && route.request().method() === 'POST') {
       state.intent = route.request().postDataJSON().intent;
       state.legs = state.intent!.legs.map((leg, index) => ({ id: `leg-${index}`, leg_key: leg.id, mint: leg.mint, input_raw: leg.maximumInputRaw, state: 'planned' }));
@@ -207,7 +207,7 @@ test('disconnect during approval never submits the returned bytes', async ({ pag
   await page.getByRole('button', { name: 'Sign this purchase', exact: true }).click();
   await expect.poll(() => signatures(page)).toBe(1);
   await page.evaluate(() => { window.lotlineTestWallet.disconnect(); window.lotlineTestWallet.release?.(); });
-  await expect(page.getByText('The plan or wallet changed during approval. The signed bytes were not submitted.')).toBeVisible();
+  await expect(page.getByText('The plan, wallet, or catalog changed during approval. The signed bytes were not submitted.')).toBeVisible();
   expect(state.executions).toEqual([]);
 });
 
@@ -300,8 +300,10 @@ test('receipt reconciliation remains available when new purchases are paused', a
   await page.getByRole('button', { name: 'Sign this purchase', exact: true }).click();
   await expect(page.getByText(/The submission outcome is uncertain/)).toBeVisible();
   state.paused = true;
+  await context.route('**/api/assets', route => route.fulfill({ status: 503, json: { state: 'unavailable', assets: [], unavailable: [], message: 'Controlled catalog outage.' } }));
   await page.reload();
-  await expect(page.getByText(/Signing is deliberately switched off/)).toBeVisible();
+  await expect(page.getByText('Live catalog unavailable', { exact: true })).toBeVisible();
+  await expect(page.getByText(/In-app purchases are not available/)).toBeVisible();
   await expect(page.getByRole('button', { name: 'Check original receipt', exact: true })).toBeEnabled();
   await expect(page.getByRole('button', { name: 'Controlled test wallet', exact: true })).toHaveCount(0);
   state.unknownLeg = -1;
@@ -334,4 +336,28 @@ test('cloud acknowledgement preserves a newer device reminder edited during the 
   await expect(page.getByText(/Newer device edits are preserved/)).toBeVisible();
   await expect(page.getByText(/Saved plan v2: 250 USDC/)).toBeVisible();
   await expect(page.getByRole('button', { name: 'Resume reminder', exact: true })).toBeVisible();
+});
+
+test('catalog loss blocks resume and rejects an outstanding wallet approval even after catalog recovery', async ({ page, context }) => {
+  const state = await fixture(context);
+  await openReview(page);
+  await page.evaluate(() => { window.lotlineTestWallet.hold = true; });
+  await page.getByRole('button', { name: 'Sign this purchase', exact: true }).click();
+  await expect.poll(() => signatures(page)).toBe(1);
+  let available = false;
+  await context.route('**/api/assets', route => available ? route.fulfill({ json: { state: 'success', assets: EXAMPLE_ASSETS.slice(0, 1), unavailable: [] } }) : route.fulfill({ status: 503, json: { state: 'unavailable', assets: [], unavailable: [], message: 'Controlled catalog outage.' } }));
+  await page.getByRole('button', { name: 'Refresh catalog', exact: true }).click();
+  await expect(page.getByText('Live catalog unavailable', { exact: true })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Sign this purchase', exact: true })).toHaveCount(0);
+  available = true;
+  await page.getByRole('button', { name: 'Retry catalog', exact: true }).click();
+  await expect(page.getByRole('button', { name: 'Get estimates', exact: true })).toBeEnabled();
+  await page.evaluate(() => { window.lotlineTestWallet.release?.(); });
+  await expect(page.getByText(/catalog changed during approval. The signed bytes were not submitted/)).toBeVisible();
+  expect(state.executions).toEqual([]);
+  expect(await signatures(page)).toBe(1);
+  available = false;
+  await page.getByRole('button', { name: 'Refresh catalog', exact: true }).click();
+  await expect(page.getByRole('button', { name: 'Resume remaining', exact: true })).toBeDisabled();
+  expect(state.orders).toEqual(['leg-0']);
 });

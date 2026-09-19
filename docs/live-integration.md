@@ -1,3 +1,5 @@
+> Current contribution implementation and release status: [September 20 contribution release](contribution-release-20260920.md). Earlier dated observations below remain historical.
+
 # Live integration verification — September 11, 2026
 
 The [September 20 release record](release-20260920.md) separates the latest hosted read-only smoke, local execution fixtures and production configuration. This page preserves the original integration observations.

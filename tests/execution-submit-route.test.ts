@@ -1,5 +1,7 @@
 import { beforeEach, expect, it, vi } from 'vitest';
-const mocks = vi.hoisted(() => ({ get: vi.fn(), transition: vi.fn(), submitted: vi.fn(), execute: vi.fn(), validate: vi.fn() }));
+const mocks = vi.hoisted(() => ({ get: vi.fn(), transition: vi.fn(), submitted: vi.fn(), execute: vi.fn(), validate: vi.fn(), proof: vi.fn(), wallet: vi.fn() }));
+vi.mock('@/lib/server/execution/proof-policy', () => ({ requireSemanticProof: mocks.proof }));
+vi.mock('@/lib/server/execution/config', () => ({ requireExecutionWallet: mocks.wallet }));
 vi.mock('@/lib/server/execution/repository', () => ({ getAttemptByRequestId: mocks.get, transitionAttempt: mocks.transition, recordSubmitted: mocks.submitted }));
 vi.mock('@/lib/server/execution/submit', () => ({ executeOnJupiter: mocks.execute, validateSignedTransaction: mocks.validate }));
 vi.mock('@/lib/server/execution/http', () => ({
@@ -36,4 +38,18 @@ it('requires the durable signed transition before any provider submission', asyn
   mocks.transition.mockImplementation(async (_owner, _id, state) => { if (state === 'signed') throw new Error('journal write failed'); });
   expect((await POST(request(), context)).status).toBe(503);
   expect(mocks.execute).not.toHaveBeenCalled();
+});
+
+it('rejects an old unproved attempt before accepting a signature or transmitting bytes', async () => {
+  mocks.proof.mockImplementation(() => { throw new Error('legacy proof'); });
+  expect((await POST(request(), context)).status).toBe(503);
+  expect(mocks.validate).not.toHaveBeenCalled();
+  expect(mocks.execute).not.toHaveBeenCalled();
+  expect(mocks.transition).not.toHaveBeenCalled();
+});
+it('enforces restricted participant access on direct submission requests', async () => {
+  mocks.wallet.mockImplementation(() => { throw new Error('unapproved participant'); });
+  expect((await POST(request(), context)).status).toBe(503);
+  expect(mocks.execute).not.toHaveBeenCalled();
+  expect(mocks.transition).not.toHaveBeenCalled();
 });

@@ -1,0 +1,21 @@
+
+Running 16 tests using 1 worker
+
+  ✓   1 tests/e2e/draft-persistence.spec.ts:5:1 › restores an existing draft and preserves edits when reloaded before any timer runs (2.9s)
+  ✓   2 tests/e2e/draft-persistence.spec.ts:31:1 › blocked local storage leaves the planner usable and reports unsaved edits (1.6s)
+  ✓   3 tests/e2e/first-use.spec.ts:15:1 › fresh Live visit shows search and an explicit current-catalog illustration, then exact estimates and provenance (1.8s)
+  ✓   4 tests/e2e/first-use.spec.ts:54:1 › a deliberately empty returning draft survives Example, Live, and reload without auto-seeding (1.9s)
+  ✓   5 tests/e2e/first-use.spec.ts:72:1 › catalog failure, successful empty response, and recovered catalog have distinct states (1.2s)
+  ✓   6 tests/e2e/first-use.spec.ts:93:1 › failed refresh retains selected identity and edits as unverified until recovery (1.6s)
+  ✓   7 tests/e2e/first-use.spec.ts:118:3 › first-use search, illustration, and controls fit at 1440px (3.5s)
+  ✓   8 tests/e2e/first-use.spec.ts:118:3 › first-use search, illustration, and controls fit at 768px (2.8s)
+  ✓   9 tests/e2e/first-use.spec.ts:118:3 › first-use search, illustration, and controls fit at 390px (2.6s)
+  ✓  10 tests/e2e/first-use.spec.ts:118:3 › first-use search, illustration, and controls fit at 320px (2.3s)
+  ✓  11 tests/e2e/judge-readiness.spec.ts:5:1 › a first Live visit cannot leave the linked Example empty (2.7s)
+  ✓  12 tests/e2e/judge-readiness.spec.ts:21:1 › removing every asset preserves that empty draft across linked Example navigation (2.9s)
+  ✓  13 tests/e2e/judge-readiness.spec.ts:37:1 › the Example toggle seeds only an untouched Live draft, preserving an edited empty one (3.1s)
+  ✓  14 tests/e2e/judge-readiness.spec.ts:56:1 › replace an asset without losing its weight, split exactly, and reset deliberately (1.7s)
+  ✓  15 tests/e2e/judge-readiness.spec.ts:77:1 › mobile estimates reveal numeric results without requiring an extra scroll (1.2s)
+  ✓  16 tests/e2e/judge-readiness.spec.ts:87:1 › Live provenance distinguishes pending quotes, a balance snapshot, and expiry (5.7s)
+
+  16 passed (41.7s)

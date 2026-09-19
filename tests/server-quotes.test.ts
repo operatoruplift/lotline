@@ -8,7 +8,7 @@ vi.mock('../lib/server/catalog', () => ({
   getIssuerAsset: async () => ({ symbol: 'AAPLx', mint: MINT, halted: state.halted, fetchedAt: new Date(Date.now() - state.issuerAge).toISOString() }),
 }));
 vi.mock('../lib/server/provider-limits', () => ({ reserveProviderSlot: async () => { if (state.slotWait) vi.setSystemTime(Date.now() + state.slotWait); } }));
-vi.mock('../lib/server/solana', () => ({ convertRawUnits: async () => '0.0297791' }));
+vi.mock('../lib/server/solana', () => ({ convertRawUnitsWithContext: async () => ({ units: '0.0297791', context: { source: 'clock-sysvar', kind: 'scaled', decimals: 8, tokenProgram: 'TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb', mintSlot: 123, clockSlot: 123, unixTimestamp: '1789840000', multiplier: 1, observedAt: new Date().toISOString() } }) }));
 const payload = { inputMint: USDC, outputMint: MINT, inAmount: '10000000', outAmount: '2968207', transaction: null, router: 'metis' };
 beforeEach(() => { vi.resetModules(); state.halted = false; state.oldHalt = false; state.issuerAge = 0; state.slotWait = 0; vi.stubEnv('JUPITER_API_KEY', ''); });
 afterEach(() => { vi.unstubAllEnvs(); vi.unstubAllGlobals(); vi.useRealTimers(); });
@@ -35,7 +35,8 @@ it('halts fresh estimates on current issuer information and allows resumed asset
   const fetcher = vi.fn(async () => Response.json(payload)); vi.stubGlobal('fetch', fetcher);
   let { getQuotes } = await import('../lib/server/quotes');
   state.halted = true;
-  expect((await getQuotes([{ mint: MINT, usdcRaw: '10000000' }])).quotes[0].message).toContain('halt');
+  const halted = (await getQuotes([{ mint: MINT, usdcRaw: '10000000' }])).quotes[0];
+  expect(halted.message).toContain('halt'); expect(halted.reasonCode).toBe('issuer-halted');
   expect(fetcher).not.toHaveBeenCalled();
   vi.resetModules(); state.halted = false; state.oldHalt = true;
   ({ getQuotes } = await import('../lib/server/quotes'));
@@ -65,7 +66,21 @@ it('fails closed if the issuer check ages out during provider coordination', asy
   const result = await getQuotes([{ mint:MINT, usdcRaw:'10000000' }]);
   expect(result.quotes[0]).toMatchObject({ state:'unavailable', outRaw:null });
   expect(result.quotes[0].message).toContain('Issuer verification expired');
+  expect(result.quotes[0].reasonCode).toBe('stale-verification');
   expect(fetcher).not.toHaveBeenCalled();
+});
+
+it.each([[429, 'rate-limited'], [503, 'provider-unavailable']])('preserves the actual HTTP failure category for status %s', async (status, reasonCode) => {
+  vi.stubGlobal('fetch', vi.fn(async () => new Response('upstream private body', { status: Number(status) })));
+  const { getQuotes } = await import('../lib/server/quotes');
+  const quote = (await getQuotes([{ mint: MINT, usdcRaw: '10000000' }])).quotes[0];
+  expect(quote).toMatchObject({ state: 'unavailable', units: null, outRaw: null, reasonCode });
+  expect(quote.message).not.toContain('upstream private body');
+});
+it('labels a zero-output response as no route without making malformed payloads that promise', async () => {
+  const { normalizeQuote } = await import('../lib/server/quotes');
+  expect(() => normalizeQuote({ ...payload, outAmount: '0' }, MINT, '10000000')).toThrow(expect.objectContaining({ reasonCode: 'no-route' }));
+  expect(() => normalizeQuote({ ...payload, outAmount: 'garbage' }, MINT, '10000000')).toThrow(expect.objectContaining({ reasonCode: 'provider-unavailable' }));
 });
 it('includes upstream latency in the thirty-second quote lifetime', async () => {
   vi.useFakeTimers(); const started = Date.now();

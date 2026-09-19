@@ -1,0 +1,131 @@
+{
+  "startedAt": "2026-09-19T18:18:27.707Z",
+  "completedAt": "2026-09-19T18:18:39.848Z",
+  "environment": "local server adapters against configured mainnet RPC and live issuer/Jupiter",
+  "evidenceClass": "live-read-only",
+  "networkCheck": {
+    "implementation": "verifyMainnetRpc; coalesced per configured endpoint; only full-hash success cached for60 seconds",
+    "genesisHash": "5eykt4UsFv8P8NJdTREpY1vzqKqZKvdpKuc147dw2N9d",
+    "cluster": "solana:mainnet",
+    "passedInLiveCaller": true
+  },
+  "catalog": {
+    "state": "success",
+    "verifiedAssets": 832,
+    "unavailable": 0
+  },
+  "asset": {
+    "symbol": "AAPLx",
+    "name": "Apple xStock",
+    "mint": "XsbEhLAtcf6HdfpFZ5xEMdqW8nfAvcsP5bdudRLJzJp",
+    "decimals": 8,
+    "tokenProgram": "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb",
+    "halted": false,
+    "verifiedAt": "2026-09-19T18:18:35.714Z",
+    "logoUrl": "/logos/xstocks/AAPLx.png",
+    "logoSourceUrl": "https://xstocks-metadata.backed.fi/logos/tokens/AAPLx.png",
+    "issuerIsin": "CH1436219187",
+    "underlyingSymbol": "AAPL",
+    "underlyingIsin": "US0378331005"
+  },
+  "publicReadOwner": "7pt9tkctJPK7PPNQJ77GKg8ZffSF6QxoMiCFYHxrtaCj",
+  "ownerSource": "AAPLx onchain mintAuthority; independently public address, not a user wallet or purchase.",
+  "holdings": {
+    "state": "success",
+    "holdings": [
+      {
+        "mint": "XsbEhLAtcf6HdfpFZ5xEMdqW8nfAvcsP5bdudRLJzJp",
+        "raw": "0",
+        "balanceSlot": 448486352,
+        "frozenRaw": "0",
+        "state": "success",
+        "units": "0",
+        "unitContext": {
+          "source": "clock-sysvar",
+          "kind": "scaled",
+          "decimals": 8,
+          "tokenProgram": "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb",
+          "mintSlot": 448486353,
+          "observedAt": "2026-09-19T18:18:38.496Z",
+          "clockSlot": 448486353,
+          "unixTimestamp": "1789841920",
+          "multiplier": 1.0032690125398187
+        }
+      }
+    ],
+    "usdc": {
+      "mint": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+      "raw": "0",
+      "balanceSlot": 448486353,
+      "frozenRaw": "0",
+      "state": "success",
+      "units": "0",
+      "unitContext": {
+        "source": "mint",
+        "kind": "standard",
+        "decimals": 6,
+        "tokenProgram": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA",
+        "mintSlot": 448486353,
+        "observedAt": "2026-09-19T18:18:38.854Z"
+      }
+    },
+    "fetchedAt": "2026-09-19T18:18:38.294Z"
+  },
+  "quotes": {
+    "state": "success",
+    "quotes": [
+      {
+        "mint": "XsbEhLAtcf6HdfpFZ5xEMdqW8nfAvcsP5bdudRLJzJp",
+        "state": "success",
+        "usdcRaw": "10000000",
+        "outRaw": "2973100",
+        "units": "0.02982819",
+        "fetchedAt": "2026-09-19T18:18:39.288Z",
+        "expiresAt": "2026-09-19T18:19:09.288Z",
+        "source": "Jupiter · metis",
+        "feeBps": 10,
+        "feeMint": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+        "unitContext": {
+          "source": "clock-sysvar",
+          "kind": "scaled",
+          "decimals": 8,
+          "tokenProgram": "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb",
+          "mintSlot": 448486357,
+          "observedAt": "2026-09-19T18:18:39.723Z",
+          "clockSlot": 448486357,
+          "unixTimestamp": "1789841921",
+          "multiplier": 1.0032690125398187
+        }
+      }
+    ]
+  },
+  "projected": {
+    "state": "success",
+    "items": [
+      {
+        "mint": "XsbEhLAtcf6HdfpFZ5xEMdqW8nfAvcsP5bdudRLJzJp",
+        "units": "0.02982819",
+        "unitContext": {
+          "source": "clock-sysvar",
+          "kind": "scaled",
+          "decimals": 8,
+          "tokenProgram": "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb",
+          "mintSlot": 448486357,
+          "observedAt": "2026-09-19T18:18:39.847Z",
+          "clockSlot": 448486357,
+          "unixTimestamp": "1789841921",
+          "multiplier": 1.0032690125398187
+        }
+      }
+    ]
+  },
+  "quoteRequest": {
+    "endpoint": "https://api.jup.ag/swap/v2/order",
+    "inputMint": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+    "outputMint": "XsbEhLAtcf6HdfpFZ5xEMdqW8nfAvcsP5bdudRLJzJp",
+    "amount": "10000000",
+    "takerIncluded": false
+  },
+  "transactionsSigned": 0,
+  "transactionsSubmitted": 0
+}

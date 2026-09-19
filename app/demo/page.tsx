@@ -17,7 +17,21 @@ export default function DemoPage() {
     <p className="eyebrow">A SMALL PLAN. A CLEAR NEXT STEP.</p>
     <h1>See your next contribution<br />come together.</h1>
     <p className="demo-intro">Explore 832 Example assets, choose up to ten for a plan, and return to your split with a new contribution. These narrated tours show the September 12, 2026 planner release. Example balances and estimates are synthetic; recorded Live estimates are dated observations.</p>
-    <p className="demo-intro">The app now also offers a prefilled Jupiter handoff and saved manual contribution reminders. In-app purchases remain unavailable while transaction validation and service configuration are completed. Below the narrated tours, a September 19 controlled demonstration shows the newer review, receipt and recovery screens with a fake wallet and mocked providers.</p>
+    <p className="demo-intro">The app now also offers a prefilled Jupiter handoff and saved manual contribution reminders. A supported mainnet order has now passed semantic validation and unsigned simulation. In-app purchases remain gated on production credentials and restricted participant access; real settlement is not yet verified. Below the narrated tours, a September 19 controlled demonstration shows the newer review, receipt and recovery screens with a fake wallet and mocked providers.</p>
+    <section className="demo-technical" aria-labelledby="current-demo-title">
+      <p className="eyebrow">SEPTEMBER 20, 2026 · CURRENT APPLICATION</p>
+      <h2 id="current-demo-title">From a first plan to a clear review.</h2>
+      <p className="demo-intro">These new silent recordings show the current first-use journey and technical evidence screens. Catalog and quote responses in the UI rehearsal are controlled fixtures, labeled throughout. No wallet signs and no funds move. The separately documented unsigned mainnet simulation does not prove a completed purchase.</p>
+      <video controls muted playsInline preload="metadata" poster="/videos/release-20260920/first-minute-poster.jpg" aria-label="Lotline current first-minute rehearsal" data-demo-video="first-minute" className="demo-video">
+        <source src="/videos/release-20260920/first-minute.mp4" type="video/mp4" /><track default kind="captions" src="/videos/release-20260920/first-minute.en.vtt" srcLang="en" label="English" />
+      </video>
+      <div className="demo-actions"><a href="/videos/release-20260920/first-minute.mp4" download className="text-button">Download current walkthrough</a><a href="/videos/release-20260920/first-minute.transcript.txt" className="text-button">Read text description</a><Link href="/app" className="button primary">Plan your contribution <ArrowRight size={16} /></Link></div>
+      <h3>Inspect the evidence behind the numbers.</h3>
+      <video controls muted playsInline preload="none" poster="/videos/release-20260920/technical-proof-poster.jpg" aria-label="Lotline current technical evidence rehearsal" data-demo-video="technical-proof" className="demo-video">
+        <source src="/videos/release-20260920/technical-proof.mp4" type="video/mp4" /><track default kind="captions" src="/videos/release-20260920/technical-proof.en.vtt" srcLang="en" label="English" />
+      </video>
+      <div className="demo-actions"><a href="/videos/release-20260920/technical-proof.mp4" download className="text-button">Download technical evidence tour</a><a href="/videos/release-20260920/technical-proof.transcript.txt" className="text-button">Read technical description</a></div>
+    </section>
     <p className="eyebrow">PRODUCT TOUR · {durationLabel(product.durationSeconds)} · AINSLEY NARRATION</p>
     <video controls playsInline preload="metadata" poster={product.poster} aria-label="Lotline product tour" data-demo-video="product" className="demo-video">
       <source src={product.src} type="video/mp4" />

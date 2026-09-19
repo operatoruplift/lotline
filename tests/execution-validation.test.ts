@@ -3,7 +3,7 @@ import { getCompiledTransactionMessageEncoder } from '@solana/transaction-messag
 import type { Transaction } from '@solana/transactions';
 import type { SignatureBytes } from '@solana/keys';
 import { canonicalIntent, canTransition, validateIntentShape } from '../lib/domain/execution';
-import { executionConfig } from '../lib/server/execution/config';
+import { executionConfig, publicExecutionConfig, requireExecutionWallet } from '../lib/server/execution/config';
 import { parseOrder, stricterLimits } from '../lib/server/execution/orders';
 import { contributionState, mergeAttemptEvidence } from '../lib/server/execution/repository';
 import { intentSchema, scheduleSchema } from '../lib/server/execution/schemas';
@@ -15,7 +15,7 @@ afterEach(() => vi.unstubAllEnvs());
 describe('execution validation and immutable review', () => {
   let fixture: Awaited<ReturnType<typeof executionFixture>>;
   beforeAll(async () => { fixture = await executionFixture(); });
-  it('cannot enable unimplemented instruction validation by setting environment flags', () => {
+  it('requires a reviewed validator version, immutable proof schema and restricted participants', () => {
     for (const flag of ['LOTLINE_EXECUTION_ENABLED', 'LOTLINE_EXECUTION_MIGRATIONS_READY', 'LOTLINE_EXECUTION_GUEST_MIGRATIONS_READY', 'LOTLINE_EXECUTION_INTEGRITY_MIGRATIONS_READY', 'LOTLINE_EXECUTION_VALIDATOR_READY']) vi.stubEnv(flag, 'true');
     vi.stubEnv('JUPITER_API_KEY', 'local-fixture');
     vi.stubEnv('SOLANA_RPC_URL', 'https://rpc.example');
@@ -23,7 +23,17 @@ describe('execution validation and immutable review', () => {
     vi.stubEnv('NEXT_PUBLIC_SUPABASE_URL', 'https://example.supabase.co');
     vi.stubEnv('LOTLINE_EXECUTION_REPOSITORY', 'supabase');
     expect(executionConfig().enabled).toBe(false);
-    expect(executionConfig().reasons).toEqual(['Executable swap instruction validation is not implemented. Purchases remain unavailable.']);
+    expect(executionConfig().reasons).toContain('The deployed semantic validator version has not been acknowledged.');
+    vi.stubEnv('LOTLINE_EXECUTION_VALIDATOR_READY','jupiter-route-v2-raydium-clmm-v1');
+    vi.stubEnv('LOTLINE_EXECUTION_PROOF_MIGRATIONS_READY','true');
+    vi.stubEnv('LOTLINE_EXECUTION_ACCESS_POLICY','restricted-launch-v1');
+    vi.stubEnv('LOTLINE_EXECUTION_ALLOWED_WALLETS',fixture.intent.wallet);
+    expect(executionConfig().enabled).toBe(true);
+    expect(publicExecutionConfig()).not.toHaveProperty('reasons');
+    expect(() => requireExecutionWallet(fixture.intent.wallet)).not.toThrow();
+    expect(() => requireExecutionWallet('11111111111111111111111111111111')).toThrow(/not available/);
+    vi.stubEnv('LOTLINE_EXECUTION_ALLOWED_WALLETS','not-an-address');
+    expect(executionConfig().enabled).toBe(false);
   });
   it('canonicalizes property order without losing allocation tie-breaker order', () => {
     const original = fixture.intent;

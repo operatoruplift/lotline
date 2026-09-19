@@ -1,26 +1,31 @@
 import 'server-only';
 import { address, unwrapOption, type GetAccountInfoApi, type Rpc } from '@solana/kit';
-import { amountToUiAmountForMintWithoutSimulation, getMintDecoder } from '@solana-program/token-2022';
+import { AccountState, amountToUiAmountForMintWithoutSimulation, getMintDecoder, getTokenDecoder, type Mint } from '@solana-program/token-2022';
 import { z } from 'zod';
+import type { UnitContext } from '../domain/types';
 import { addressSchema, BoundedCache, fetchJson, rawSchema, ServiceError, SpacedQueue, TOKEN_2022_PROGRAM, TOKEN_PROGRAM, U64_MAX, USDC_MINT } from './common';
 import { reserveProviderSlot } from './provider-limits';
+import { MAINNET_GENESIS_HASH } from './solana-network';
 
 const CLOCK = 'SysvarC1ock11111111111111111111111111111111';
 const rpcQueue = new SpacedQueue(120, 40);
 const mintCache = new BoundedCache<MintInfo>(2_001);
 const binaryCache = new BoundedCache<BinaryResult>(2_002);
+const networkCache = new BoundedCache<true>(4);
+const pendingNetworkChecks = new Map<string, Promise<void>>();
 const binaryAccountSchema = z.object({
     data: z.tuple([z.string().max(32_000).regex(/^[A-Za-z0-9+/]*={0,2}$/), z.literal('base64')]),
     owner: z.string(), executable: z.boolean(), lamports: z.number().nonnegative(), rentEpoch: z.number().nonnegative().optional(),
   });
-const contextSchema = z.object({ slot: z.number().int().nonnegative() });
+const contextSchema = z.object({ slot: z.number().int().nonnegative().max(Number.MAX_SAFE_INTEGER) });
 const binarySchema = z.object({
   context: contextSchema,
   value: binaryAccountSchema.nullable(),
 });
 const multipleAccountsSchema = z.object({ context: contextSchema, value: z.array(binaryAccountSchema.nullable()).max(100) });
 type BinaryResult = z.infer<typeof binarySchema>;
-export type MintInfo = { decimals: number; tokenProgram: string; scaled: boolean };
+export type MintInfo = { decimals: number; tokenProgram: string; scaled: boolean; extensions?: string[]; transferBlockedReasons?: string[]; issuerControlled?: boolean };
+export type MintSnapshot = { info: MintInfo; mint: Mint; slot: number };
 
 export function rpcConfigured(): boolean { return Boolean(process.env.SOLANA_RPC_URL?.trim()); }
 function rpcUrl(): string {
@@ -41,8 +46,22 @@ export async function rpcRequest(method: string, params: unknown[]): Promise<unk
     return parsed.data.result;
   });
 }
-async function binaryAccount(mint: string): Promise<BinaryResult> {
-  const existing = binaryCache.get(mint);
+
+/** Read-only planning verifies the full network identity; execution performs its own fresh check. */
+export async function verifyMainnetRpc(): Promise<void> {
+  const endpoint = rpcUrl();
+  if (networkCache.get(endpoint)) return;
+  const pending = pendingNetworkChecks.get(endpoint);
+  if (pending) return pending;
+  const check = (async () => {
+    if (await rpcRequest('getGenesisHash', []) !== MAINNET_GENESIS_HASH) throw new ServiceError('unavailable', 'The configured RPC is not verified as Solana mainnet. Live data is unavailable.');
+    networkCache.set(endpoint, true, 60_000);
+  })().finally(() => pendingNetworkChecks.delete(endpoint));
+  pendingNetworkChecks.set(endpoint, check);
+  return check;
+}
+async function binaryAccount(mint: string, fresh = false): Promise<BinaryResult> {
+  const existing = !fresh && binaryCache.get(mint);
   if (existing) return existing;
   const parsed = binarySchema.safeParse(await rpcRequest('getAccountInfo', [mint, { encoding: 'base64', commitment: 'confirmed' }]));
   if (!parsed.success || !parsed.data.value || parsed.data.value.executable) throw new ServiceError('unavailable', 'The chain account could not be verified.');
@@ -54,17 +73,53 @@ async function binaryAccount(mint: string): Promise<BinaryResult> {
   return value;
 }
 export async function loadMint(mint: string, fresh = false): Promise<MintInfo> {
+  await verifyMainnetRpc();
   const cached = !fresh && mintCache.get(mint);
   if (cached) return cached;
-  const account = (await binaryAccount(mint)).value!;
+  const account = (await binaryAccount(mint, fresh)).value!;
   return verifyMintAccount(mint, account);
+}
+
+/** Fresh public mint state for execution policy checks; the caller still validates token accounts. */
+export async function loadMintSnapshot(mint: string, fresh = true): Promise<MintSnapshot> {
+  if (!addressSchema.safeParse(mint).success) throw new ServiceError('invalid-input', 'The mint address is invalid.');
+  await verifyMainnetRpc();
+  const account = await binaryAccount(mint, fresh);
+  const info = verifyMintAccount(mint, account.value!);
+  return { info, mint: getMintDecoder().decode(Buffer.from(account.value!.data[0], 'base64')), slot: account.context.slot };
+}
+
+/** Decoding supports balances even when a transfer policy is not supported. */
+export function inspectMintTransferPolicy(mint: Mint): Pick<MintInfo, 'extensions' | 'transferBlockedReasons' | 'issuerControlled'> {
+  const extensions = unwrapOption(mint.extensions) ?? [];
+  const transferBlockedReasons: string[] = [];
+  let issuerControlled = unwrapOption(mint.freezeAuthority) !== null;
+  for (const extension of extensions) {
+    switch (extension.__kind) {
+      case 'ScaledUiAmountConfig': case 'MetadataPointer': case 'TokenMetadata':
+      case 'GroupPointer': case 'GroupMemberPointer': case 'TokenGroup': case 'TokenGroupMember':
+      case 'MintCloseAuthority': case 'ConfidentialTransferMint': break;
+      case 'PermanentDelegate': issuerControlled = true; break;
+      case 'DefaultAccountState':
+        if (extension.state !== AccountState.Initialized) transferBlockedReasons.push('DefaultAccountState');
+        break;
+      case 'PausableConfig':
+        if (extension.paused) transferBlockedReasons.push('PausableConfig');
+        break;
+      case 'TransferHook':
+        if (extension.programId !== '11111111111111111111111111111111') transferBlockedReasons.push('TransferHook');
+        break;
+      default: transferBlockedReasons.push(extension.__kind);
+    }
+  }
+  return { extensions: extensions.map(extension => extension.__kind), transferBlockedReasons, issuerControlled };
 }
 
 /** Shared by single-account reads and ordered getMultipleAccounts responses. */
 function verifyMintAccount(mint: string, account: z.infer<typeof binaryAccountSchema>): MintInfo {
   if (account.executable) throw new ServiceError('unavailable', 'The chain account could not be verified.');
   const expectedProgram = mint === USDC_MINT ? TOKEN_PROGRAM : TOKEN_2022_PROGRAM;
-  if (account.owner !== expectedProgram) throw new ServiceError('unavailable', 'The asset is not a supported mainnet token mint.');
+  if (account.owner !== expectedProgram) throw new ServiceError('unavailable', 'The asset is not a supported mainnet token mint.', 'unsupported-token');
   try {
     const decoded = getMintDecoder().decode(Buffer.from(account.data[0], 'base64'));
     if (!decoded.isInitialized || decoded.decimals > 18 || (mint === USDC_MINT && decoded.decimals !== 6)) throw new Error();
@@ -72,15 +127,17 @@ function verifyMintAccount(mint: string, account: z.infer<typeof binaryAccountSc
     const scale = extensions.find(extension => extension.__kind === 'ScaledUiAmountConfig');
     if (mint !== USDC_MINT && (!scale || extensions.some(extension => extension.__kind === 'InterestBearingConfig'))) throw new Error();
     if (scale && (!(scale.multiplier > 0) || !Number.isFinite(scale.multiplier) || !(scale.newMultiplier > 0) || !Number.isFinite(scale.newMultiplier))) throw new Error();
-    const info = { decimals: decoded.decimals, tokenProgram: account.owner, scaled: Boolean(scale) };
+    if (new Set(extensions.map(extension => extension.__kind)).size !== extensions.length) throw new Error();
+    const info = { decimals: decoded.decimals, tokenProgram: account.owner, scaled: Boolean(scale), ...inspectMintTransferPolicy(decoded) };
     mintCache.set(mint, info, 60 * 60_000);
     return info;
-  } catch { throw new ServiceError('unavailable', 'Mint scaling could not be verified. Units unavailable.'); }
+  } catch { throw new ServiceError('unavailable', 'Mint scaling could not be verified. Units unavailable.', 'unsupported-token'); }
 }
 
 /** Verify a large catalog with at most 100 mint accounts in each bounded RPC request. */
 export async function loadMints(mints: readonly string[]): Promise<Map<string, MintInfo | ServiceError>> {
   if (mints.length > 2_000 || new Set(mints).size !== mints.length || mints.some(mint => !addressSchema.safeParse(mint).success)) throw new ServiceError('invalid-input', 'The mint verification batch is invalid.');
+  await verifyMainnetRpc();
   const result = new Map<string, MintInfo | ServiceError>();
   const pending: string[] = [];
   for (const mint of mints) {
@@ -115,31 +172,52 @@ export async function loadMints(mints: readonly string[]): Promise<Map<string, M
   return result;
 }
 
-/** The installed helper decodes the mint and selects its scheduled multiplier using the clock sysvar. */
-export async function convertRawUnits(mint: string, raw: string): Promise<string> {
-  if (!rawSchema.safeParse(raw).success) throw new ServiceError('invalid-input', 'Raw units exceed the supported token range.');
-  await loadMint(mint, true);
-  // A narrow read-only RPC facade gives the official helper validated, timed-out account reads.
-  // It cannot access any other RPC methods or accounts, and never simulates a transaction.
+/** Capture both accounts at one confirmed slot, then give those exact bytes to the official helper. */
+export async function convertRawUnitsWithContext(mint: string, raw: string): Promise<{ units: string; context: UnitContext }> {
+  if (!addressSchema.safeParse(mint).success || !rawSchema.safeParse(raw).success) throw new ServiceError('invalid-input', 'The mint or raw units are invalid.');
+  await verifyMainnetRpc();
+  const parsed = multipleAccountsSchema.safeParse(await rpcRequest('getMultipleAccounts', [[mint, CLOCK], { encoding: 'base64', commitment: 'confirmed' }]));
+  if (!parsed.success || parsed.data.value.length !== 2 || !parsed.data.value[0]) throw new ServiceError('unavailable', 'Mint scaling could not be verified. Units unavailable.');
+  const snapshot = parsed.data;
+  const mintAccount = snapshot.value[0]!;
+  const info = verifyMintAccount(mint, mintAccount);
+  const decoded = getMintDecoder().decode(Buffer.from(mintAccount.data[0], 'base64'));
+  const scale = (unwrapOption(decoded.extensions) ?? []).find(extension => extension.__kind === 'ScaledUiAmountConfig');
+  const context: UnitContext = { source: 'mint', kind: 'standard', decimals: info.decimals, tokenProgram: info.tokenProgram, mintSlot: snapshot.context.slot, observedAt: new Date().toISOString() };
+  if (scale) {
+    const clock = snapshot.value[1];
+    if (!clock || clock.executable || clock.owner !== 'Sysvar1111111111111111111111111111111111111') throw new ServiceError('unavailable', 'Chain time is unavailable. Units cannot be verified.');
+    const clockBytes = Buffer.from(clock.data[0], 'base64');
+    if (clockBytes.length !== 40) throw new ServiceError('unavailable', 'Chain time is unavailable. Units cannot be verified.');
+    // The helper decodes this same Clock timestamp. No block-time or local-clock fallback is used.
+    const timestamp = clockBytes.readBigInt64LE(32);
+    if (timestamp < 0n) throw new ServiceError('unavailable', 'Chain time is unavailable. Units cannot be verified.');
+    Object.assign(context, { source: 'clock-sysvar', kind: 'scaled', clockSlot: snapshot.context.slot, unixTimestamp: timestamp.toString(), multiplier: timestamp >= scale.newMultiplierEffectiveTimestamp ? scale.newMultiplier : scale.multiplier });
+  }
   const rpc = {
     getAccountInfo: (key: string) => ({ send: async () => {
       if (key !== mint && key !== CLOCK) throw new ServiceError('unavailable', 'Unexpected scaling account.');
-      const result = await binaryAccount(key);
-      return { ...result, context: { slot: BigInt(result.context.slot) }, value: result.value && {
-        ...result.value, lamports: BigInt(Math.trunc(result.value.lamports)), rentEpoch: BigInt(Math.trunc(result.value.rentEpoch ?? 0)),
+      const account = snapshot.value[key === mint ? 0 : 1];
+      return { context: { slot: BigInt(snapshot.context.slot) }, value: account && {
+        ...account, lamports: BigInt(Math.trunc(account.lamports)), rentEpoch: 0n,
       } };
     } }),
   } as unknown as Rpc<GetAccountInfoApi>;
   try {
     const units = await amountToUiAmountForMintWithoutSimulation(rpc, address(mint), BigInt(raw));
     if (!/^\d+(\.\d+)?$/.test(units)) throw new Error();
-    return units;
+    return { units, context };
   } catch { throw new ServiceError('unavailable', 'Mint scaling or chain time could not be verified. Units unavailable.'); }
+}
+
+/** Compatibility wrapper for callers that do not display historical conversion provenance. */
+export async function convertRawUnits(mint: string, raw: string): Promise<string> {
+  return (await convertRawUnitsWithContext(mint, raw)).units;
 }
 
 const tokenAccountsSchema = z.object({ value: z.array(z.object({
   pubkey: z.string(), account: z.object({ owner: z.string(), executable: z.boolean(), data: z.object({ parsed: z.object({
-    type: z.literal('account'), info: z.object({ mint: z.string(), owner: z.string(), tokenAmount: z.object({ amount: rawSchema, decimals: z.number().int() }) }),
+    type: z.literal('account'), info: z.object({ mint: z.string(), owner: z.string(), state: z.enum(['initialized', 'frozen']), tokenAmount: z.object({ amount: rawSchema, decimals: z.number().int() }) }),
   }) }) }),
 })).max(10_000) });
 /** Sum raw strings from every returned account; UI amounts are deliberately ignored. */
@@ -157,8 +235,45 @@ export function sumTokenAccounts(payload: unknown, owner: string, mint: string, 
   if (total > U64_MAX) throw new ServiceError('unavailable', 'Token balance exceeds the supported range.');
   return total.toString();
 }
-export async function loadRawBalance(owner: string, mint: string): Promise<string> {
+const binaryTokenAccountsSchema = z.object({ context: contextSchema, value: z.array(z.object({ pubkey: addressSchema, account: binaryAccountSchema })).max(10_000) });
+export type RawBalanceSnapshot = { raw: string; slot: number; frozenRaw: string; accountCount: number };
+
+/** Every account is decoded, including frozen accounts. Encrypted balances cannot masquerade as zero. */
+export function sumBinaryTokenAccounts(payload: unknown, owner: string, mint: string, info: MintInfo): RawBalanceSnapshot {
+  const parsed = binaryTokenAccountsSchema.safeParse(payload);
+  if (!parsed.success) throw new ServiceError('unavailable', 'Token accounts could not be verified.');
+  const seen = new Set<string>();
+  let total = 0n;
+  let frozen = 0n;
+  for (const row of parsed.data.value) {
+    if (seen.has(row.pubkey) || row.account.executable || row.account.owner !== info.tokenProgram) throw new ServiceError('unavailable', 'Token account ownership or mint did not match.');
+    seen.add(row.pubkey);
+    try {
+      const token = getTokenDecoder().decode(Buffer.from(row.account.data[0], 'base64'));
+      if (token.owner !== owner || token.mint !== mint || ![AccountState.Initialized, AccountState.Frozen].includes(token.state) || unwrapOption(token.isNative) !== null) throw new Error();
+      const extensions = unwrapOption(token.extensions) ?? [];
+      if (new Set(extensions.map(extension => extension.__kind)).size !== extensions.length) throw new Error();
+      // These extensions do not hide any raw balance. Transfer restrictions still need
+      // separate fresh validation against the specific source/destination before signing.
+      const readable = new Set(['ImmutableOwner', 'MemoTransfer', 'CpiGuard', 'TransferHookAccount', 'PausableAccount', 'NonTransferableAccount']);
+      if (extensions.some(extension => !readable.has(extension.__kind))) throw new ServiceError('unavailable', 'A token account has unsupported balance extensions. The complete balance is unavailable.');
+      total += token.amount;
+      if (token.state === AccountState.Frozen) frozen += token.amount;
+    } catch (error) {
+      if (error instanceof ServiceError) throw error;
+      throw new ServiceError('unavailable', 'Token account data or state could not be verified.');
+    }
+  }
+  if (total > U64_MAX) throw new ServiceError('unavailable', 'Token balance exceeds the supported range.');
+  return { raw: total.toString(), slot: parsed.data.context.slot, frozenRaw: frozen.toString(), accountCount: seen.size };
+}
+
+export async function loadRawBalanceWithContext(owner: string, mint: string): Promise<RawBalanceSnapshot> {
+  if (!addressSchema.safeParse(owner).success || !addressSchema.safeParse(mint).success) throw new ServiceError('invalid-input', 'The wallet or mint address is invalid.');
   const info = await loadMint(mint);
-  const result = await rpcRequest('getTokenAccountsByOwner', [owner, { mint }, { encoding: 'jsonParsed', commitment: 'confirmed' }]);
-  return sumTokenAccounts(result, owner, mint, info);
+  const result = await rpcRequest('getTokenAccountsByOwner', [owner, { mint }, { encoding: 'base64', commitment: 'confirmed' }]);
+  return sumBinaryTokenAccounts(result, owner, mint, info);
+}
+export async function loadRawBalance(owner: string, mint: string): Promise<string> {
+  return (await loadRawBalanceWithContext(owner, mint)).raw;
 }

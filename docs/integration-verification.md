@@ -1,3 +1,5 @@
+> Current contribution implementation and release status: [September 20 contribution release](contribution-release-20260920.md). Earlier dated observations below remain historical.
+
 # Historical verification record
 
 For the deployed application, CI, hosted database and read-only provider checks, see the [September 20 release record](release-20260920.md). The [September 19 continuation report](finish-report-20260919.md) preserves the preceding local checkpoint. The observations below remain historical.
