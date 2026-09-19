@@ -1,0 +1,81 @@
+
+Running 35 tests using 1 worker
+
+(node:46273) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓   1 tests/e2e/brand-kit.spec.ts:4:1 › brand kit provides complete, downloadable social assets (3.3s)
+  ✓   2 tests/e2e/demo-release.spec.ts:6:3 › preserved tours and current contribution demonstrations decode at 390px (9.5s)
+  ✘   3 tests/e2e/demo-release.spec.ts:6:3 › preserved tours and current contribution demonstrations decode at 1440px (854ms)
+(node:46302) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓   4 tests/e2e/design-media.spec.ts:3:1 › decorative video really decodes, advances, pauses offscreen and has no manual pause control (4.8s)
+  ✓   5 tests/e2e/design-media.spec.ts:30:1 › reduced motion loads posters without video sources; autoplay rejection keeps a real fallback (2.4s)
+  ✓   6 tests/e2e/design-media.spec.ts:48:1 › decorative players release the old route and use the mobile derivative (2.6s)
+  ✓   7 tests/e2e/first-use.spec.ts:15:1 › fresh Live visit shows search and an explicit current-catalog illustration, then exact estimates and provenance (1.7s)
+  ✓   8 tests/e2e/first-use.spec.ts:54:1 › a deliberately empty returning draft survives Example, Live, and reload without auto-seeding (2.7s)
+  ✓   9 tests/e2e/first-use.spec.ts:72:1 › catalog failure, successful empty response, and recovered catalog have distinct states (1.6s)
+  ✓  10 tests/e2e/first-use.spec.ts:93:1 › failed refresh retains selected identity and edits as unverified until recovery (3.0s)
+  ✓  11 tests/e2e/first-use.spec.ts:118:3 › first-use search, illustration, and controls fit at 1440px (3.1s)
+  ✓  12 tests/e2e/first-use.spec.ts:118:3 › first-use search, illustration, and controls fit at 768px (2.9s)
+  ✓  13 tests/e2e/first-use.spec.ts:118:3 › first-use search, illustration, and controls fit at 390px (2.9s)
+  ✓  14 tests/e2e/first-use.spec.ts:118:3 › first-use search, illustration, and controls fit at 320px (2.8s)
+  ✓  15 tests/e2e/judge-readiness.spec.ts:5:1 › a first Live visit cannot leave the linked Example empty (3.0s)
+  ✓  16 tests/e2e/judge-readiness.spec.ts:21:1 › removing every asset preserves that empty draft across linked Example navigation (3.6s)
+  ✓  17 tests/e2e/judge-readiness.spec.ts:37:1 › the Example toggle seeds only an untouched Live draft, preserving an edited empty one (3.0s)
+  ✓  18 tests/e2e/judge-readiness.spec.ts:56:1 › replace an asset without losing its weight, split exactly, and reset deliberately (2.1s)
+  ✓  19 tests/e2e/judge-readiness.spec.ts:77:1 › mobile estimates reveal numeric results without requiring an extra scroll (1.3s)
+  ✓  20 tests/e2e/judge-readiness.spec.ts:87:1 › Live provenance distinguishes pending quotes, a balance snapshot, and expiry (6.3s)
+  ✓  21 tests/e2e/landing-layout.spec.ts:3:1 › three contribution previews keep labels, amounts and navigation separate at every layout (2.3s)
+  ✓  22 tests/e2e/landing-layout.spec.ts:46:1 › Veloce bottoms align and landscape footer moves below copy at tablet width (1.1s)
+  ✓  23 tests/e2e/liquid-glass.spec.ts:15:1 › samples real video pixels, advances frames, has no pause control, and releases its surface on navigation (3.9s)
+  ✓  24 tests/e2e/liquid-glass.spec.ts:49:1 › reduced motion uses a refracted still with no video download and does not replay on typing (2.0s)
+  ✓  25 tests/e2e/liquid-glass.spec.ts:68:1 › graphics failure keeps native account controls and the guest path usable (1.7s)
+  ✓  26 tests/e2e/liquid-glass.spec.ts:85:1 › pauses offscreen and on visibility events, then resumes when the scene returns (2.3s)
+  ✓  27 tests/e2e/liquid-glass.spec.ts:113:1 › blocked autoplay offers a real retry while the still and native form remain usable (1.4s)
+  ✓  28 tests/e2e/liquid-glass.spec.ts:125:3 › account controls stay in normal flow at 390×844 (1.8s)
+  ✓  29 tests/e2e/liquid-glass.spec.ts:125:3 › account controls stay in normal flow at 844×390 (2.2s)
+  ✓  30 tests/e2e/liquid-glass.spec.ts:125:3 › account controls stay in normal flow at 720×500 (1.7s)
+  ✓  31 tests/e2e/pwa.spec.ts:5:1 › installation instructions are accessible on mobile and desktop (3.5s)
+  ✓  32 tests/e2e/pwa.spec.ts:18:1 › uses the browser install prompt and hides install UI after installation (1.1s)
+  ✓  33 tests/e2e/pwa.spec.ts:32:1 › iPhone viewport explains Safari installation without pretending to install (4.1s)
+  ✓  34 tests/e2e/pwa.spec.ts:53:1 › blocked offline setup reports unavailable instead of claiming cached readiness (967ms)
+  ✓  35 tests/e2e/pwa.spec.ts:67:1 › offline reload supports real Example math and export without caching live or account data (6.1s)
+
+
+  1) tests/e2e/demo-release.spec.ts:6:3 › preserved tours and current contribution demonstrations decode at 1440px
+
+    Error: expect(locator).toBeVisible() failed
+
+    Locator: getByText(/Explore 832 Example assets, choose up to ten/)
+    Expected: visible
+    Error: strict mode violation: getByText(/Explore 832 Example assets, choose up to ten/) resolved to 2 elements:
+        1) <p class="demo-intro">Explore 832 Example assets, choose up to ten for …</p> aka getByRole('main').getByText('Explore 832 Example assets,')
+        2) <p class="demo-intro">Explore 832 Example assets, choose up to ten for …</p> aka getByText('Explore 832 Example assets,').nth(1)
+
+    Call log:
+      - Expect "toBeVisible" getByText(/Explore 832 Example assets, choose up to ten/) with timeout 10000ms
+      - waiting for getByText(/Explore 832 Example assets, choose up to ten/)
+
+
+      10 |     page.on('pageerror', error => errors.push(error.message));
+      11 |     await page.goto('/demo');
+    > 12 |     await expect(page.getByText(/Explore 832 Example assets, choose up to ten/)).toBeVisible();
+         |                                                                                  ^
+      13 |
+      14 |     for (const key of ['first-minute', 'technical-proof']) {
+      15 |       const player = page.locator(`[data-demo-video="${key}"]`);
+        at /Users/rvaclassic/Documents/Codex/2026-09-11/files-pasted-by-the-user-you/outputs/lotline/tests/e2e/demo-release.spec.ts:12:82
+
+    Error Context: ../../../../../../../../tmp/lotline-contribution-hosted/demo-release-preserved-tou-24d18-nstrations-decode-at-1440px/error-context.md
+
+    attachment #2: trace (application/zip) ─────────────────────────────────────────────────────────
+    ../../../../../../../../tmp/lotline-contribution-hosted/demo-release-preserved-tou-24d18-nstrations-decode-at-1440px/trace.zip
+    Usage:
+
+        npx playwright show-trace ../../../../../../../../tmp/lotline-contribution-hosted/demo-release-preserved-tou-24d18-nstrations-decode-at-1440px/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  1 failed
+    tests/e2e/demo-release.spec.ts:6:3 › preserved tours and current contribution demonstrations decode at 1440px
+  34 passed (1.7m)

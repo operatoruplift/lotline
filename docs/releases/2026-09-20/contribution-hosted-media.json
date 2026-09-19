@@ -1,0 +1,20 @@
+{
+  "observedAt": "2026-09-19T19:04:55.374Z",
+  "origin": "https://lotlineonsolana.vercel.app",
+  "films": [
+    {
+      "name": "first-minute",
+      "src": "/videos/release-20260920/first-minute.mp4",
+      "bytes": 1624950,
+      "sha256": "f057dc6df83b51a4cb66fab09a51314a88d713057a652584d1e8602452ca7bf2",
+      "matchesLocal": true
+    },
+    {
+      "name": "technical-proof",
+      "src": "/videos/release-20260920/technical-proof.mp4",
+      "bytes": 2412661,
+      "sha256": "d6784d4c24ce90cd83246b5e881e81b45dd55173d6931a6934c6807f45d4ff3f",
+      "matchesLocal": true
+    }
+  ]
+}

@@ -1,0 +1,40 @@
+{
+  "recordedAt": "2026-09-19T19:08:01.033355+00:00",
+  "applicationCommit": "edbf36ad0e44276cca4919ed17cfe197df2c69a3",
+  "deployment": {
+    "id": "dpl_AZ7Z5q5yL7Qn3hXDTb13soWYsqey",
+    "state": "READY",
+    "target": "production",
+    "immutableUrl": "https://lotline-cfh49bmtm-operatoruplift.vercel.app",
+    "alias": "https://lotlineonsolana.vercel.app"
+  },
+  "githubActions": {
+    "runId": 35463056128,
+    "url": "https://github.com/operatoruplift/lotline/actions/runs/35463056128",
+    "conclusion": "success",
+    "unitPassed": 420,
+    "unitSkipped": 1,
+    "browserPassed": 91
+  },
+  "hostedReadOnly": "contribution-hosted-live.json",
+  "hostedMediaHashes": "contribution-hosted-media.json",
+  "hostedBrowser": {
+    "initialPassed": 34,
+    "initialFailed": 1,
+    "recheckPassed": 2,
+    "coveredBehaviors": 35,
+    "failure": "Strict locator saw a transient hidden streamed copy; test-only helper now waits for exactly one total visible main."
+  },
+  "migrationsApplied": 7,
+  "executionEnabled": false,
+  "realSettlementVerified": false,
+  "fundsMoved": false,
+  "submissionSent": false,
+  "missingExternalConfiguration": [
+    "JUPITER_API_KEY",
+    "reviewed restricted-launch participants and access policy",
+    "verified SMTP delivery for public signup/recovery",
+    "optional Tokens.xyz approved credentials"
+  ],
+  "note": "Evidence/test-helper follow-up does not alter application implementation. Each future financial action still requires separate exact authorization."
+}

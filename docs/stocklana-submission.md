@@ -9,7 +9,7 @@
 - **Team/public name:** [Team to confirm]
 - **Members and roles:** [Names, roles and profile links to confirm]
 - **Submission contact:** [Team to supply directly in the official form]
-- **Repository/release:** [Confirm the reviewed commit or release intended for judging]
+- **Repository/release:** [Contribution implementation edbf36a](https://github.com/operatoruplift/lotline/commit/edbf36ad0e44276cca4919ed17cfe197df2c69a3); [current release evidence](contribution-release-20260920.md)
 
 ## Short description
 

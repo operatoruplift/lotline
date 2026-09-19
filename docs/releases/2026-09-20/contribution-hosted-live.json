@@ -1,0 +1,200 @@
+{
+  "startedAt": "2026-09-19T19:03:02.493Z",
+  "origin": "https://lotlineonsolana.vercel.app",
+  "evidenceClass": "deployed-read-only",
+  "transactionsSigned": 0,
+  "transactionsSubmitted": 0,
+  "routes": [
+    {
+      "path": "/",
+      "status": 200,
+      "contentType": "text/html; charset=utf-8"
+    },
+    {
+      "path": "/app",
+      "status": 200,
+      "contentType": "text/html; charset=utf-8"
+    },
+    {
+      "path": "/demo",
+      "status": 200,
+      "contentType": "text/html; charset=utf-8"
+    },
+    {
+      "path": "/brand-kit",
+      "status": 200,
+      "contentType": "text/html; charset=utf-8"
+    },
+    {
+      "path": "/privacy",
+      "status": 200,
+      "contentType": "text/html; charset=utf-8"
+    },
+    {
+      "path": "/manifest.webmanifest",
+      "status": 200,
+      "contentType": "application/manifest+json; charset=utf-8"
+    },
+    {
+      "path": "/icon.svg",
+      "status": 200,
+      "contentType": "image/svg+xml"
+    },
+    {
+      "path": "/videos/release-20260920/first-minute.mp4",
+      "status": 200,
+      "contentType": "video/mp4"
+    },
+    {
+      "path": "/videos/release-20260920/technical-proof.mp4",
+      "status": 200,
+      "contentType": "video/mp4"
+    }
+  ],
+  "capability": {
+    "httpStatus": 200,
+    "cacheControl": "no-store",
+    "body": {
+      "state": "configuration-required",
+      "enabled": false,
+      "reconciliationAvailable": true,
+      "chain": "solana:mainnet",
+      "policyVersion": "2026-09-14.v1",
+      "validatorVersion": "jupiter-route-v2-raydium-clmm-v1",
+      "limits": {
+        "slippageBps": 100,
+        "maximumPriorityFeeLamports": "5000000",
+        "maximumTotalSolCostLamports": "10000000",
+        "maximumTokenFeeBps": 100
+      },
+      "supportedWalletFeatures": [
+        "solana:signTransaction"
+      ],
+      "message": "In-app purchases are not available in this release. You can plan a contribution and review it independently on Jupiter."
+    }
+  },
+  "catalog": {
+    "httpStatus": 200,
+    "state": "success",
+    "count": 832,
+    "unavailable": 0,
+    "aapl": {
+      "symbol": "AAPLx",
+      "name": "Apple xStock",
+      "mint": "XsbEhLAtcf6HdfpFZ5xEMdqW8nfAvcsP5bdudRLJzJp",
+      "decimals": 8,
+      "tokenProgram": "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb",
+      "halted": false,
+      "verifiedAt": "2026-09-19T19:03:19.001Z",
+      "logoUrl": "/logos/xstocks/AAPLx.png",
+      "logoSourceUrl": "https://xstocks-metadata.backed.fi/logos/tokens/AAPLx.png",
+      "issuerIsin": "CH1436219187",
+      "underlyingSymbol": "AAPL",
+      "underlyingIsin": "US0378331005"
+    }
+  },
+  "holdings": {
+    "httpStatus": 200,
+    "cacheControl": "no-store",
+    "body": {
+      "state": "success",
+      "holdings": [
+        {
+          "mint": "XsbEhLAtcf6HdfpFZ5xEMdqW8nfAvcsP5bdudRLJzJp",
+          "raw": "0",
+          "balanceSlot": 448496454,
+          "frozenRaw": "0",
+          "state": "success",
+          "units": "0",
+          "unitContext": {
+            "source": "clock-sysvar",
+            "kind": "scaled",
+            "decimals": 8,
+            "tokenProgram": "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb",
+            "mintSlot": 448496455,
+            "observedAt": "2026-09-19T19:03:32.632Z",
+            "clockSlot": 448496455,
+            "unixTimestamp": "1789844611",
+            "multiplier": 1.0032690125398187
+          }
+        }
+      ],
+      "usdc": {
+        "mint": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+        "raw": "0",
+        "balanceSlot": 448496456,
+        "frozenRaw": "0",
+        "state": "success",
+        "units": "0",
+        "unitContext": {
+          "source": "mint",
+          "kind": "standard",
+          "decimals": 6,
+          "tokenProgram": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA",
+          "mintSlot": 448496457,
+          "observedAt": "2026-09-19T19:03:33.349Z"
+        }
+      },
+      "fetchedAt": "2026-09-19T19:03:32.109Z"
+    }
+  },
+  "quotes": {
+    "httpStatus": 200,
+    "cacheControl": "no-store",
+    "body": {
+      "state": "success",
+      "quotes": [
+        {
+          "mint": "XsbEhLAtcf6HdfpFZ5xEMdqW8nfAvcsP5bdudRLJzJp",
+          "state": "success",
+          "usdcRaw": "10000000",
+          "outRaw": "2968818",
+          "units": "0.02978523",
+          "fetchedAt": "2026-09-19T19:03:42.807Z",
+          "expiresAt": "2026-09-19T19:04:12.807Z",
+          "source": "Jupiter · metis",
+          "feeBps": 10,
+          "feeMint": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+          "unitContext": {
+            "source": "clock-sysvar",
+            "kind": "scaled",
+            "decimals": 8,
+            "tokenProgram": "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb",
+            "mintSlot": 448496495,
+            "observedAt": "2026-09-19T19:03:43.177Z",
+            "clockSlot": 448496495,
+            "unixTimestamp": "1789844622",
+            "multiplier": 1.0032690125398187
+          }
+        }
+      ]
+    }
+  },
+  "units": {
+    "httpStatus": 200,
+    "cacheControl": "no-store",
+    "body": {
+      "state": "success",
+      "items": [
+        {
+          "mint": "XsbEhLAtcf6HdfpFZ5xEMdqW8nfAvcsP5bdudRLJzJp",
+          "units": "0.02978523",
+          "unitContext": {
+            "source": "clock-sysvar",
+            "kind": "scaled",
+            "decimals": 8,
+            "tokenProgram": "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb",
+            "mintSlot": 448496497,
+            "observedAt": "2026-09-19T19:03:44.065Z",
+            "clockSlot": 448496497,
+            "unixTimestamp": "1789844622",
+            "multiplier": 1.0032690125398187
+          }
+        }
+      ]
+    }
+  },
+  "passed": true,
+  "completedAt": "2026-09-19T19:03:41.597Z",
+  "note": "Public mint-authority account read; zero balances are not evidence of nonzero wallet behavior. No authentication, signing, execution, funding or submission. POST quotes/units are read-only."
+}
