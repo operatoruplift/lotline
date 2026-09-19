@@ -1,5 +1,7 @@
 # Lotline release audit — 15 September 2026
 
+**Historical audit:** September 15–16 evidence below is preserved. The September 19 continuation and current production identity are recorded in [the finish report](finish-report-20260919.md). Later changes to readiness HTTP status do not rewrite those historical observations.
+
 This audit covers the selected L1 Kova, L4 Veloce, L5 Heritage Grove and L6 Liquid Glass release, the expanded contribution planner, the gated execution journal, repeat-contribution reminders, PWA behavior and preserved product films. It records observed behavior separately for the production alias and the current local checkout. No wallet was connected, no signature was requested and no funds moved.
 
 ## Identity and evidence boundary
@@ -12,7 +14,7 @@ This audit covers the selected L1 Kova, L4 Veloce, L5 Heritage Grove and L6 Liqu
 | Local state at audit start | clean; audit fixes now leave only the paths listed below dirty |
 | Current dirty paths | Includes the prior audit paths plus execution owner/recovery changes in `app/api/execution/*`, `components/execution-review.tsx`, `components/contribution-schedule.tsx`, `lib/server/execution/*`, `tests/execution.test.ts`, `supabase/migrations/20260915090000_guest_execution_owner_index.sql`, and updated execution/deployment docs. |
 | Production alias | [lotlineonsolana.vercel.app](https://lotlineonsolana.vercel.app) |
-| Current production revision | `dpl_9FSoQKHERwL3qzL8BADFgZfiTK1P`, Ready, deployed September 16, 2026 from the reviewed checkout; aliased to [lotlineonsolana.vercel.app](https://lotlineonsolana.vercel.app) |
+| Production revision at this audit | `dpl_9FSoQKHERwL3qzL8BADFgZfiTK1P`, Ready, deployed September 16, 2026 from the reviewed checkout; aliased to [lotlineonsolana.vercel.app](https://lotlineonsolana.vercel.app) |
 | Supabase | project `uemunksopacicpbjubtg`; the first four migrations are aligned and applied, including `20260914090000_execution_journal.sql`; the guest-owner index/quota migration is local and pending. |
 | Runtime | Next.js 16.3.4, React 19.3.0, TypeScript 5.9.3, Node 22+ |
 

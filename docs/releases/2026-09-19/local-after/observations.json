@@ -1,0 +1,68 @@
+{
+  "scope": "Local production build from b843014 plus September19 uncommitted changes; reduced motion for deterministic capture; no account or signing actions.",
+  "observations": [
+    {
+      "url": "http://127.0.0.1:3113/",
+      "width": 1440,
+      "capturedAt": "2026-09-19T09:14:40.107Z",
+      "artifact": "home-1440.png",
+      "horizontalOverflow": false
+    },
+    {
+      "url": "http://127.0.0.1:3113/app?mode=example",
+      "width": 1440,
+      "capturedAt": "2026-09-19T09:14:44.824Z",
+      "artifact": "example-1440.png",
+      "horizontalOverflow": false
+    },
+    {
+      "url": "http://127.0.0.1:3113/sign-in",
+      "width": 1440,
+      "capturedAt": "2026-09-19T09:14:48.186Z",
+      "artifact": "sign-in-1440.png",
+      "horizontalOverflow": false
+    },
+    {
+      "url": "http://127.0.0.1:3113/",
+      "width": 390,
+      "capturedAt": "2026-09-19T09:14:52.591Z",
+      "artifact": "home-390.png",
+      "horizontalOverflow": false
+    },
+    {
+      "url": "http://127.0.0.1:3113/app?mode=example",
+      "width": 390,
+      "capturedAt": "2026-09-19T09:14:54.757Z",
+      "artifact": "example-390.png",
+      "horizontalOverflow": false
+    },
+    {
+      "url": "http://127.0.0.1:3113/sign-in",
+      "width": 390,
+      "capturedAt": "2026-09-19T09:14:57.306Z",
+      "artifact": "sign-in-390.png",
+      "horizontalOverflow": false
+    },
+    {
+      "url": "http://127.0.0.1:3113/",
+      "width": 320,
+      "capturedAt": "2026-09-19T09:15:00.136Z",
+      "artifact": "home-320.png",
+      "horizontalOverflow": false
+    },
+    {
+      "url": "http://127.0.0.1:3113/app?mode=example",
+      "width": 320,
+      "capturedAt": "2026-09-19T09:15:02.455Z",
+      "artifact": "example-320.png",
+      "horizontalOverflow": false
+    },
+    {
+      "url": "http://127.0.0.1:3113/sign-in",
+      "width": 320,
+      "capturedAt": "2026-09-19T09:15:04.579Z",
+      "artifact": "sign-in-320.png",
+      "horizontalOverflow": false
+    }
+  ]
+}

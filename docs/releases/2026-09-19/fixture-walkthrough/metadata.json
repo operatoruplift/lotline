@@ -1,0 +1,86 @@
+{
+  "capturedAt": "2026-09-19T09:25:34.919808+00:00",
+  "baselineCommit": "b843014b047300d22ff58d46781cc57a4985e724",
+  "source": "Local production build plus uncommitted September 19 working-tree changes",
+  "route": "http://127.0.0.1:3113/app",
+  "classification": "Controlled browser test fixture, not a real trade or production execution proof",
+  "wallet": "Fake Wallet Standard signer",
+  "providers": "Intercepted same-origin execution APIs with synthetic Jupiter and Solana outcomes",
+  "realSignatures": 0,
+  "realSubmissions": 0,
+  "fundsMoved": false,
+  "mainnetExecutionEvidence": false,
+  "scenario": "Four separate legs: two confirmed, third unknown, reload and reconcile original signature, then resume fourth without repeating confirmed legs; save manual contribution reminder.",
+  "viewports": [
+    {
+      "width": 1440,
+      "height": 1000
+    },
+    {
+      "width": 390,
+      "height": 844
+    },
+    {
+      "width": 320,
+      "height": 844
+    }
+  ],
+  "browserCommand": "E2E_BASE_URL=http://127.0.0.1:3113 LOTLINE_RECORD_EXECUTION=1 npx playwright test tests/e2e/execution-journey.spec.ts -g \"four legs stop\" --reporter=list",
+  "result": "1 passed (recorded walkthrough); 11 controlled scenarios passed across full run and selector-corrected targeted rerun",
+  "media": [
+    {
+      "file": "execution-fixture-walkthrough.webm",
+      "sha256": "44ecd75d2d588b24cfc0c50c4d0f64141627b6670ba672e02c99f2ca93d52a2f",
+      "bytes": 2936143,
+      "durationSeconds": 25.2,
+      "streams": [
+        {
+          "codec_name": "vp8",
+          "codec_type": "video",
+          "width": 1440,
+          "height": 1000
+        }
+      ]
+    },
+    {
+      "file": "execution-fixture-walkthrough.mp4",
+      "sha256": "07bf0f7b541930c7000b42ceb430da3902db54571385e39fbeb7c448a93dace1",
+      "bytes": 1425710,
+      "durationSeconds": 25.2,
+      "streams": [
+        {
+          "codec_name": "h264",
+          "codec_type": "video",
+          "width": 1440,
+          "height": 1000
+        }
+      ]
+    }
+  ],
+  "screenshots": [
+    {
+      "file": "fixture-partial-recovery-1440.png",
+      "sha256": "3cbbc531733b9d91f2a448a17c50ae78987a03258cd6b52d7b46fcb6df88d9a5"
+    },
+    {
+      "file": "fixture-receipts-320.png",
+      "sha256": "f0fbc762ded38e903d74cba4e101732c28ae5c16ca34bf1e51cceb8e5389ef02"
+    },
+    {
+      "file": "fixture-receipts-390.png",
+      "sha256": "ca1cd58cad9d022e8f0a8b4bac696a34060e83cf0b3969fd01ba30bdb9b5b72e"
+    },
+    {
+      "file": "fixture-review-1440.png",
+      "sha256": "d0c83c7cf741f5c871a2f63b891f3157528e2d832148767b2205d1a79a57dd2a"
+    },
+    {
+      "file": "fixture-schedule-320.png",
+      "sha256": "3a334ab9f014145f15f8b3413372be715b9b13c0ba09251e88c2d9f83ae18226"
+    },
+    {
+      "file": "fixture-schedule-390.png",
+      "sha256": "7522d8f969fb39a7369269bfa46aece74fbe853bae65b25477bc23b56be2c663"
+    }
+  ]
+}

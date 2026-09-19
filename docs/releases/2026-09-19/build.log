@@ -1,0 +1,59 @@
+
+> lotline@1.0.0 build
+> next build
+
+▲ Next.js 16.3.4 (Turbopack)
+- Environments: .env.local
+✓ Running next.config.ts took 94ms
+
+  Creating an optimized production build ...
+✓ Compiled successfully in 12.2s
+  Running TypeScript ...
+  Finished TypeScript in 2.0min ...
+  Collecting page data using 7 workers ...
+  Generating static pages using 7 workers (0/19) ...
+  Generating static pages using 7 workers (4/19) 
+  Generating static pages using 7 workers (9/19) 
+  Generating static pages using 7 workers (14/19) 
+✓ Generating static pages using 7 workers (19/19) in 14.7s
+  Finalizing page optimization ...
+
+Route (app)
+┌ ○ /
+├ ○ /_not-found
+├ ƒ /api/asset-details
+├ ƒ /api/assets
+├ ƒ /api/auth/session
+├ ƒ /api/contribution-schedules
+├ ƒ /api/execution/attempts/[attemptId]/reconcile
+├ ƒ /api/execution/config
+├ ƒ /api/execution/runs
+├ ƒ /api/execution/runs/[runId]
+├ ƒ /api/execution/runs/[runId]/legs/[legId]/execute
+├ ƒ /api/execution/runs/[runId]/legs/[legId]/order
+├ ƒ /api/execution/runs/[runId]/legs/[legId]/reconcile
+├ ƒ /api/holdings
+├ ƒ /api/plans
+├ ƒ /api/quotes
+├ ƒ /api/units
+├ ƒ /app
+├ ○ /apple-icon.png
+├ ƒ /auth/callback
+├ ○ /auth/reset-password
+├ ○ /auth/update-password
+├ ○ /brand-kit
+├ ○ /demo
+├ ○ /how-it-works
+├ ○ /icon.svg
+├ ○ /manifest.webmanifest
+├ ○ /offline
+├ ○ /privacy
+├ ○ /robots.txt
+├ ƒ /sign-in
+├ ○ /sign-up
+└ ○ /sitemap.xml
+
+
+○  (Static)   prerendered as static content
+ƒ  (Dynamic)  server-rendered on demand
+

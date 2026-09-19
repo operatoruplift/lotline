@@ -1,0 +1,87 @@
+{
+  "observedAt": "2026-09-19T08:46:29.954Z",
+  "origin": "https://lotlineonsolana.vercel.app",
+  "productionDeploymentId": "dpl_88ZK9kq83Gh717dqpYqAx5ehtFB6",
+  "deploymentCreatedAt": "2026-09-17T17:22:49Z",
+  "deploymentIdentitySource": "Read-only Vercel inspect by release_inventory",
+  "routes": [
+    {
+      "path": "/",
+      "status": 200,
+      "contentType": "text/html; charset=utf-8"
+    },
+    {
+      "path": "/app?mode=example",
+      "status": 200,
+      "contentType": "text/html; charset=utf-8"
+    },
+    {
+      "path": "/demo",
+      "status": 200,
+      "contentType": "text/html; charset=utf-8"
+    },
+    {
+      "path": "/brand-kit",
+      "status": 200,
+      "contentType": "text/html; charset=utf-8"
+    },
+    {
+      "path": "/icon.svg",
+      "status": 200,
+      "contentType": "image/svg+xml"
+    },
+    {
+      "path": "/manifest.webmanifest",
+      "status": 200,
+      "contentType": "application/manifest+json; charset=utf-8"
+    },
+    {
+      "path": "/videos/release-20260912/product.mp4",
+      "status": 200,
+      "contentType": "video/mp4"
+    },
+    {
+      "path": "/videos/release-20260912/technical.mp4",
+      "status": 200,
+      "contentType": "video/mp4"
+    }
+  ],
+  "execution": {
+    "httpStatus": 200,
+    "state": "configuration-required",
+    "enabled": false,
+    "chain": "solana:mainnet",
+    "policyVersion": "2026-09-14.v1",
+    "limits": {
+      "slippageBps": 100,
+      "maximumPriorityFeeLamports": "5000000",
+      "maximumTotalSolCostLamports": "10000000",
+      "maximumTokenFeeBps": 100
+    },
+    "supportedWalletFeatures": [
+      "solana:signTransaction"
+    ],
+    "message": "Execution is paused until the server readiness flag is enabled.",
+    "reasons": [
+      "Execution is paused until the server readiness flag is enabled.",
+      "A server-side Jupiter API key is required for executable orders.",
+      "Guest execution journal migration has not been confirmed.",
+      "The supported-instruction validator still needs an explicit operator review."
+    ]
+  },
+  "catalog": {
+    "httpStatus": 200,
+    "state": "success",
+    "count": 832
+  },
+  "remoteMigrations": [
+    "20260911170809",
+    "20260911170815",
+    "20260912094113",
+    "20260914090000"
+  ],
+  "remoteMigrationSource": "Supabase list_migrations on 2026-09-19",
+  "transactionsSigned": 0,
+  "transactionsSubmitted": 0,
+  "externalConfigurationChanged": false
+}

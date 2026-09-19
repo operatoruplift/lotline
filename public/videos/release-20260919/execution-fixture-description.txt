@@ -1,0 +1,8 @@
+Lotline — controlled contribution demonstration
+Recorded September 19, 2026. Duration: 25.2 seconds. Silent.
+
+This recording shows local application behavior with a fake Wallet Standard wallet and mocked Jupiter and Solana responses. No funds moved. It is controlled test evidence, not a real purchase or proof that mainnet execution is available.
+
+A persistent banner identifies the entire recording as a controlled test with mocked wallet and providers. A four-asset contribution is reviewed with exact USDC amounts, minimum raw token output, wallet, network and fees. Two simulated legs confirm. The third has an unknown result, so further approvals stop and the original receipts remain visible. After a reload, Lotline reconciles the original attempt, then resumes only the fourth leg. The completed receipts show historical raw amounts and can be downloaded. Finally, a manual review reminder saves the amount and split, and the recording shows the receipt and reminder layouts on smaller screens.
+
+No real transaction was signed or submitted. Every future real contribution would require a fresh review and explicit wallet approval once execution readiness requirements are met.

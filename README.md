@@ -6,7 +6,7 @@
 
 Lotline serves someone who already knows their chosen assets and split and wants to repeat a contribution accurately. Percentages apply to the new contribution, not target weights for an existing portfolio. Planning and Example mode are read-only. A staged Wallet Standard/Jupiter execution path is present but remains paused until its server readiness gates, durable journal, and reconciliation checks are deliberately enabled. Guest planning needs no registration or wallet extension. Existing Supabase users can explicitly save named plans across devices; public signup and recovery remain gated until SMTP delivery is verified.
 
-**Release status — September 16, 2026:** the selected L1/L4/L5/L6 redesign, continuous visible motion treatment, reliability fixes, 832-asset Example, refreshed narrated films, downloadable brand kit and gated contribution-execution routes are deployed at [lotlineonsolana.vercel.app](https://lotlineonsolana.vercel.app). The current production deployment is `dpl_9FSoQKHERwL3qzL8BADFgZfiTK1P` and is aliased at both [lotlineonsolana.vercel.app](https://lotlineonsolana.vercel.app) and [lotlinesolana.vercel.app](https://lotlinesolana.vercel.app). Execution remains deliberately paused: its base journal migration is applied, while the guest-owner migration and readiness checks still require explicit external review; Example mode stays read-only. The brand-kit release includes 19 visual exports, individual downloads, a full ZIP and a usage guide; production HTTP checks passed for the route, ZIP and representative phone/profile/header/background assets. Fresh hosted checks passed for the 832-asset catalog, the green landing treatment and both narrated films, including actual audio playback, seeking, captions and accessibility checks on mobile and desktop. See the [release verification](docs/release-verification.md), [September 15 release audit](docs/release-audit-20260915.md), and [video release](docs/video-release.md) for evidence and provenance. No hackathon submission has been made.
+**September 20 release:** the contribution recovery, downloadable receipts, manual reminder sync and new clearly labeled controlled demonstration are packaged for production. All six Supabase migrations are applied, and production flags keep purchases disabled while allowing configured receipt reconciliation. The 832-identity Example, selected L1/L4/L5/L6 design, brand kit and narrated planner films are preserved. See the [current deployment record](docs/deployment.md) and [September 20 release evidence](docs/release-20260920.md) for hosted status. In-app mainnet purchases still require the missing encoded swap validator, Jupiter credentials and issuer access policy; a test recording does not prove a real purchase. No competition submission or funded transaction has been made.
 
 ## Run locally
 
@@ -35,7 +35,7 @@ SUPABASE_SECRET_KEY='' LOTLINE_SHARED_LIMITS=false VERCEL=0 npm run dev -- --por
 | `NEXT_PUBLIC_AUTH_EMAIL_ENABLED` | Public, build time | Set to the exact string `true` only after testing custom SMTP signup and recovery delivery. The launch deployment uses `false`; existing users can still sign in. |
 | `SUPABASE_SECRET_KEY` | Server only | Current `sb_secret_` key for shared provider request coordination; required on Vercel. Account and cloud-plan paths do not use this privileged key. |
 | `LOTLINE_SHARED_LIMITS` | Server only | Set to `true` to require the shared limiter locally. Vercel requires it automatically. |
-| `LOTLINE_EXECUTION_ENABLED`, `LOTLINE_EXECUTION_MIGRATIONS_READY`, `LOTLINE_EXECUTION_GUEST_MIGRATIONS_READY`, `LOTLINE_EXECUTION_REPOSITORY`, `LOTLINE_EXECUTION_VALIDATOR_READY` | Server only | Execution safety gates. Keep execution disabled until both journal migrations, server secret, Jupiter key, RPC, supported-instruction review and production reconciliation checks are complete; see [execution readiness](docs/execution.md). |
+| `LOTLINE_EXECUTION_ENABLED`, `LOTLINE_EXECUTION_MIGRATIONS_READY`, `LOTLINE_EXECUTION_GUEST_MIGRATIONS_READY`, `LOTLINE_EXECUTION_REPOSITORY`, `LOTLINE_EXECUTION_VALIDATOR_READY` | Server only | Execution safety gates. Keep execution disabled until all journal migrations, server secret, Jupiter key, RPC, supported-instruction review and production reconciliation checks are complete; see [execution readiness](docs/execution.md). |
 | `TOKENS_XYZ_ENABLED`, `TOKENS_XYZ_API_KEY` | Server only | Optional exact-mint context, disabled by default. Requires approved `assets:read` access and the exact flag `true`; see [contract and activation requirements](docs/tokens-enrichment.md). |
 
 Never put a privileged key or credential-bearing RPC URL in a public variable. `.env.local` is ignored by Git. Public RPC and Jupiter endpoints may throttle requests.
@@ -49,12 +49,12 @@ The pinned issuer snapshot contains **832 Solana stocks and ETFs**, verified on 
 1. Select one to 10 assets, set percentages totaling exactly 100%, and enter a budget.
 2. Optionally load a public wallet's selected-token and USDC balances.
 3. Choose **Get estimates**. The results show exact USDC allocation, estimated received units, and estimated resulting units when balances are available.
-4. Copy the plan or download its CSV. To review a trade independently, copy the mint and exact USDC amount, open Jupiter, select the asset, and enter the amount there. Live execution remains behind an explicit readiness gate; Example never signs or submits.
+4. Copy the plan or download its CSV. To review a trade independently, open the official Jupiter swap page with the selected mint and exact USDC amount prefilled. Live execution remains behind an explicit readiness gate; Example never signs or submits.
 5. Return to the saved device draft, change the contribution amount, and request new estimates. Optionally sign in and choose **Save this plan** to keep a separate named plan across devices. Signing in alone does not upload the draft.
 
 You can also choose **Split evenly** for a deterministic equal distribution, replace an asset without rebuilding the basket, or use **Copy plan link**. A link carries only the mode, budget, verified-mint choices, and percentages in a URL fragment. The recipient reviews it in a dialog before applying it; wallet addresses, balances, quotes, and account data never enter the link.
 
-The external link opens only `https://jup.ag/`. Lotline cannot observe or confirm a purchase. A later holdings reload is a fresh wallet read, not evidence of a specific trade.
+The external link opens the official `https://jup.ag/swap/` route with the selected mint and exact amount prefilled. Lotline cannot observe or confirm a purchase. A later holdings reload is a fresh wallet read, not evidence of a specific trade.
 
 For a quick precision check, set **10.000001 USDC** at **50/30/20**. The exact allocations are **5.000001 / 3.000000 / 2.000000 USDC**. **Verify this plan** exposes the arithmetic, issuer/mint sources, and quote freshness. A device draft is editable input; a named cloud plan is an explicitly saved copy; an estimate expires and must be requested again.
 
@@ -105,7 +105,7 @@ September 11–12 deployment records describe a configured Supabase project, Git
 
 For a separate deployment:
 
-1. In an authorized target Supabase project, apply the four base migrations in timestamp order: shared provider limits, contribution plans, expanded stock plans, then the execution journal and manual-schedule tables. If guest execution is intended, apply the additive `20260915090000_guest_execution_owner_index.sql` migration as a fifth step and set `LOTLINE_EXECUTION_GUEST_MIGRATIONS_READY=true` only after its quota, retention and rate-limit functions are checked. With the Supabase CLI, link that project and run `supabase db push`.
+1. In an authorized target Supabase project, apply the four base migrations in timestamp order: shared provider limits, contribution plans, expanded stock plans, then the execution journal and manual-schedule tables. If guest execution is intended, apply the additive `20260915090000_guest_execution_owner_index.sql` migration as a fifth step, then `20260919090000_execution_integrity.sql` for per-run attempt locking and receipt retention, and set `LOTLINE_EXECUTION_GUEST_MIGRATIONS_READY=true` only after its quota, retention and rate-limit functions are checked. With the Supabase CLI, link that project and run `supabase db push`.
 2. Enable email/password authentication with confirmation and a minimum password length of 12. Set the correct site origin and allow its `/auth/callback` and `/auth/callback?next=/auth/update-password` redirects. Preserve existing settings when sharing a project.
 3. Configure a custom SMTP sender for public signup and password-reset delivery. Supabase's default SMTP is restricted; unrestricted delivery has not been established for this launch. Email verification stays enabled, guest planning remains available, and only after a real confirmation and recovery delivery test should you set `NEXT_PUBLIC_AUTH_EMAIL_ENABLED=true` and rebuild.
 4. Import the repository into Vercel with the Next.js preset and Node 22 or newer. Set the variables above in every intended environment before building; public Supabase values must exist at build time.
@@ -137,10 +137,14 @@ Lotline application code is [MIT licensed](LICENSE). It uses Next.js/React, Type
 - `components/`: responsive planner, account controls, installation UI, and shared visual components.
 - `lib/domain/`: pure exact math, plan identity, bounded share-link encoding, storage schema, text/CSV exports.
 - `lib/server/`: verified catalog, read-only Solana data, quote-only Jupiter adapter, and shared provider limits.
-- `lib/server/execution/`: disabled-by-default Jupiter order/execute boundary, exact transaction validation, and Supabase journal adapter.
+- `lib/server/execution/`: disabled-by-default Jupiter order/execute boundary, exact signed-message/receipt checks, a blocked swap-instruction validator, and Supabase journal adapter.
 - `lib/supabase/`: public/browser and server clients plus cloud-plan validation.
 - `supabase/`: versioned migrations and database isolation verification.
 - `lib/demo/`: visibly synthetic Example fixtures.
 - `public/`: service worker, original Lotline logo assets, downloadable brand kit, bundled official xStocks logos, and PWA icons.
 - `tests/`: behavioral domain, service, and browser verification.
 - `docs/`: dated evidence, screenshots, setup details, product descriptions, design direction, and video materials.
+
+## September 19 local continuation
+
+The [finish report](docs/finish-report-20260919.md) records additional wallet, recovery, receipt and manual-reminder fixes against `b843014`. That report records the local checkpoint before the separately authorized September 20 release; both pending migrations are now applied. In-app execution remains blocked by missing encoded swap validation in addition to external configuration; production continues to offer read-only planning and the official Jupiter handoff.

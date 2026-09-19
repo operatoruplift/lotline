@@ -1,15 +1,15 @@
 # Deployment status and history
 
-Updated September 16, 2026 after the production release and execution audit. **The selected redesign, continuous visible motion treatment, 832-asset Example, contribution fixes, refreshed narrated films, downloadable brand kit and gated execution routes are deployed.** The [release verification](release-verification.md) records earlier application and hosted provider/media evidence; the [September 15 release audit](release-audit-20260915.md) records the capability boundary and audit fixes. The latest production deployment is `dpl_9FSoQKHERwL3qzL8BADFgZfiTK1P`, ready and aliased to both production domains. Execution remains deliberately paused while its external readiness gates stay incomplete. Earlier observations below retain their historical dates; account/email checks are not implied by the new public release.
+The September 20 release is authorized and includes the September 19 contribution recovery, receipt and manual-reminder fixes plus the controlled demonstration on `/demo`. Both pending Supabase migrations have been applied and verified; production configuration retains `LOTLINE_EXECUTION_ENABLED=false` and `LOTLINE_EXECUTION_VALIDATOR_READY=false`. The [current release record](release-20260920.md) separates local, hosted database and deployed application evidence. Historical observations below retain their dates.
 
 - Production website: https://lotlineonsolana.vercel.app
 - Interactive Example: https://lotlineonsolana.vercel.app/app?mode=example
 - Demo and pitch: https://lotlineonsolana.vercel.app/demo
 - Public source: https://github.com/operatoruplift/lotline
 - Vercel project: `lotline`, connected to the public source repository, Next.js framework, Node 22, `npm ci` installation.
-- Dedicated Supabase project recorded by the earlier setup: `uemunksopacicpbjubtg`, named Lotline, region `us-east-1`. No project, billing or production configuration changes are part of the current task.
+- Dedicated Supabase project recorded by the earlier setup: `uemunksopacicpbjubtg`, named Lotline, region `us-east-1`. This release applies additive migrations and readiness configuration; it creates no project and changes no billing.
 
-The execution journal migration (`20260914090000_execution_journal.sql`) was applied to the linked Supabase project on September 15, 2026 after reconciling its remote migration history. The guest-owner index/quota migration (`20260915090000_guest_execution_owner_index.sql`) remains local and unapplied remotely; its readiness flag remains false until it is separately applied and checked. The deployed readiness endpoint remains intentionally `503 configuration-required`; no wallet prompt or transaction can be created while the execution flag, server Jupiter key, guest migration and supported-instruction validator review are incomplete. After the September 16 production release, `/`, `/app?mode=example`, `/brand-kit`, `/demo`, the favicon and manifest returned HTTP 200; `/api/assets` returned 832 assets; and `/api/execution/config` returned HTTP 503 with explicit capability reasons. See [execution readiness](execution.md) for the deliberate enablement gates.
+The execution journal migration (`20260914090000_execution_journal.sql`) was applied to the linked Supabase project on September 15, 2026 after reconciling its remote migration history. The guest-owner index/quota migration (`20260915090000_guest_execution_owner_index.sql`) and integrity migration (`20260919090000_execution_integrity.sql`) were applied and checked during the September 20 release. The current deployed readiness endpoint returns HTTP 200 with `state: configuration-required` and `enabled: false`; no wallet prompt or transaction can be created while the execution flag, server Jupiter key, guest migration and supported-instruction validator review are incomplete. After the September 16 production release, `/`, `/app?mode=example`, `/brand-kit`, `/demo`, the favicon and manifest returned HTTP 200; `/api/assets` returned 832 assets; and `/api/execution/config` returned HTTP 503 with explicit capability reasons. See [execution readiness](execution.md) for the deliberate enablement gates.
 
 ## Evidence boundaries
 
@@ -22,8 +22,8 @@ The execution journal migration (`20260914090000_execution_journal.sql`) was app
 | All 832 snapshot assets available in Example | Implemented and verified locally | Original six synthetic rates preserved; extra 826 use generic one-unit-per-100-USDC estimates and zero illustrative holdings; [finish-pass results](stocklana-finish-delivery.md) are recorded separately |
 | Real password sign-in, cloud CRUD and cross-owner RLS | Historically verified hosted | [September 11 auth evidence](hosted-auth-verification.json), on the original `lotline-omega.vercel.app` alias; disposable users were deleted, no email sent |
 | Public homepage, Example and updated films | Currently verified hosted | September 12, 16:25–16:27 UTC: current design/logo, 832 Example assets, both narrated films, HTTP 200 and zero overflow/page errors; see [release verification](release-verification.md) |
-| Finished application on the public origin | Deployed and verified | Latest production release `dpl_9FSoQKHERwL3qzL8BADFgZfiTK1P` is READY; hosted routes, 832-asset catalog, brand kit and demo journeys passed after deployment |
-| Public signup/recovery email; authenticated Tokens.xyz context | Externally blocked | Verified custom SMTP delivery; separately, approved Tokens API access, credentials and activation terms |
+| Finished application on the public origin | Deployed and verified | Latest production release `dpl_88ZK9kq83Gh717dqpYqAx5ehtFB6` is READY; hosted routes, 832-asset catalog, brand kit and demo journeys passed after deployment |
+| Public signup/recovery email; authenticated Tokens.xyz context | Externally blocked | Requires verified custom SMTP delivery; separately, approved Tokens API access, credentials and activation terms |
 | Downloadable brand kit | Deployed and verified | `/brand-kit` has 19 visual exports, individual same-origin downloads, a full ZIP and a usage guide; production checks passed for the route, ZIP, profile, phone wallpaper, X header, forest background and guide |
 
 ## Earlier hosted observation — September 12, 12:51 UTC
@@ -44,13 +44,14 @@ Optional Tokens.xyz context remains disabled unless both `TOKENS_XYZ_ENABLED=tru
 
 ## Supabase
 
-The repository contains five migrations. The first four are aligned with and applied to the linked Lotline project:
+All six repository migrations are aligned with and applied to the linked Lotline project:
 
 1. `20260911170809_shared_provider_limits.sql`
 2. `20260911170815_contribution_plans.sql`
 3. `20260912094113_expanded_stock_plans.sql`
 4. `20260914090000_execution_journal.sql` (applied September 15, 2026; keep execution disabled until validator and provider gates are reviewed)
-5. `20260915090000_guest_execution_owner_index.sql` (current local implementation; apply only during an explicitly authorized Supabase change)
+5. `20260915090000_guest_execution_owner_index.sql` (applied September 20 local time)
+6. `20260919090000_execution_integrity.sql` (applied September 20 local time; per-run attempt locking, immutable transaction identity, unsigned expiry and unresolved-evidence retention)
 
 The initial hosted checkpoint applied the first two; the September 12 catalog checkpoint records the third. The September 15 deployment applied the additive execution journal and schedule tables after reconciling the remote migration history. Historical database checks verified ownership, grants, invalid input, the 20-plan limit, ten assets and deletion with rolled-back fixtures. Provider-slot SQL was checked separately for spacing and bounded backlog. Its table deliberately has RLS with no browser policy or grant; only the privileged server role reserves slots. Current source supports ten plan assets while request batches remain limited to three. Guest execution must remain disabled until the fifth migration is applied, because the old owner index coalesces guest runs and does not provide the per-capability quota, daily run quotas or shared HMAC-hashed edge/IP and global buckets.
 

@@ -1,5 +1,7 @@
 # Historical verification record
 
+For the September 19 local execution/recovery changes and separate fresh production observations, see the [current continuation report](finish-report-20260919.md). The observations below remain historical.
+
 Verified September 11–12, 2026. The original chain and quote observations retain their September 11 UTC timestamps. See [live integration detail](live-integration.md), the exact [normalized live observations](live-smoke.json), and the separate [production-build UI observation](ui-live-smoke.json).
 
 These are earlier checkpoints, not evidence that the current uncommitted redesign or expanded Example is deployed. The [Stocklana finish delivery](stocklana-finish-delivery.md) records the latest local checks and the separate September 12 public-page observation.

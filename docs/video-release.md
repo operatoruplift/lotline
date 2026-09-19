@@ -1,8 +1,16 @@
-# Lotline current video release
+# Lotline video releases and fixture walkthrough
 
-**Last updated:** September 12, 2026.
+**Last updated:** September 19, 2026. Original narrated films: September 12.
 
-The current product and technical films show the redesigned Lotline application, **832 Example identities** and plans with **up to ten assets**. Both use fresh **Ainsley narration generated through Higgsfield**, actual application recordings, English captions and text transcripts. The September 11 pitch, silent technical cut and hosted Scrimba explainer remain archives.
+## September 19 local walkthrough
+
+The [new browser walkthrough](releases/2026-09-19/fixture-walkthrough/execution-fixture-walkthrough.mp4) shows the current local app's reviewed fees, two confirmed legs followed by an unknown third, reload/reconciliation, completion of the remaining leg, historical receipts and manual reminders at desktop and phone widths. It carries a visible **controlled fixture / mocked wallet and providers / no funds moved** label. It is silent browser evidence, not a newly narrated pitch or a real mainnet purchase. It has not been deployed to the public demo page.
+
+The reproducible source is [execution-journey.spec.ts](../tests/e2e/execution-journey.spec.ts), specifically the four-leg walkthrough with `LOTLINE_RECORD_EXECUTION=1`. See the [continuation report](finish-report-20260919.md) for test results, transaction-validator limitations and the separate production status.
+
+## Preserved September 12 films
+
+These preserved September 12 product and technical films show that dated planner release, **832 Example identities** and plans with **up to ten assets**. Both use fresh **Ainsley narration generated through Higgsfield**, actual application recordings, English captions and text transcripts. The September 11 pitch, silent technical cut and hosted Scrimba explainer remain archives.
 
 [Watch both films on the demo page](https://lotlineonsolana.vercel.app/demo). Production playback is part of the separately recorded [deployment verification](deployment.md); a successful local render does not establish hosted playback.
 
@@ -62,3 +70,7 @@ You already know your xStocks and your split. Each new contribution still needs 
 ## Technical transcript
 
 Lotline turns a chosen xStocks split into an exact plan for the next USDC contribution. The current release supports 10 assets per plan, with 832 identities in its bundled Example catalog. This walkthrough uses the real application, and clearly labeled synthetic estimates. The calculation boundary is explicit. USDC is parsed into integer microunits and percentages into basis points. Big integer arithmetic calculates each allocation, then the largest remainder method distributes leftover microunits deterministically. The total always matches the entered budget. Invalid percentage fields never produce a complete allocation badge. Example is isolated from Live providers. The original six practice assets keep their fixtures. Additional identities use zero illustrative holdings and a generic unit estimate. The catalog includes pinned decimals and official logo assets, while unsupported saved mints remain visible for repair instead of silently replacing a user's draft. Live has a separate verification path. Issuer metadata identifies each asset, then Solana account checks verify its mint and token program. Token-2022 scaled UI Amounts require the current mint configuration and chain time. Raw holdings and quote outputs go through that conversion before display. Decimal formatting alone would be incorrect. The server requests amount specific Jupiter quotes in bounded batches of 3. It requests no transaction and supplies no signing wallet. Each result keeps its own retrieval time and expiry. With a 30 second maximum freshness window. Later batches cannot refresh earlier quotes. Provider failures and missing routes remain explicit states. Copy and CSV exports preserve exact allocations, verified mints, quote sources, and expiry. An export records whether an estimate was fresh or stale when exported. Copying never renews a quote. Editing the budget or percentages clears estimates so amounts cannot reuse a mismatched result. Device drafts keep the contribution budget and split. Signed in users can explicitly save named plans through Supabase, protected by row level security. Public offline caching excludes private account and API responses. Example calculations work offline, while Live estimates require a connection. Email delivery remains disabled until a custom sender is configured. The responsive web app is installable on supported mobile and desktop browsers. It is a contribution planner, not a broker or automatic trader. Users review any purchase independently on Jupiter. Lotline makes the numerical plan repeatable and its Live assumptions inspectable.
+
+## September 19 scope update
+
+The demo page now dates these films explicitly. Their original files, captions, transcripts, posters and editable sources remain unchanged. Later manual-reminder, prefilled Jupiter and gated execution/recovery changes are documented in the [finish report](finish-report-20260919.md). Any new execution walkthrough uses a fake wallet and mocked providers, is labeled as a local fixture, and does not establish a real purchase.

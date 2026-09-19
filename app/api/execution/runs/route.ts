@@ -23,6 +23,6 @@ export async function POST(request: Request) {
     if (intent.legs.some(leg => assets.find(asset => asset.mint === leg.mint)?.symbol !== leg.issuerId)) return json({ state: 'invalid-input', message: 'The reviewed issuer identity does not match the verified catalog.' }, 400);
     const intentHash = createHash('sha256').update(canonicalIntent(intent)).digest('hex');
     const snapshot = await createRun(owner, intent, intentHash);
-    return json({ state: 'success', run: { id: snapshot.run.id, intentHash, state: snapshot.run.state, createdAt: snapshot.run.created_at }, legs: snapshot.legs.map(leg => ({ id: leg.id, key: leg.leg_key, mint: leg.mint, allocationBps: leg.allocation_bps, inputRaw: leg.input_raw, state: leg.state })) }, 201);
+    return json({ state: 'success', run: { id: snapshot.run.id, intentHash: snapshot.run.intent_hash, state: snapshot.run.state, createdAt: snapshot.run.created_at }, legs: snapshot.legs.map(leg => ({ id: leg.id, key: leg.leg_key, mint: leg.mint, allocationBps: leg.allocation_bps, inputRaw: leg.input_raw, state: leg.state })) }, 201);
   } catch (error) { return failure(error); }
 }

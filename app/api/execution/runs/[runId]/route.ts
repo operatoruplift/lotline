@@ -1,12 +1,12 @@
 import { getSnapshot } from '@/lib/server/execution/repository';
-import { ensureExecutionEnabled, failure, json, requireExecutionOwner } from '@/lib/server/execution/http';
+import { failure, json, requireExecutionOwner } from '@/lib/server/execution/http';
+import { requireJournalReadiness } from '@/lib/server/execution/reconciliation';
 
 export const dynamic = 'force-dynamic';
 
 export async function GET(_request: Request, context: { params: Promise<{ runId: string }> }) {
   try {
-    const ready = ensureExecutionEnabled();
-    if (ready.response) return ready.response;
+    requireJournalReadiness(false);
     const { runId } = await context.params;
     const owner = await requireExecutionOwner();
     const snapshot = await getSnapshot(owner, runId);

@@ -7,7 +7,7 @@ import { getBase58Decoder } from '@solana/codecs-strings';
 import type { Address } from '@solana/addresses';
 import { z } from 'zod';
 import type { ExecutionOrder } from './orders';
-import { fetchJson, ServiceError } from '@/lib/server/common';
+import { fetchJson, rawSchema, ServiceError } from '@/lib/server/common';
 import { reserveProviderSlot } from '@/lib/server/provider-limits';
 
 const MAX_TRANSACTION_BYTES = 1232;
@@ -16,19 +16,19 @@ const executeResponseSchema = z.object({
   signature: z.string().regex(/^[1-9A-HJ-NP-Za-km-z]{80,100}$/).optional(),
   code: z.number().int().optional(),
   error: z.string().max(500).optional(),
-  inputAmountResult: z.string().regex(/^\d+$/).optional(),
-  outputAmountResult: z.string().regex(/^\d+$/).optional(),
+  inputAmountResult: rawSchema.optional(),
+  outputAmountResult: rawSchema.optional(),
 }).passthrough();
 
 function decodeBase64(value: string): Uint8Array {
-  if (value.length % 4 === 1 || !/^[A-Za-z0-9+/]*={0,2}$/.test(value)) throw new ServiceError('invalid-input', 'The signed transaction is not valid base64.');
+  if (value.length > 1644 || value.length % 4 === 1 || !/^[A-Za-z0-9+/]*={0,2}$/.test(value)) throw new ServiceError('invalid-input', 'The signed transaction is not valid base64.');
   const bytes = new Uint8Array(Buffer.from(value, 'base64'));
-  if (!bytes.length || Buffer.from(bytes).toString('base64').replace(/=+$/, '') !== value.replace(/=+$/, '')) throw new ServiceError('invalid-input', 'The signed transaction could not be decoded.');
+  if (!bytes.length || bytes.length > MAX_TRANSACTION_BYTES || Buffer.from(bytes).toString('base64').replace(/=+$/, '') !== value.replace(/=+$/, '')) throw new ServiceError('invalid-input', 'The signed transaction could not be decoded.');
   return bytes;
 }
 
 /** Validate the exact transaction the server approved before it is sent to Jupiter. */
-export async function validateSignedTransaction(order: Pick<ExecutionOrder, 'transaction' | 'messageHash'>, signedTransaction: string, wallet: string): Promise<{ encoded: string; signature: string; chainSignature: string }> {
+export async function validateSignedTransaction(order: Pick<ExecutionOrder, 'transaction' | 'messageHash'>, signedTransaction: string, wallet: string): Promise<{ encoded: string; signature: string; chainSignature: string; signedTransactionHash: string }> {
   const approvedBytes = decodeBase64(order.transaction);
   const signedBytes = decodeBase64(signedTransaction);
   let approved: Transaction;
@@ -37,6 +37,7 @@ export async function validateSignedTransaction(order: Pick<ExecutionOrder, 'tra
     approved = getTransactionDecoder().decode(approvedBytes);
     signed = getTransactionDecoder().decode(signedBytes);
   } catch { throw new ServiceError('invalid-input', 'The signed transaction could not be decoded safely.'); }
+  if (!Buffer.from(getTransactionEncoder().encode(approved)).equals(Buffer.from(approvedBytes)) || !Buffer.from(getTransactionEncoder().encode(signed)).equals(Buffer.from(signedBytes))) throw new ServiceError('invalid-input', 'The transaction contains trailing or noncanonical bytes.');
   if (getTransactionSize(signed) > MAX_TRANSACTION_BYTES) throw new ServiceError('invalid-input', 'The signed transaction exceeds Solana’s size limit.');
   const signedMessage = signed.messageBytes as unknown as Uint8Array;
   const approvedMessage = approved.messageBytes as unknown as Uint8Array;
@@ -44,7 +45,7 @@ export async function validateSignedTransaction(order: Pick<ExecutionOrder, 'tra
   const approvedHash = createHash('sha256').update(approvedMessage).digest('hex');
   if (signedHash !== order.messageHash || approvedHash !== order.messageHash || Buffer.compare(Buffer.from(signedMessage), Buffer.from(approvedMessage)) !== 0) throw new ServiceError('invalid-input', 'The signed bytes do not match the reviewed order. Refresh the review and sign that transaction.');
   if (!isAddress(wallet) || !(wallet in signed.signatures)) throw new ServiceError('invalid-input', 'The connected wallet is not a required signer for this order.');
-  if (Object.entries(signed.signatures).some(([signer, signature]) => signer !== wallet && signature === null)) throw new ServiceError('invalid-input', 'This order needs another signer Lotline cannot safely request.');
+  if (Object.keys(approved.signatures).length !== 1 || Object.keys(signed.signatures).length !== 1 || approved.signatures[wallet] !== null) throw new ServiceError('invalid-input', 'This order needs another signer or is already signed. Lotline only supports one wallet signer.');
   const signature = signed.signatures[wallet];
   if (!signature || signature.length !== 64) throw new ServiceError('invalid-input', 'The wallet did not provide a complete signature.');
   try {
@@ -58,7 +59,7 @@ export async function validateSignedTransaction(order: Pick<ExecutionOrder, 'tra
   const firstSignature = signed.signatures[Object.keys(signed.signatures)[0] as keyof typeof signed.signatures];
   if (!firstSignature) throw new ServiceError('invalid-input', 'The signed transaction has no fee-payer signature.');
   const chainSignature = getBase58Decoder().decode(firstSignature);
-  return { encoded, signature: Buffer.from(signature).toString('base64'), chainSignature };
+  return { encoded, signature: Buffer.from(signature).toString('base64'), chainSignature, signedTransactionHash: createHash('sha256').update(signedBytes).digest('hex') };
 }
 
 export async function executeOnJupiter(signedTransaction: string, requestId: string, expectedSignature: string, lastValidBlockHeight?: string): Promise<{ status: 'Success' | 'Failed'; signature?: string; code?: number; error?: string; inputAmountResult?: string; outputAmountResult?: string }> {

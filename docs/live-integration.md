@@ -1,5 +1,7 @@
 # Live integration verification — September 11, 2026
 
+The [September 19 continuation report](finish-report-20260919.md) separates the latest read-only smoke, local execution fixtures and production configuration. This page preserves the original integration observations.
+
 The repeatable adapter smoke passed at **2026-09-11 15:41:26 UTC** using the public Solana mainnet RPC and no Jupiter API key. The exact normalized observations are in [live-smoke.json](live-smoke.json). These are dated evidence, not future prices or a promise of service availability.
 
 - All six selected symbols resolved through the official issuer Assets API. Each had one exact `network: "Solana"` deployment. Binary chain mint decoding verified Token-2022 ownership, eight decimals, initialization, and a valid Scaled UI Amount extension for AAPLx, MSFTx, NVDAx, TSLAx, SPYx, and QQQx.
@@ -13,7 +15,7 @@ Run the same adapters again from the project directory:
 SOLANA_RPC_URL=https://api.mainnet-beta.solana.com LOTLINE_LIVE_SMOKE=1 npx vitest run tests/server-live.test.ts
 ```
 
-The opt-in test rewrites `docs/live-smoke.json` with the new time and observations, intentionally omitting the configured RPC URL value and API key. The regular test suite skips this external-service test. Configure the server environment before starting Next.js; Example mode requires neither service.
+The opt-in test writes `test-results/live-smoke.json` with the new time and observations, intentionally omitting the configured RPC URL value and API key. Copy that ephemeral output to a dated evidence directory before another Playwright run clears `test-results`. The regular test suite skips this external-service test. Configure the server environment before starting Next.js; Example mode requires neither service.
 
 ## Verified behavior and limits
 

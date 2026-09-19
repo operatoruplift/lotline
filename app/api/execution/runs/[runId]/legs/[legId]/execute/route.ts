@@ -30,7 +30,7 @@ export async function POST(request: Request, context: { params: Promise<{ runId:
     if (typeof unsigned !== 'string') throw new ServiceError('unavailable', 'The reviewed transaction is unavailable. Request a fresh order.');
     await transitionAttempt(owner, found.attempt.id, 'awaiting-wallet', { reason: 'The user chose to sign the reviewed order.' });
     const signed = await validateSignedTransaction({ transaction: unsigned, messageHash: found.attempt.transaction_message_hash }, parsed.data.signedTransaction, found.run.wallet);
-    await transitionAttempt(owner, found.attempt.id, 'signed', { reason: 'The wallet signature passed exact message and Ed25519 checks.', expectedSignature: signed.chainSignature }, signed.chainSignature);
+    await transitionAttempt(owner, found.attempt.id, 'signed', { reason: 'The wallet signature passed exact message and Ed25519 checks.', expectedSignature: signed.chainSignature, signedTransactionHash: signed.signedTransactionHash }, signed.chainSignature);
     let response: Awaited<ReturnType<typeof executeOnJupiter>>;
     try {
       response = await executeOnJupiter(signed.encoded, found.attempt.provider_request_id, signed.chainSignature, found.attempt.original_last_valid_block_height ?? undefined);
@@ -39,8 +39,8 @@ export async function POST(request: Request, context: { params: Promise<{ runId:
       throw error;
     }
     if (response.status === 'Failed') {
-      await transitionAttempt(owner, found.attempt.id, 'rejected', { reason: 'Jupiter rejected the signed order before confirmation.', code: response.code ?? null });
-      return json({ state: 'rejected', status: 'Failed', message: 'Jupiter rejected this signed order. No retry was created.', code: response.code });
+      await transitionAttempt(owner, found.attempt.id, 'unknown', { reason: 'Jupiter reported failure after receiving signed bytes. Chain reconciliation is still required.', code: response.code ?? null });
+      return json({ state: 'unknown', status: 'Failed', signature: signed.chainSignature, message: 'Jupiter reported a failure. The original signature must be reconciled before any new purchase.', code: response.code });
     }
     if (!response.signature) {
       await transitionAttempt(owner, found.attempt.id, 'unknown', { reason: 'Jupiter returned a success-shaped response without a chain signature. Reconcile the signed transaction before any retry.', status: response.status }, signed.chainSignature);

@@ -1,0 +1,15 @@
+
+Running 8 tests using 1 worker
+
+(node:20149) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  1 tests/e2e/demo-release.spec.ts:6:3 › dated narrated tours and current controlled demonstration decode at 390px (13.1s)
+  ✓  2 tests/e2e/demo-release.spec.ts:6:3 › dated narrated tours and current controlled demonstration decode at 1440px (10.3s)
+  ✓  3 tests/e2e/execution-readiness.spec.ts:3:1 › execution reports its disabled server boundary and Example never signs (3.0s)
+  ✓  4 tests/e2e/pwa.spec.ts:5:1 › installation instructions are accessible on mobile and desktop (5.2s)
+  ✓  5 tests/e2e/pwa.spec.ts:18:1 › uses the browser install prompt and hides install UI after installation (2.2s)
+  ✓  6 tests/e2e/pwa.spec.ts:32:1 › iPhone viewport explains Safari installation without pretending to install (6.4s)
+  ✓  7 tests/e2e/pwa.spec.ts:53:1 › blocked offline setup reports unavailable instead of claiming cached readiness (1.1s)
+  ✓  8 tests/e2e/pwa.spec.ts:67:1 › offline reload supports real Example math and export without caching live or account data (19.4s)
+
+  8 passed (1.1m)

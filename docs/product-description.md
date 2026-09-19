@@ -1,6 +1,6 @@
 # Lotline — product descriptions
 
-**Last updated:** September 16, 2026.
+**Last updated:** September 19, 2026.
 
 ## Short description
 
@@ -34,7 +34,7 @@ Solana xStocks use Token-2022 Scaled UI Amount. Lotline uses the official mint-a
 
 Copy the full plan or download a CSV containing the mode, asset, verified mint, percentage, exact USDC allocation, available estimate, and quote time. Copy an individual mint and amount when you are ready to review that asset on Jupiter.
 
-The handoff opens Jupiter's official homepage. You select the asset, enter the copied amount, and review current amounts and fees there. Lotline does not assemble, sign, submit, or execute transactions, and does not claim a purchase happened after an external link was opened.
+The handoff opens Jupiter's official swap page with the selected Solana mint and exact USDC amount prefilled. You review current amounts, route and fees there and approve any transaction in your wallet. In-app execution remains disabled pending transaction validation and service configuration; opening an external link never counts as a completed purchase.
 
 ### Start in a minute
 
@@ -44,7 +44,7 @@ The responsive interface fits mobile, tablet, and desktop screens. Warm paper to
 
 ### Keep a plan for next time
 
-Guest planning saves your basket on the current device. Optional Supabase accounts let you explicitly save named plans, then load or delete them across devices. Signing in does not upload the current draft. Saved plans contain your chosen assets, percentages, and budget; they do not contain a wallet address, balances, or quote results. Each account can keep up to 20 plans, restricted to that account by database access policies.
+Guest planning saves your basket on the current device. A manual review reminder can retain the budget and asset split, weekly or monthly cadence, timezone and next date. Pause it, export a calendar event, or load its saved split when you return; missed dates do not create catch-up purchases. Optional Supabase accounts let you explicitly save named plans, then load or delete them across devices. Signing in does not upload the current draft. Saved plans contain your chosen assets, percentages, and budget; they do not contain a wallet address, balances, or quote results. Each account can keep up to 20 plans, restricted to that account by database access policies.
 
 Public signup and password recovery stay gated until confirmation and recovery delivery are verified. Existing users can sign in when Supabase is configured, and guest planning remains complete. An editable device draft, an explicitly saved named plan, and an expiring quote are separate things.
 
@@ -62,4 +62,4 @@ The application uses Next.js, TypeScript, React, and Tailwind, with narrow serve
 
 ## Publication note
 
-The selected redesign, expanded Example, continuous visible motion treatment and refreshed narrated films are deployed at [lotlineonsolana.vercel.app](https://lotlineonsolana.vercel.app). The current production deployment is `dpl_9FSoQKHERwL3qzL8BADFgZfiTK1P` and is ready. The [current product and technical films](video-release.md) use fresh application captures and Higgsfield-generated Ainsley narration, with synthetic Example values and separately dated Live observations disclosed. Both films passed hosted mobile and desktop playback, audio, seeking, caption and accessibility checks. No native App Store or Play Store package is shipped. Public account email, authenticated Tokens.xyz enrichment and live execution remain externally gated. See [local redesign evidence](redesign-delivery.md) and the [submission draft](stocklana-submission.md); do not claim user feedback, investment performance, guaranteed liquidity, organizer endorsement or executed trades.
+The selected redesign, expanded Example, continuous visible motion treatment and refreshed narrated films are deployed at [lotlineonsolana.vercel.app](https://lotlineonsolana.vercel.app). The current production deployment is `dpl_88ZK9kq83Gh717dqpYqAx5ehtFB6` and is ready. The [current product and technical films](video-release.md) use September 12 application captures and Higgsfield-generated Ainsley narration, with synthetic Example values and separately dated Live observations disclosed. Both films passed hosted mobile and desktop playback, audio, seeking, caption and accessibility checks. No native App Store or Play Store package is shipped. Public account email and authenticated Tokens.xyz enrichment remain externally gated. In-app purchases additionally require unfinished swap-instruction validation. The September 19 receipt, recovery and reminder changes are local and are not part of that deployed release; see the [continuation report](finish-report-20260919.md). See [local redesign evidence](redesign-delivery.md) and the [submission draft](stocklana-submission.md); do not claim user feedback, investment performance, guaranteed liquidity, organizer endorsement or executed trades.

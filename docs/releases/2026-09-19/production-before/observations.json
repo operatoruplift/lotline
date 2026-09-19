@@ -1,0 +1,34 @@
+{
+  "scope": "Existing production baseline; no mutations or wallet connections; reduced motion for deterministic capture.",
+  "deployment": "dpl_88ZK9kq83Gh717dqpYqAx5ehtFB6",
+  "observations": [
+    {
+      "url": "https://lotlineonsolana.vercel.app/",
+      "width": 1440,
+      "capturedAt": "2026-09-19T09:11:29.462Z",
+      "artifact": "home-1440.png",
+      "horizontalOverflow": false
+    },
+    {
+      "url": "https://lotlineonsolana.vercel.app/app?mode=example",
+      "width": 1440,
+      "capturedAt": "2026-09-19T09:11:35.507Z",
+      "artifact": "example-1440.png",
+      "horizontalOverflow": false
+    },
+    {
+      "url": "https://lotlineonsolana.vercel.app/",
+      "width": 390,
+      "capturedAt": "2026-09-19T09:11:40.157Z",
+      "artifact": "home-390.png",
+      "horizontalOverflow": false
+    },
+    {
+      "url": "https://lotlineonsolana.vercel.app/app?mode=example",
+      "width": 390,
+      "capturedAt": "2026-09-19T09:13:03.914Z",
+      "artifact": "example-390.png",
+      "horizontalOverflow": false
+    }
+  ]
+}

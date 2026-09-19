@@ -1,0 +1,41 @@
+
+> lotline@1.0.0 verify
+> npm run lint && npm run typecheck && npm test && npm run build
+
+
+> lotline@1.0.0 lint
+> eslint . --max-warnings=0
+
+
+> lotline@1.0.0 typecheck
+> next typegen && tsc --noEmit
+
+Generating route types...
+✓ Types generated successfully
+
+> lotline@1.0.0 test
+> vitest run
+
+
+ RUN  v5.0.0 /Users/rvaclassic/Documents/Codex/2026-09-11/files-pasted-by-the-user-you/outputs/lotline
+
+
+ Test Files  29 passed | 1 skipped (30)
+      Tests  333 passed | 1 skipped (334)
+   Start at  16:01:22
+   Duration  166.65s (tests 51%, import 36%, transform 12%, worker 1%)
+
+    Isolate  30 workers spawned · ~3.12s startup each (spawn + environment, per file)
+             at least ~43.75s faster with isolate: false — reuses workers across files instead of one per file
+
+
+> lotline@1.0.0 build
+> next build
+
+▲ Next.js 16.3.4 (Turbopack)
+- Environments: .env.local
+✓ Running next.config.ts took 80ms
+
+  Creating an optimized production build ...
+✓ Compiled successfully in 39.5s
+  Running TypeScript ...

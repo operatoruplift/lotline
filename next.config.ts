@@ -18,7 +18,9 @@ function contentSecurityPolicy(): string {
   return [
     "default-src 'self'",
     // Next.js ships an inline bootstrap script; styles are inlined by the build.
-    "script-src 'self' 'unsafe-inline'",
+    // Turbopack development code uses eval for its source maps. Production
+    // scripts never need this exception.
+    `script-src 'self' 'unsafe-inline'${process.env.NODE_ENV === 'development' ? " 'unsafe-eval'" : ''}`,
     "style-src 'self' 'unsafe-inline'",
     "img-src 'self' data: blob:",
     "media-src 'self'",

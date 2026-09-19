@@ -1,5 +1,5 @@
 import { MAX_PLAN_ASSETS } from './limits';
-import { allocate } from './math';
+import { allocate, MAX_BUDGET_RAW } from './math';
 
 export const EXECUTION_POLICY_VERSION = '2026-09-14.v1';
 export const EXECUTION_STATES = [
@@ -47,7 +47,7 @@ const allowedTransitions: Record<ExecutionState, readonly ExecutionState[]> = {
   quoting: ['review-required', 'failed-onchain', 'expired-unbroadcast'],
   'review-required': ['awaiting-wallet', 'quoting', 'expired-unbroadcast'],
   'awaiting-wallet': ['signed', 'rejected', 'expired-unbroadcast'],
-  signed: ['submitted', 'unknown', 'rejected'],
+  signed: ['submitted', 'unknown'],
   submitted: ['confirming', 'unknown', 'failed-onchain'],
   confirming: ['confirmed', 'failed-onchain', 'unknown'],
   confirmed: [],
@@ -80,17 +80,32 @@ export function countConfirmed(states: readonly ExecutionState[]): { confirmed: 
 }
 
 export function canonicalIntent(intent: ContributionIntent): string {
-  const legs = [...intent.legs].sort((a, b) => a.id.localeCompare(b.id));
-  return JSON.stringify({ ...intent, legs });
+  // Field order is explicit: equivalent JSON property insertion orders must not
+  // create a second run. Keep leg order because it breaks allocation remainder ties.
+  return JSON.stringify({
+    version: intent.version, chain: intent.chain, wallet: intent.wallet,
+    inputMint: intent.inputMint, budgetRaw: intent.budgetRaw,
+    legs: intent.legs.map(leg => ({ id: leg.id, issuerId: leg.issuerId, mint: leg.mint, allocationBps: leg.allocationBps, maximumInputRaw: leg.maximumInputRaw })),
+    policyVersion: intent.policyVersion,
+    reviewedLimits: {
+      slippageBps: intent.reviewedLimits.slippageBps,
+      maximumPriorityFeeLamports: intent.reviewedLimits.maximumPriorityFeeLamports,
+      maximumTotalSolCostLamports: intent.reviewedLimits.maximumTotalSolCostLamports,
+      maximumTokenFeeBps: intent.reviewedLimits.maximumTokenFeeBps,
+    },
+    ...(intent.scheduleOccurrenceId ? { scheduleOccurrenceId: intent.scheduleOccurrenceId } : {}),
+  });
 }
+
+const canonicalRaw = (value: string) => value.length <= 20 && /^(0|[1-9][0-9]*)$/.test(value) && BigInt(value) <= MAX_BUDGET_RAW;
 
 export function validateIntentShape(intent: ContributionIntent): string | null {
   if (intent.version !== 1 || intent.chain !== 'solana:mainnet') return 'This execution intent is for an unsupported Solana network.';
-  if (!intent.wallet || !intent.inputMint || !/^\d+$/.test(intent.budgetRaw)) return 'The execution intent has invalid wallet or amount data.';
+  if (!intent.wallet || !intent.inputMint || !canonicalRaw(intent.budgetRaw)) return 'The execution intent has invalid wallet or amount data.';
   if (BigInt(intent.budgetRaw) <= 0n) return 'The contribution amount must be greater than zero.';
   if (intent.legs.length < 1 || intent.legs.length > MAX_PLAN_ASSETS) return `Choose one to ${MAX_PLAN_ASSETS} assets.`;
   if (new Set(intent.legs.map(leg => leg.id)).size !== intent.legs.length || new Set(intent.legs.map(leg => leg.mint)).size !== intent.legs.length) return 'Each execution leg must have a unique asset.';
-  if (intent.legs.some(leg => !/^\d+$/.test(leg.maximumInputRaw) || !Number.isSafeInteger(leg.allocationBps) || leg.allocationBps < 0 || leg.allocationBps > 10_000)) return 'The execution intent contains an invalid allocation.';
+  if (intent.legs.some(leg => !canonicalRaw(leg.maximumInputRaw) || !Number.isSafeInteger(leg.allocationBps) || leg.allocationBps < 0 || leg.allocationBps > 10_000)) return 'The execution intent contains an invalid allocation.';
   if (intent.legs.reduce((sum, leg) => sum + leg.allocationBps, 0) !== 10_000) return 'The execution allocations must total 100%.';
   const budget = BigInt(intent.budgetRaw);
   const legInputs = intent.legs.map(leg => BigInt(leg.maximumInputRaw));
@@ -102,7 +117,7 @@ export function validateIntentShape(intent: ContributionIntent): string | null {
   } catch {
     return 'The contribution amount is outside the supported execution range.';
   }
-  if (!/^\d+$/.test(intent.reviewedLimits.maximumPriorityFeeLamports) || !/^\d+$/.test(intent.reviewedLimits.maximumTotalSolCostLamports)) return 'The fee policy is invalid.';
-  if (intent.reviewedLimits.slippageBps < 0 || intent.reviewedLimits.slippageBps > 500 || intent.reviewedLimits.maximumTokenFeeBps < 0 || intent.reviewedLimits.maximumTokenFeeBps > 100) return 'The reviewed limits are outside the supported range.';
+  if (!canonicalRaw(intent.reviewedLimits.maximumPriorityFeeLamports) || !canonicalRaw(intent.reviewedLimits.maximumTotalSolCostLamports)) return 'The fee policy is invalid.';
+  if (!Number.isSafeInteger(intent.reviewedLimits.slippageBps) || !Number.isSafeInteger(intent.reviewedLimits.maximumTokenFeeBps) || intent.reviewedLimits.slippageBps < 0 || intent.reviewedLimits.slippageBps > 500 || intent.reviewedLimits.maximumTokenFeeBps < 0 || intent.reviewedLimits.maximumTokenFeeBps > 100) return 'The reviewed limits are outside the supported range.';
   return null;
 }

@@ -16,14 +16,15 @@ export default function DemoPage() {
   return <><SiteHeader /><main id="main" className="demo-page page-width">
     <p className="eyebrow">A SMALL PLAN. A CLEAR NEXT STEP.</p>
     <h1>See your next contribution<br />come together.</h1>
-    <p className="demo-intro">Explore 832 Example assets, choose up to ten for a plan, and return to your split with a new contribution. This updated tour shows the current app. Example balances and estimates are synthetic; recorded Live estimates are dated observations.</p>
+    <p className="demo-intro">Explore 832 Example assets, choose up to ten for a plan, and return to your split with a new contribution. These narrated tours show the September 12, 2026 planner release. Example balances and estimates are synthetic; recorded Live estimates are dated observations.</p>
+    <p className="demo-intro">The app now also offers a prefilled Jupiter handoff and saved manual contribution reminders. In-app purchases remain unavailable while transaction validation and service configuration are completed. Below the narrated tours, a September 19 controlled demonstration shows the newer review, receipt and recovery screens with a fake wallet and mocked providers.</p>
     <p className="eyebrow">PRODUCT TOUR · {durationLabel(product.durationSeconds)} · AINSLEY NARRATION</p>
     <video controls playsInline preload="metadata" poster={product.poster} aria-label="Lotline product tour" data-demo-video="product" className="demo-video">
       <source src={product.src} type="video/mp4" />
       <track default kind="captions" src={product.captions} srcLang="en" label="English" />
       Your browser cannot play this video. Use the interactive Example below.
     </video>
-    <div className="demo-actions"><Link href="/app?mode=example" className="button primary">Try it yourself <ArrowRight size={16} /></Link><a href="#technical" className="text-button">Watch the technical walkthrough <ArrowRight size={16} /></a><a href={product.src} download className="text-button">Download product tour</a></div>
+    <div className="demo-actions"><Link href="/app?mode=example" className="button primary">Try it yourself <ArrowRight size={16} /></Link><a href="#technical" className="text-button">Watch the technical walkthrough <ArrowRight size={16} /></a><a href="#controlled-demo" className="text-button">See the latest controlled demonstration <ArrowRight size={16} /></a><a href={product.src} download className="text-button">Download product tour</a></div>
     <details className="demo-transcript"><summary>Read the product tour</summary><p>{product.transcript}</p></details>
     <section id="technical" className="demo-technical" aria-labelledby="technical-title">
       <p className="eyebrow">INSIDE THE PLANNER</p>
@@ -37,6 +38,18 @@ export default function DemoPage() {
       </video>
       <div className="demo-actions"><a href={technical.src} download className="text-button">Download technical walkthrough</a></div>
       <details className="demo-transcript"><summary>Read the technical walkthrough</summary><p>{technical.transcript}</p></details>
+    </section>
+    <section id="controlled-demo" className="demo-technical" aria-labelledby="controlled-demo-title">
+      <p className="eyebrow">SEPTEMBER 19, 2026 · CONTROLLED DEMONSTRATION</p>
+      <h2 id="controlled-demo-title">Review. Recover. Return next time.</h2>
+      <p id="controlled-demo-description" className="demo-intro">This silent, 25-second recording shows the newer contribution flow running locally: exact review, separate receipts, recovery after an uncertain result, and a saved manual reminder. It uses a fake Wallet Standard wallet and mocked Jupiter and Solana responses. No funds moved. This is test evidence, not a real purchase or proof that mainnet execution is available.</p>
+      <p className="eyebrow">CONTROLLED WALKTHROUGH · 0:25 · SILENT · NO FUNDS MOVED</p>
+      <video controls muted playsInline preload="none" poster="/videos/release-20260919/execution-fixture-poster.png" aria-label="Lotline controlled contribution demonstration" aria-describedby="controlled-demo-description" data-demo-video="controlled" className="demo-video" style={{ aspectRatio: '36 / 25' }}>
+        <source src="/videos/release-20260919/execution-fixture-walkthrough.mp4" type="video/mp4" />
+        Your browser cannot play this video. Read the demonstration description below.
+      </video>
+      <div className="demo-actions"><a href="/videos/release-20260919/execution-fixture-walkthrough.mp4" download className="text-button">Download controlled demonstration</a><a href="/videos/release-20260919/execution-fixture-description.txt" download className="text-button">Download text description</a></div>
+      <details className="demo-transcript"><summary>Read the controlled demonstration</summary><p>A persistent banner identifies the entire recording as a controlled test with mocked wallet and providers. A four-asset contribution is reviewed with exact USDC amounts, minimum raw token output, wallet, network and fees. Two simulated legs confirm. The third has an unknown result, so further approvals stop and the original receipts remain visible. After a reload, Lotline reconciles the original attempt, then resumes only the fourth leg. The completed receipts show historical raw amounts and can be downloaded. Finally, a manual review reminder saves the amount and split, and the recording shows the receipt and reminder layouts on smaller screens. No real transaction was signed or submitted. Every future real contribution would require a fresh review and explicit wallet approval once execution readiness requirements are met.</p></details>
     </section>
   </main><SiteFooter /></>;
 }

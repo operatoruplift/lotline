@@ -22,7 +22,29 @@ export async function GET() {
 
 export async function POST(request: Request) {
   if (!isSameOriginMutation(request)) return result({ state: 'forbidden', message: 'Reload Lotline before saving a reminder.' }, 403);
-  try { const parsed = scheduleSchema.safeParse(await readSmallJson(request)); if (!parsed.success) return result({ state: 'invalid-input', message: 'Use a name, valid budget, 100% split, cadence, timezone, and due date.' }, 400); const { client, userId } = await owner(); const { data, error } = await client.from('lotline_contribution_schedules').insert({ user_id: userId, name: parsed.data.name, budget_raw: parsed.data.budgetRaw, allocations: parsed.data.allocations, cadence: parsed.data.cadence, timezone: parsed.data.timezone, next_due_at: parsed.data.nextDueAt, paused: parsed.data.paused }).select(columns).single(); if (error) throw new ServiceError('unavailable', 'The contribution reminder could not be saved.'); return result({ state: 'success', schedule: data }, 201); }
+  try {
+    const parsed = scheduleSchema.safeParse(await readSmallJson(request));
+    if (!parsed.success) return result({ state: 'invalid-input', message: 'Use a name, valid budget, 100% split, cadence, timezone, and due date.' }, 400);
+    const { client, userId } = await owner();
+    const { id } = parsed.data;
+    const payload = { name: parsed.data.name, budget_raw: parsed.data.budgetRaw, allocations: parsed.data.allocations, cadence: parsed.data.cadence, timezone: parsed.data.timezone, next_due_at: parsed.data.nextDueAt, paused: parsed.data.paused };
+    // A lost creation response must not strand a device with a stable ID but no
+    // cloud acknowledgement. RLS and both filters keep retries owner-scoped.
+    const updateExisting = async () => {
+      const updated = await client.from('lotline_contribution_schedules').update(payload).eq('id', id!).eq('user_id', userId).select(columns).maybeSingle();
+      if (updated.error || !updated.data) throw new ServiceError('unavailable', 'The contribution reminder could not be saved.');
+      return result({ state: 'success', schedule: updated.data });
+    };
+    if (id) {
+      const existing = await client.from('lotline_contribution_schedules').select('id').eq('id', id).eq('user_id', userId).maybeSingle();
+      if (existing.error) throw new ServiceError('unavailable', 'The contribution reminder could not be saved.');
+      if (existing.data) return await updateExisting();
+    }
+    const { data, error } = await client.from('lotline_contribution_schedules').insert({ ...(id ? { id } : {}), user_id: userId, ...payload }).select(columns).single();
+    if (error?.code === '23505' && id) return await updateExisting();
+    if (error) throw new ServiceError('unavailable', 'The contribution reminder could not be saved.');
+    return result({ state: 'success', schedule: data }, 201);
+  }
   catch (error) { return result({ state: error instanceof ServiceError ? error.kind : 'unavailable', message: error instanceof Error ? error.message : 'The contribution reminder could not be saved.' }, error instanceof ServiceError && error.kind === 'invalid-input' ? 400 : 503); }
 }
 
