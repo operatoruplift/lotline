@@ -1,10 +1,10 @@
 # Lotline video releases and fixture walkthrough
 
-**Last updated:** September 19, 2026. Original narrated films: September 12.
+**Last updated:** September 20, 2026. Original narrated films: September 12.
 
-## September 19 local walkthrough
+## September 19 capture, published September 20
 
-The [new browser walkthrough](releases/2026-09-19/fixture-walkthrough/execution-fixture-walkthrough.mp4) shows the current local app's reviewed fees, two confirmed legs followed by an unknown third, reload/reconciliation, completion of the remaining leg, historical receipts and manual reminders at desktop and phone widths. It carries a visible **controlled fixture / mocked wallet and providers / no funds moved** label. It is silent browser evidence, not a newly narrated pitch or a real mainnet purchase. It has not been deployed to the public demo page.
+The [new browser walkthrough](https://lotlineonsolana.vercel.app/demo#controlled-demo) shows reviewed fees, two confirmed legs followed by an unknown third, reload/reconciliation, completion of the remaining leg, historical receipts and manual reminders at desktop and phone widths. It carries a visible **controlled fixture / mocked wallet and providers / no funds moved** label. It is silent browser evidence, not a newly narrated pitch or a real mainnet purchase. Application release `bae159d` publishes it on the public demo page with a poster, download and text description; the [original capture and metadata](releases/2026-09-19/fixture-walkthrough/metadata.json) remain preserved.
 
 The reproducible source is [execution-journey.spec.ts](../tests/e2e/execution-journey.spec.ts), specifically the four-leg walkthrough with `LOTLINE_RECORD_EXECUTION=1`. See the [continuation report](finish-report-20260919.md) for test results, transaction-validator limitations and the separate production status.
 

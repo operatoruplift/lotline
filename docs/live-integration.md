@@ -1,6 +1,6 @@
 # Live integration verification — September 11, 2026
 
-The [September 19 continuation report](finish-report-20260919.md) separates the latest read-only smoke, local execution fixtures and production configuration. This page preserves the original integration observations.
+The [September 20 release record](release-20260920.md) separates the latest hosted read-only smoke, local execution fixtures and production configuration. This page preserves the original integration observations.
 
 The repeatable adapter smoke passed at **2026-09-11 15:41:26 UTC** using the public Solana mainnet RPC and no Jupiter API key. The exact normalized observations are in [live-smoke.json](live-smoke.json). These are dated evidence, not future prices or a promise of service availability.
 

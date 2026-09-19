@@ -1,6 +1,6 @@
 # Lotline execution demo script
 
-**Purpose:** a reviewable 3–4 minute presentation outline for the staged contribution path. The current public deployment keeps execution paused. A real purchase demonstration requires separately authorized funds and completed implementation/configuration gates; the current local demonstration uses controlled fixtures only.
+**Purpose:** a reviewable 3–4 minute presentation outline for the staged contribution path. The current public deployment keeps execution paused. A real purchase demonstration requires separately authorized funds and completed implementation/configuration gates; the current demonstration was captured locally with controlled fixtures and is published on [the demo page](https://lotlineonsolana.vercel.app/demo#controlled-demo).
 
 ## Delivered local browser evidence — September 19
 

@@ -1,10 +1,10 @@
 # Historical verification record
 
-For the September 19 local execution/recovery changes and separate fresh production observations, see the [current continuation report](finish-report-20260919.md). The observations below remain historical.
+For the deployed application, CI, hosted database and read-only provider checks, see the [September 20 release record](release-20260920.md). The [September 19 continuation report](finish-report-20260919.md) preserves the preceding local checkpoint. The observations below remain historical.
 
 Verified September 11–12, 2026. The original chain and quote observations retain their September 11 UTC timestamps. See [live integration detail](live-integration.md), the exact [normalized live observations](live-smoke.json), and the separate [production-build UI observation](ui-live-smoke.json).
 
-These are earlier checkpoints, not evidence that the current uncommitted redesign or expanded Example is deployed. The [Stocklana finish delivery](stocklana-finish-delivery.md) records the latest local checks and the separate September 12 public-page observation.
+These are earlier checkpoints. The [Stocklana finish delivery](stocklana-finish-delivery.md) records its local checks and the separate September 12 public-page observation; the current deployed status is in the September 20 record above.
 
 [Deployed website](https://lotlineonsolana.vercel.app) · [Example planner](https://lotlineonsolana.vercel.app/app?mode=example) · [Demo](https://lotlineonsolana.vercel.app/demo) · [Public repository](https://github.com/operatoruplift/lotline)
 

@@ -1,6 +1,6 @@
 # Lotline — Stocklana submission draft
 
-**Last updated:** September 19, 2026. **Status:** draft, not submitted. The redesigned application, expanded Example and current narrated films are deployed at [lotlineonsolana.vercel.app](https://lotlineonsolana.vercel.app). The [release verification](release-verification.md) identifies the production deployment and checks actually performed. Team/contact details and the reviewed source reference still need to be supplied before submission. [Official requirements check](stocklana-check.md)
+**Last updated:** September 20, 2026. **Status:** draft, not submitted. The redesigned application, expanded Example, manual reminders and current demo package are deployed at [lotlineonsolana.vercel.app](https://lotlineonsolana.vercel.app). The [September 20 release record](release-20260920.md) identifies application commit `bae159d`, the production deployment and checks actually performed. Team/contact details still need to be supplied before submission. [Official requirements check](stocklana-check.md)
 
 ## Project and team
 
@@ -61,4 +61,4 @@ The custom design follows L1 Kova, L4 Veloce, L5 Heritage Grove and L6 Liquid Gl
 
 ## Current completion evidence
 
-See the [September 19 finish report](finish-report-20260919.md) for the reviewed local implementation, exact tests, production observation and outstanding execution requirements. Team names/contact and a final release reference remain owner-supplied fields; no submission has been sent.
+See the [September 20 release record](release-20260920.md) for the deployed source reference, CI, hosted browser/provider checks and outstanding execution requirements. The [September 19 finish report](finish-report-20260919.md) preserves detailed local implementation evidence. Team names/contact remain owner-supplied fields; no submission has been sent.

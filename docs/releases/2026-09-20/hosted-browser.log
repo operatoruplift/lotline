@@ -1,0 +1,36 @@
+Hosted browser regression
+Started UTC: 2026-09-19T17:41:24.055400+00:00
+Target: https://lotlineonsolana.vercel.app
+Functional release: bae159d
+Safety: read-only hosted requests; disposable browser Example edits, downloads, mocked install event and offline cache checks. No wallet connection, transaction submission, account mutation or schedule sync.
+Command: E2E_BASE_URL=https://lotlineonsolana.vercel.app npx playwright test tests/e2e/demo-release.spec.ts tests/e2e/planner.spec.ts tests/e2e/pwa.spec.ts tests/e2e/brand-kit.spec.ts tests/e2e/landing-layout.spec.ts tests/e2e/execution-readiness.spec.ts --reporter=list --output=/tmp/lotline-hosted-browser-20260920
+
+
+Running 19 tests using 1 worker
+
+(node:23277) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓   1 tests/e2e/brand-kit.spec.ts:4:1 › brand kit provides complete, downloadable social assets (13.9s)
+  ✓   2 tests/e2e/demo-release.spec.ts:6:3 › dated narrated tours and current controlled demonstration decode at 390px (24.0s)
+  ✓   3 tests/e2e/demo-release.spec.ts:6:3 › dated narrated tours and current controlled demonstration decode at 1440px (36.6s)
+  ✓   4 tests/e2e/execution-readiness.spec.ts:3:1 › execution reports its disabled server boundary and Example never signs (7.0s)
+  ✓   5 tests/e2e/landing-layout.spec.ts:3:1 › three contribution previews keep labels, amounts and navigation separate at every layout (18.6s)
+  ✓   6 tests/e2e/landing-layout.spec.ts:46:1 › Veloce bottoms align and landscape footer moves below copy at tablet width (3.0s)
+  ✓   7 tests/e2e/planner.spec.ts:5:1 › Example journey: edit, request, export, persist, and safely hand off (9.3s)
+  ✓   8 tests/e2e/planner.spec.ts:65:1 › invalid weights and overprecision are actionable (10.6s)
+  ✓   9 tests/e2e/planner.spec.ts:78:1 › core planner is usable by keyboard (9.6s)
+  ✓  10 tests/e2e/planner.spec.ts:107:3 › responsive and accessible at 375px (21.1s)
+  ✓  11 tests/e2e/planner.spec.ts:107:3 › responsive and accessible at 768px (26.0s)
+  ✓  12 tests/e2e/planner.spec.ts:107:3 › responsive and accessible at 1440px (20.7s)
+  ✓  13 tests/e2e/planner.spec.ts:123:1 › maximum-precision budgets fit inside the mobile summary panel (2.6s)
+  ✓  14 tests/e2e/planner.spec.ts:137:1 › create a three-asset split and export using keyboard controls (21.9s)
+  ✓  15 tests/e2e/pwa.spec.ts:5:1 › installation instructions are accessible on mobile and desktop (12.2s)
+  ✓  16 tests/e2e/pwa.spec.ts:18:1 › uses the browser install prompt and hides install UI after installation (4.4s)
+  ✓  17 tests/e2e/pwa.spec.ts:32:1 › iPhone viewport explains Safari installation without pretending to install (16.0s)
+  ✓  18 tests/e2e/pwa.spec.ts:53:1 › blocked offline setup reports unavailable instead of claiming cached readiness (2.0s)
+  ✓  19 tests/e2e/pwa.spec.ts:67:1 › offline reload supports real Example math and export without caching live or account data (12.5s)
+
+  19 passed (4.9m)
+
+Finished UTC: 2026-09-19T17:46:33.168273+00:00
+Exit status: 0

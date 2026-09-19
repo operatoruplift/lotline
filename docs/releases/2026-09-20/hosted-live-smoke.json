@@ -1,0 +1,186 @@
+{
+  "observedAt": "2026-09-19T17:41:28.588Z",
+  "origin": "https://lotlineonsolana.vercel.app",
+  "applicationCommit": "bae159d4ccb129652d4a7cc20dc681f8d6812775",
+  "deploymentId": "dpl_4Q2kAnjTdDTsdYwidrkYgp93zgjy",
+  "readOnly": true,
+  "transactionSignedOrSubmitted": false,
+  "catalog": {
+    "status": 200,
+    "milliseconds": 1750,
+    "data": {
+      "state": "success",
+      "count": 832,
+      "unavailable": [],
+      "asset": {
+        "symbol": "AAPLx",
+        "name": "Apple xStock",
+        "mint": "XsbEhLAtcf6HdfpFZ5xEMdqW8nfAvcsP5bdudRLJzJp",
+        "decimals": 8,
+        "tokenProgram": "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb",
+        "halted": false,
+        "verifiedAt": "2026-09-19T17:40:15.302Z",
+        "logoUrl": "/logos/xstocks/AAPLx.png",
+        "logoSourceUrl": "https://xstocks-metadata.backed.fi/logos/tokens/AAPLx.png",
+        "issuerIsin": "CH1436219187",
+        "underlyingSymbol": "AAPL",
+        "underlyingIsin": "US0378331005"
+      }
+    }
+  },
+  "execution": {
+    "status": 200,
+    "milliseconds": 719,
+    "data": {
+      "state": "configuration-required",
+      "enabled": false,
+      "reconciliationAvailable": true,
+      "chain": "solana:mainnet",
+      "policyVersion": "2026-09-14.v1",
+      "limits": {
+        "slippageBps": 100,
+        "maximumPriorityFeeLamports": "5000000",
+        "maximumTotalSolCostLamports": "10000000",
+        "maximumTokenFeeBps": 100
+      },
+      "supportedWalletFeatures": [
+        "solana:signTransaction"
+      ],
+      "message": "Executable swap instruction validation is not implemented. Purchases remain unavailable.",
+      "reasons": [
+        "Executable swap instruction validation is not implemented. Purchases remain unavailable.",
+        "Execution is paused until the server readiness flag is enabled.",
+        "A server-side Jupiter API key is required for executable orders.",
+        "The supported-instruction validator still needs an explicit operator review."
+      ]
+    }
+  },
+  "publicOwnerPurpose": "Public AAPLx mint authority for read-only observation; not a user wallet.",
+  "holdings": {
+    "status": 200,
+    "milliseconds": 9249,
+    "data": {
+      "state": "success",
+      "holdings": [
+        {
+          "mint": "XsbEhLAtcf6HdfpFZ5xEMdqW8nfAvcsP5bdudRLJzJp",
+          "state": "success",
+          "raw": "0",
+          "units": "0"
+        }
+      ],
+      "usdc": {
+        "mint": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+        "state": "success",
+        "raw": "0",
+        "units": "0"
+      },
+      "fetchedAt": "2026-09-19T17:41:42.200Z"
+    }
+  },
+  "quote": {
+    "status": 200,
+    "milliseconds": 8240,
+    "data": {
+      "state": "success",
+      "quotes": [
+        {
+          "mint": "XsbEhLAtcf6HdfpFZ5xEMdqW8nfAvcsP5bdudRLJzJp",
+          "state": "success",
+          "usdcRaw": "10000000",
+          "outRaw": "2970601",
+          "units": "0.02980312",
+          "fetchedAt": "2026-09-19T17:41:50.690Z",
+          "expiresAt": "2026-09-19T17:42:20.690Z",
+          "source": "Jupiter · metis",
+          "feeBps": 10,
+          "feeMint": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v"
+        }
+      ]
+    }
+  },
+  "projectedRaw": "2970601",
+  "units": {
+    "status": 200,
+    "milliseconds": 593,
+    "data": {
+      "state": "success",
+      "items": [
+        {
+          "mint": "XsbEhLAtcf6HdfpFZ5xEMdqW8nfAvcsP5bdudRLJzJp",
+          "units": "0.02980312"
+        }
+      ]
+    }
+  },
+  "routes": [
+    {
+      "path": "/",
+      "status": 200,
+      "contentType": "text/html; charset=utf-8",
+      "contentLength": "73333"
+    },
+    {
+      "path": "/app?mode=example",
+      "status": 200,
+      "contentType": "text/html; charset=utf-8",
+      "contentLength": null
+    },
+    {
+      "path": "/demo",
+      "status": 200,
+      "contentType": "text/html; charset=utf-8",
+      "contentLength": "51948"
+    },
+    {
+      "path": "/brand-kit",
+      "status": 200,
+      "contentType": "text/html; charset=utf-8",
+      "contentLength": "95574"
+    },
+    {
+      "path": "/privacy",
+      "status": 200,
+      "contentType": "text/html; charset=utf-8",
+      "contentLength": "33236"
+    },
+    {
+      "path": "/manifest.webmanifest",
+      "status": 200,
+      "contentType": "application/manifest+json; charset=utf-8",
+      "contentLength": "891"
+    },
+    {
+      "path": "/favicon.ico",
+      "status": 200,
+      "contentType": "image/vnd.microsoft.icon",
+      "contentLength": null
+    },
+    {
+      "path": "/videos/release-20260919/execution-fixture-walkthrough.mp4",
+      "status": 200,
+      "contentType": "video/mp4",
+      "contentLength": "1425710"
+    },
+    {
+      "path": "/videos/release-20260919/execution-fixture-poster.png",
+      "status": 200,
+      "contentType": "image/png",
+      "contentLength": "127302"
+    },
+    {
+      "path": "/videos/release-20260919/execution-fixture-description.txt",
+      "status": 200,
+      "contentType": "text/plain; charset=utf-8",
+      "contentLength": null
+    },
+    {
+      "path": "/logos/xstocks/AAPLx.png",
+      "status": 200,
+      "contentType": "image/png",
+      "contentLength": "14540"
+    }
+  ],
+  "allAssertionsPassed": true,
+  "completedAt": "2026-09-19T17:41:50.363Z"
+}
