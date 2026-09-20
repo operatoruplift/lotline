@@ -1,5 +1,12 @@
 import { afterEach, expect, it, vi } from 'vitest';
-vi.mock('../lib/server/catalog', () => ({ selectedAssets: async () => [] }));
+vi.mock('../lib/server/catalog', () => ({ selectedAssets: async (mints: string[]) => {
+  const { EXAMPLE_ASSETS } = await import('../lib/demo/example');
+  return mints.map(mint => {
+    const asset = EXAMPLE_ASSETS.find(candidate => candidate.mint === mint);
+    if (!asset) throw new Error('Unknown test asset.');
+    return asset;
+  });
+} }));
 vi.mock('../lib/server/solana', () => ({ loadRawBalanceWithContext: async () => { vi.setSystemTime(Date.now() + 10_000); return { raw: '100', slot: 123, frozenRaw: '0', accountCount: 1 }; }, convertRawUnitsWithContext: async () => ({ units: '1', context: { source: 'clock-sysvar', kind: 'scaled', decimals: 8, tokenProgram: 'TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb', mintSlot: 123, clockSlot: 123, unixTimestamp: '1789840000', multiplier: 1, observedAt: new Date().toISOString() } }) }));
 afterEach(() => vi.useRealTimers());
 it('dates a sequential balance snapshot from its first read and keeps it on cache hits', async () => {

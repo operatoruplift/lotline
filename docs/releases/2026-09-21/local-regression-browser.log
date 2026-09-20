@@ -1,0 +1,29 @@
+
+Running 22 tests using 1 worker
+
+(node:56006) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓   1 tests/e2e/first-use.spec.ts:15:1 › fresh Live visit shows search and an explicit current-catalog illustration, then exact estimates and provenance (10.2s)
+  ✓   2 tests/e2e/first-use.spec.ts:54:1 › a deliberately empty returning draft survives Example, Live, and reload without auto-seeding (10.0s)
+  ✓   3 tests/e2e/first-use.spec.ts:72:1 › catalog failure, successful empty response, and recovered catalog have distinct states (11.4s)
+  ✓   4 tests/e2e/first-use.spec.ts:93:1 › failed refresh retains selected identity and edits as unverified until recovery (16.4s)
+  ✓   5 tests/e2e/first-use.spec.ts:118:3 › first-use search, illustration, and controls fit at 1440px (27.9s)
+  ✓   6 tests/e2e/first-use.spec.ts:118:3 › first-use search, illustration, and controls fit at 768px (29.1s)
+  ✓   7 tests/e2e/first-use.spec.ts:118:3 › first-use search, illustration, and controls fit at 390px (21.5s)
+  ✓   8 tests/e2e/first-use.spec.ts:118:3 › first-use search, illustration, and controls fit at 320px (29.5s)
+  ✓   9 tests/e2e/plan-links.spec.ts:7:1 › a copied plan is reviewed before replacing the recipient’s existing draft (35.6s)
+  ✓  10 tests/e2e/plan-links.spec.ts:49:1 › Live shares exclude a filled wallet and never request balances or quotes on apply (29.9s)
+  ✓  11 tests/e2e/plan-links.spec.ts:75:1 › malformed links and Escape preserve the draft, with an accessible mobile review (26.9s)
+  ✓  12 tests/e2e/plan-links.spec.ts:99:1 › browser navigation to another fragment closes a stale shared-plan review (17.2s)
+  ✓  13 tests/e2e/plan-links.spec.ts:109:1 › an unverified mint in a valid shared payload never bypasses the Live catalog (12.1s)
+  ✓  14 tests/e2e/plan-links.spec.ts:124:1 › a blocked clipboard reports failure without claiming the link was copied (6.9s)
+  ✓  15 tests/e2e/plan-links.spec.ts:139:3 › review preserves a previous empty draft and invalid link until consent (9.9s)
+  ✓  16 tests/e2e/plan-links.spec.ts:139:3 › review preserves a previous unverified draft and valid link until consent (6.9s)
+  ✓  17 tests/e2e/states.spec.ts:11:1 › missing RPC leaves a clear path to the complete Example experience (6.2s)
+  ✓  18 tests/e2e/states.spec.ts:20:1 › zero balances, partial failures, insufficient USDC, and invalid wallet remain distinct (8.1s)
+  ✓  19 tests/e2e/states.spec.ts:45:1 › late quote response cannot replace a newer budget (10.0s)
+  ✓  20 tests/e2e/states.spec.ts:79:1 › no-route and unsupported-scaling estimates never become invented values (6.9s)
+  ✓  21 tests/e2e/states.spec.ts:97:1 › provider expiry marks estimates stale and offline mode remains explicit (9.4s)
+  ✓  22 tests/e2e/states.spec.ts:116:1 › estimates wait for the holdings read so projections use the completed snapshot (6.3s)
+
+  22 passed (6.4m)

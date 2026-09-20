@@ -1,0 +1,679 @@
+{
+  "startedAt": "2026-09-20T19:07:41.158Z",
+  "completedAt": "2026-09-20T19:07:43.376Z",
+  "source": "https://prestocks.com/api/prestocks",
+  "productsUrl": "https://prestocks.com/products",
+  "rpc": "Configured SOLANA_RPC_URL (value omitted)",
+  "genesis": "5eykt4UsFv8P8NJdTREpY1vzqKqZKvdpKuc147dw2N9d",
+  "commitment": "confirmed",
+  "slot": 448821400,
+  "count": 8,
+  "assets": [
+    {
+      "symbol": "ANDURIL",
+      "name": "Anduril PreStocks",
+      "mint": "PresTj4Yc2bAR197Er7wz4UUKSfqt6FryBEdAriBoQB",
+      "decimals": 9,
+      "tokenProgram": "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb",
+      "initialized": true,
+      "extensions": [
+        "PermanentDelegate",
+        "DefaultAccountState",
+        "TransferFeeConfig",
+        "ConfidentialTransferMint",
+        "ConfidentialTransferFee",
+        "TransferHook",
+        "ScaledUiAmountConfig",
+        "MetadataPointer",
+        "PausableConfig",
+        "TokenMetadata"
+      ],
+      "scaled": true,
+      "freezeAuthorityPresent": true,
+      "mintAuthorityPresent": true,
+      "rawSupply": "11805856730691",
+      "logoSourceUrl": "https://www.prestocks.com/logos/anduril.png",
+      "sourceUrl": "https://www.prestocks.com/anduril",
+      "referencePrices": {
+        "markPrice": 154.52943887,
+        "tokenPrice": 157.5812377892821,
+        "markValuation": 136712048892,
+        "impliedValuation": 139411972518
+      },
+      "issuerHaltStatus": "not-published",
+      "pricePublishedAt": null
+    },
+    {
+      "symbol": "ANTHROPIC",
+      "name": "Anthropic PreStocks",
+      "mint": "Pren1FvFX6J3E4kXhJuCiAD5aDmGEb7qJRncwA8Lkhw",
+      "decimals": 9,
+      "tokenProgram": "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb",
+      "initialized": true,
+      "extensions": [
+        "PermanentDelegate",
+        "DefaultAccountState",
+        "TransferFeeConfig",
+        "ConfidentialTransferMint",
+        "ConfidentialTransferFee",
+        "TransferHook",
+        "ScaledUiAmountConfig",
+        "MetadataPointer",
+        "PausableConfig",
+        "TokenMetadata"
+      ],
+      "scaled": true,
+      "freezeAuthorityPresent": true,
+      "mintAuthorityPresent": true,
+      "rawSupply": "7381881305753",
+      "logoSourceUrl": "https://www.prestocks.com/logos/anthropic.png",
+      "sourceUrl": "https://www.prestocks.com/anthropic",
+      "referencePrices": {
+        "markPrice": 1034.54580233,
+        "tokenPrice": 1028.612498093668,
+        "markValuation": 1694940152541,
+        "impliedValuation": 1685219369213
+      },
+      "issuerHaltStatus": "not-published",
+      "pricePublishedAt": null
+    },
+    {
+      "symbol": "FIGUREAI",
+      "name": "Figure AI PreStocks",
+      "mint": "PreZad18qfPtbxNpMtMuAuX2zVpvkEU8DnJx56faCWd",
+      "decimals": 9,
+      "tokenProgram": "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb",
+      "initialized": true,
+      "extensions": [
+        "PermanentDelegate",
+        "DefaultAccountState",
+        "TransferFeeConfig",
+        "ConfidentialTransferMint",
+        "ConfidentialTransferFee",
+        "TransferHook",
+        "ScaledUiAmountConfig",
+        "MetadataPointer",
+        "PausableConfig",
+        "TokenMetadata"
+      ],
+      "scaled": true,
+      "freezeAuthorityPresent": true,
+      "mintAuthorityPresent": true,
+      "rawSupply": "3012910074075",
+      "logoSourceUrl": "https://www.prestocks.com/logos/figureai.png",
+      "sourceUrl": "https://www.prestocks.com/figureai",
+      "referencePrices": {
+        "markPrice": 181.02149434,
+        "tokenPrice": 179.7899213827346,
+        "markValuation": 39467570458,
+        "impliedValuation": 39199054321
+      },
+      "issuerHaltStatus": "not-published",
+      "pricePublishedAt": null
+    },
+    {
+      "symbol": "KALSHI",
+      "name": "Kalshi PreStocks",
+      "mint": "PreLWGkkeqG1s4HEfFZSy9moCrJ7btsHuUtfcCeoRua",
+      "decimals": 9,
+      "tokenProgram": "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb",
+      "initialized": true,
+      "extensions": [
+        "PermanentDelegate",
+        "DefaultAccountState",
+        "TransferFeeConfig",
+        "ConfidentialTransferMint",
+        "ConfidentialTransferFee",
+        "TransferHook",
+        "ScaledUiAmountConfig",
+        "MetadataPointer",
+        "PausableConfig",
+        "TokenMetadata"
+      ],
+      "scaled": true,
+      "freezeAuthorityPresent": true,
+      "mintAuthorityPresent": true,
+      "rawSupply": "904895600780",
+      "logoSourceUrl": "https://www.prestocks.com/logos/kalshi.png",
+      "sourceUrl": "https://www.prestocks.com/kalshi",
+      "referencePrices": {
+        "markPrice": 895.29900445,
+        "tokenPrice": 899.5093483034888,
+        "markValuation": 32563862874,
+        "impliedValuation": 32717001724
+      },
+      "issuerHaltStatus": "not-published",
+      "pricePublishedAt": null
+    },
+    {
+      "symbol": "NEURALINK",
+      "name": "Neuralink PreStocks",
+      "mint": "PrekqLJvJ3qVdXmBGDiexvwUTF4rLFDa6HWS4HJbw9S",
+      "decimals": 9,
+      "tokenProgram": "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb",
+      "initialized": true,
+      "extensions": [
+        "PermanentDelegate",
+        "DefaultAccountState",
+        "TransferFeeConfig",
+        "ConfidentialTransferMint",
+        "ConfidentialTransferFee",
+        "TransferHook",
+        "ScaledUiAmountConfig",
+        "MetadataPointer",
+        "PausableConfig",
+        "TokenMetadata"
+      ],
+      "scaled": true,
+      "freezeAuthorityPresent": true,
+      "mintAuthorityPresent": true,
+      "rawSupply": "2595332545891",
+      "logoSourceUrl": "https://www.prestocks.com/logos/neuralink.png",
+      "sourceUrl": "https://www.prestocks.com/neuralink",
+      "referencePrices": {
+        "markPrice": 336.32157095,
+        "tokenPrice": 437.06700508674714,
+        "markValuation": 64067594308,
+        "impliedValuation": 83259100771
+      },
+      "issuerHaltStatus": "not-published",
+      "pricePublishedAt": null
+    },
+    {
+      "symbol": "OPENAI",
+      "name": "OpenAI PreStocks",
+      "mint": "PreweJYECqtQwBtpxHL171nL2K6umo692gTm7Q3rpgF",
+      "decimals": 9,
+      "tokenProgram": "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb",
+      "initialized": true,
+      "extensions": [
+        "PermanentDelegate",
+        "DefaultAccountState",
+        "TransferFeeConfig",
+        "ConfidentialTransferMint",
+        "ConfidentialTransferFee",
+        "TransferHook",
+        "ScaledUiAmountConfig",
+        "MetadataPointer",
+        "PausableConfig",
+        "TokenMetadata"
+      ],
+      "scaled": true,
+      "freezeAuthorityPresent": true,
+      "mintAuthorityPresent": true,
+      "rawSupply": "1901878504103",
+      "logoSourceUrl": "https://www.prestocks.com/logos/openai.png",
+      "sourceUrl": "https://www.prestocks.com/openai",
+      "referencePrices": {
+        "markPrice": 996.0081270291313,
+        "tokenPrice": 1105.0669195199782,
+        "markValuation": 1233984645479,
+        "impliedValuation": 1369100887742
+      },
+      "issuerHaltStatus": "not-published",
+      "pricePublishedAt": null
+    },
+    {
+      "symbol": "POLYMARKET",
+      "name": "Polymarket PreStocks",
+      "mint": "Pre8AREmFPtoJFT8mQSXQLh56cwJmM7CFDRuoGBZiUP",
+      "decimals": 9,
+      "tokenProgram": "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb",
+      "initialized": true,
+      "extensions": [
+        "PermanentDelegate",
+        "DefaultAccountState",
+        "TransferFeeConfig",
+        "ConfidentialTransferMint",
+        "ConfidentialTransferFee",
+        "TransferHook",
+        "ScaledUiAmountConfig",
+        "MetadataPointer",
+        "PausableConfig",
+        "TokenMetadata"
+      ],
+      "scaled": true,
+      "freezeAuthorityPresent": true,
+      "mintAuthorityPresent": true,
+      "rawSupply": "4817085848924",
+      "logoSourceUrl": "https://www.prestocks.com/logos/polymarket.png",
+      "sourceUrl": "https://www.prestocks.com/polymarket",
+      "referencePrices": {
+        "markPrice": 143.84919182,
+        "tokenPrice": 144.74695046959206,
+        "markValuation": 14187236367,
+        "impliedValuation": 14275778499
+      },
+      "issuerHaltStatus": "not-published",
+      "pricePublishedAt": null
+    },
+    {
+      "symbol": "SPACEX",
+      "name": "SpaceX PreStocks",
+      "mint": "PreANxuXjsy2pvisWWMNB6YaJNzr7681wJJr2rHsfTh",
+      "decimals": 9,
+      "tokenProgram": "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb",
+      "initialized": true,
+      "extensions": [
+        "PermanentDelegate",
+        "DefaultAccountState",
+        "TransferFeeConfig",
+        "ConfidentialTransferMint",
+        "ConfidentialTransferFee",
+        "TransferHook",
+        "ScaledUiAmountConfig",
+        "MetadataPointer",
+        "PausableConfig",
+        "TokenMetadata"
+      ],
+      "scaled": true,
+      "freezeAuthorityPresent": true,
+      "mintAuthorityPresent": true,
+      "rawSupply": "8742506753069",
+      "logoSourceUrl": "https://www.prestocks.com/logos/spacex.png",
+      "sourceUrl": "https://www.prestocks.com/spacex",
+      "referencePrices": {
+        "markPrice": 153.49575630511947,
+        "tokenPrice": 118.34562638140885,
+        "markValuation": 2012499916000,
+        "impliedValuation": 1551642657001
+      },
+      "issuerHaltStatus": "not-published",
+      "pricePublishedAt": null
+    }
+  ],
+  "quote": {
+    "requestedAt": "2026-09-20T19:07:42.585Z",
+    "endpoint": "https://api.jup.ag/swap/v2/order",
+    "inputMint": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+    "outputMint": "PreweJYECqtQwBtpxHL171nL2K6umo692gTm7Q3rpgF",
+    "inAmount": "10000000",
+    "outAmount": "6016666",
+    "units": "0.008941576",
+    "router": "metis",
+    "feeBps": 10,
+    "feeMint": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+    "expireAt": null,
+    "transaction": null,
+    "takerIncluded": false
+  },
+  "transactionsSigned": 0,
+  "transactionsSubmitted": 0,
+  "mintPolicyObservation": {
+    "observedAt": "2026-09-20T19:08:30.344Z",
+    "slot": 448821581,
+    "chainUnixTimestamp": "1789931309",
+    "assets": [
+      {
+        "symbol": "ANDURIL",
+        "scaling": {
+          "__kind": "ScaledUiAmountConfig",
+          "authority": "WV9PJN7XTmTLVwbutCLFxp8TyePee6Xq5mRq6Fti5Wc",
+          "multiplier": 1,
+          "newMultiplierEffectiveTimestamp": "0",
+          "newMultiplier": 1
+        },
+        "pause": false,
+        "defaultAccountState": 1,
+        "transferFeeConfig": {
+          "__kind": "TransferFeeConfig",
+          "transferFeeConfigAuthority": "WV9PJN7XTmTLVwbutCLFxp8TyePee6Xq5mRq6Fti5Wc",
+          "withdrawWithheldAuthority": "WV9PJN7XTmTLVwbutCLFxp8TyePee6Xq5mRq6Fti5Wc",
+          "withheldAmount": "2953668151",
+          "olderTransferFee": {
+            "epoch": "1032",
+            "maximumFee": "18446744073709551615",
+            "transferFeeBasisPoints": 50
+          },
+          "newerTransferFee": {
+            "epoch": "1039",
+            "maximumFee": "18446744073709551615",
+            "transferFeeBasisPoints": 100
+          }
+        },
+        "transferHook": {
+          "__kind": "TransferHook",
+          "authority": "WV9PJN7XTmTLVwbutCLFxp8TyePee6Xq5mRq6Fti5Wc",
+          "programId": "11111111111111111111111111111111"
+        },
+        "tokenMetadata": {
+          "name": "Anduril PreStocks",
+          "symbol": "ANDURIL",
+          "uri": "https://prestocks.com/metadata/anduril.json",
+          "mint": "PresTj4Yc2bAR197Er7wz4UUKSfqt6FryBEdAriBoQB"
+        }
+      },
+      {
+        "symbol": "ANTHROPIC",
+        "scaling": {
+          "__kind": "ScaledUiAmountConfig",
+          "authority": "WV9PJN7XTmTLVwbutCLFxp8TyePee6Xq5mRq6Fti5Wc",
+          "multiplier": 1,
+          "newMultiplierEffectiveTimestamp": "0",
+          "newMultiplier": 1
+        },
+        "pause": false,
+        "defaultAccountState": 1,
+        "transferFeeConfig": {
+          "__kind": "TransferFeeConfig",
+          "transferFeeConfigAuthority": "WV9PJN7XTmTLVwbutCLFxp8TyePee6Xq5mRq6Fti5Wc",
+          "withdrawWithheldAuthority": "WV9PJN7XTmTLVwbutCLFxp8TyePee6Xq5mRq6Fti5Wc",
+          "withheldAmount": "1492363651",
+          "olderTransferFee": {
+            "epoch": "1032",
+            "maximumFee": "18446744073709551615",
+            "transferFeeBasisPoints": 50
+          },
+          "newerTransferFee": {
+            "epoch": "1039",
+            "maximumFee": "18446744073709551615",
+            "transferFeeBasisPoints": 100
+          }
+        },
+        "transferHook": {
+          "__kind": "TransferHook",
+          "authority": "WV9PJN7XTmTLVwbutCLFxp8TyePee6Xq5mRq6Fti5Wc",
+          "programId": "11111111111111111111111111111111"
+        },
+        "tokenMetadata": {
+          "name": "Anthropic PreStocks",
+          "symbol": "ANTHROPIC",
+          "uri": "https://prestocks.com/metadata/anthropic.json",
+          "mint": "Pren1FvFX6J3E4kXhJuCiAD5aDmGEb7qJRncwA8Lkhw"
+        }
+      },
+      {
+        "symbol": "FIGUREAI",
+        "scaling": {
+          "__kind": "ScaledUiAmountConfig",
+          "authority": "WV9PJN7XTmTLVwbutCLFxp8TyePee6Xq5mRq6Fti5Wc",
+          "multiplier": 1,
+          "newMultiplierEffectiveTimestamp": "0",
+          "newMultiplier": 1
+        },
+        "pause": false,
+        "defaultAccountState": 1,
+        "transferFeeConfig": {
+          "__kind": "TransferFeeConfig",
+          "transferFeeConfigAuthority": "WV9PJN7XTmTLVwbutCLFxp8TyePee6Xq5mRq6Fti5Wc",
+          "withdrawWithheldAuthority": "WV9PJN7XTmTLVwbutCLFxp8TyePee6Xq5mRq6Fti5Wc",
+          "withheldAmount": "64524259",
+          "olderTransferFee": {
+            "epoch": "1032",
+            "maximumFee": "18446744073709551615",
+            "transferFeeBasisPoints": 50
+          },
+          "newerTransferFee": {
+            "epoch": "1039",
+            "maximumFee": "18446744073709551615",
+            "transferFeeBasisPoints": 100
+          }
+        },
+        "transferHook": {
+          "__kind": "TransferHook",
+          "authority": "WV9PJN7XTmTLVwbutCLFxp8TyePee6Xq5mRq6Fti5Wc",
+          "programId": "11111111111111111111111111111111"
+        },
+        "tokenMetadata": {
+          "name": "Figure AI PreStocks",
+          "symbol": "FIGUREAI",
+          "uri": "https://prestocks.com/metadata/figureai.json",
+          "mint": "PreZad18qfPtbxNpMtMuAuX2zVpvkEU8DnJx56faCWd"
+        }
+      },
+      {
+        "symbol": "KALSHI",
+        "scaling": {
+          "__kind": "ScaledUiAmountConfig",
+          "authority": "WV9PJN7XTmTLVwbutCLFxp8TyePee6Xq5mRq6Fti5Wc",
+          "multiplier": 1,
+          "newMultiplierEffectiveTimestamp": "0",
+          "newMultiplier": 1
+        },
+        "pause": false,
+        "defaultAccountState": 1,
+        "transferFeeConfig": {
+          "__kind": "TransferFeeConfig",
+          "transferFeeConfigAuthority": "WV9PJN7XTmTLVwbutCLFxp8TyePee6Xq5mRq6Fti5Wc",
+          "withdrawWithheldAuthority": "WV9PJN7XTmTLVwbutCLFxp8TyePee6Xq5mRq6Fti5Wc",
+          "withheldAmount": "110187035",
+          "olderTransferFee": {
+            "epoch": "1032",
+            "maximumFee": "18446744073709551615",
+            "transferFeeBasisPoints": 50
+          },
+          "newerTransferFee": {
+            "epoch": "1039",
+            "maximumFee": "18446744073709551615",
+            "transferFeeBasisPoints": 100
+          }
+        },
+        "transferHook": {
+          "__kind": "TransferHook",
+          "authority": "WV9PJN7XTmTLVwbutCLFxp8TyePee6Xq5mRq6Fti5Wc",
+          "programId": "11111111111111111111111111111111"
+        },
+        "tokenMetadata": {
+          "name": "Kalshi PreStocks",
+          "symbol": "KALSHI",
+          "uri": "https://prestocks.com/metadata/kalshi.json",
+          "mint": "PreLWGkkeqG1s4HEfFZSy9moCrJ7btsHuUtfcCeoRua"
+        }
+      },
+      {
+        "symbol": "NEURALINK",
+        "scaling": {
+          "__kind": "ScaledUiAmountConfig",
+          "authority": "WV9PJN7XTmTLVwbutCLFxp8TyePee6Xq5mRq6Fti5Wc",
+          "multiplier": 1,
+          "newMultiplierEffectiveTimestamp": "0",
+          "newMultiplier": 1
+        },
+        "pause": false,
+        "defaultAccountState": 1,
+        "transferFeeConfig": {
+          "__kind": "TransferFeeConfig",
+          "transferFeeConfigAuthority": "WV9PJN7XTmTLVwbutCLFxp8TyePee6Xq5mRq6Fti5Wc",
+          "withdrawWithheldAuthority": "WV9PJN7XTmTLVwbutCLFxp8TyePee6Xq5mRq6Fti5Wc",
+          "withheldAmount": "1072967315",
+          "olderTransferFee": {
+            "epoch": "1032",
+            "maximumFee": "18446744073709551615",
+            "transferFeeBasisPoints": 50
+          },
+          "newerTransferFee": {
+            "epoch": "1039",
+            "maximumFee": "18446744073709551615",
+            "transferFeeBasisPoints": 100
+          }
+        },
+        "transferHook": {
+          "__kind": "TransferHook",
+          "authority": "WV9PJN7XTmTLVwbutCLFxp8TyePee6Xq5mRq6Fti5Wc",
+          "programId": "11111111111111111111111111111111"
+        },
+        "tokenMetadata": {
+          "name": "Neuralink PreStocks",
+          "symbol": "NEURALINK",
+          "uri": "https://prestocks.com/metadata/neuralink.json",
+          "mint": "PrekqLJvJ3qVdXmBGDiexvwUTF4rLFDa6HWS4HJbw9S"
+        }
+      },
+      {
+        "symbol": "OPENAI",
+        "scaling": {
+          "__kind": "ScaledUiAmountConfig",
+          "authority": "WV9PJN7XTmTLVwbutCLFxp8TyePee6Xq5mRq6Fti5Wc",
+          "multiplier": 1,
+          "newMultiplierEffectiveTimestamp": "1784305800",
+          "newMultiplier": 1.4861347
+        },
+        "pause": false,
+        "defaultAccountState": 1,
+        "transferFeeConfig": {
+          "__kind": "TransferFeeConfig",
+          "transferFeeConfigAuthority": "WV9PJN7XTmTLVwbutCLFxp8TyePee6Xq5mRq6Fti5Wc",
+          "withdrawWithheldAuthority": "WV9PJN7XTmTLVwbutCLFxp8TyePee6Xq5mRq6Fti5Wc",
+          "withheldAmount": "619018434",
+          "olderTransferFee": {
+            "epoch": "1032",
+            "maximumFee": "18446744073709551615",
+            "transferFeeBasisPoints": 50
+          },
+          "newerTransferFee": {
+            "epoch": "1039",
+            "maximumFee": "18446744073709551615",
+            "transferFeeBasisPoints": 100
+          }
+        },
+        "transferHook": {
+          "__kind": "TransferHook",
+          "authority": "WV9PJN7XTmTLVwbutCLFxp8TyePee6Xq5mRq6Fti5Wc",
+          "programId": "11111111111111111111111111111111"
+        },
+        "tokenMetadata": {
+          "name": "OpenAI PreStocks",
+          "symbol": "OPENAI",
+          "uri": "https://prestocks.com/metadata/openai.json",
+          "mint": "PreweJYECqtQwBtpxHL171nL2K6umo692gTm7Q3rpgF"
+        }
+      },
+      {
+        "symbol": "POLYMARKET",
+        "scaling": {
+          "__kind": "ScaledUiAmountConfig",
+          "authority": "WV9PJN7XTmTLVwbutCLFxp8TyePee6Xq5mRq6Fti5Wc",
+          "multiplier": 1,
+          "newMultiplierEffectiveTimestamp": "0",
+          "newMultiplier": 1
+        },
+        "pause": false,
+        "defaultAccountState": 1,
+        "transferFeeConfig": {
+          "__kind": "TransferFeeConfig",
+          "transferFeeConfigAuthority": "WV9PJN7XTmTLVwbutCLFxp8TyePee6Xq5mRq6Fti5Wc",
+          "withdrawWithheldAuthority": "WV9PJN7XTmTLVwbutCLFxp8TyePee6Xq5mRq6Fti5Wc",
+          "withheldAmount": "2299685737",
+          "olderTransferFee": {
+            "epoch": "1032",
+            "maximumFee": "18446744073709551615",
+            "transferFeeBasisPoints": 50
+          },
+          "newerTransferFee": {
+            "epoch": "1039",
+            "maximumFee": "18446744073709551615",
+            "transferFeeBasisPoints": 100
+          }
+        },
+        "transferHook": {
+          "__kind": "TransferHook",
+          "authority": "WV9PJN7XTmTLVwbutCLFxp8TyePee6Xq5mRq6Fti5Wc",
+          "programId": "11111111111111111111111111111111"
+        },
+        "tokenMetadata": {
+          "name": "Polymarket PreStocks",
+          "symbol": "POLYMARKET",
+          "uri": "https://prestocks.com/metadata/polymarket.json",
+          "mint": "Pre8AREmFPtoJFT8mQSXQLh56cwJmM7CFDRuoGBZiUP"
+        }
+      },
+      {
+        "symbol": "SPACEX",
+        "scaling": {
+          "__kind": "ScaledUiAmountConfig",
+          "authority": "WV9PJN7XTmTLVwbutCLFxp8TyePee6Xq5mRq6Fti5Wc",
+          "multiplier": 1,
+          "newMultiplierEffectiveTimestamp": "1781065800",
+          "newMultiplier": 5
+        },
+        "pause": false,
+        "defaultAccountState": 1,
+        "transferFeeConfig": {
+          "__kind": "TransferFeeConfig",
+          "transferFeeConfigAuthority": "WV9PJN7XTmTLVwbutCLFxp8TyePee6Xq5mRq6Fti5Wc",
+          "withdrawWithheldAuthority": "WV9PJN7XTmTLVwbutCLFxp8TyePee6Xq5mRq6Fti5Wc",
+          "withheldAmount": "58790",
+          "olderTransferFee": {
+            "epoch": "1032",
+            "maximumFee": "18446744073709551615",
+            "transferFeeBasisPoints": 50
+          },
+          "newerTransferFee": {
+            "epoch": "1039",
+            "maximumFee": "18446744073709551615",
+            "transferFeeBasisPoints": 100
+          }
+        },
+        "transferHook": {
+          "__kind": "TransferHook",
+          "authority": "WV9PJN7XTmTLVwbutCLFxp8TyePee6Xq5mRq6Fti5Wc",
+          "programId": "11111111111111111111111111111111"
+        },
+        "tokenMetadata": {
+          "name": "SpaceX PreStocks",
+          "symbol": "SPACEX",
+          "uri": "https://prestocks.com/metadata/spacex.json",
+          "mint": "PreANxuXjsy2pvisWWMNB6YaJNzr7681wJJr2rHsfTh"
+        }
+      }
+    ]
+  },
+  "logos": [
+    {
+      "symbol": "ANDURIL",
+      "sourceUrl": "https://www.prestocks.com/logos/anduril.png",
+      "sha256": "0c2e24d7c0c53cf2aadfe26471785daa4ed3d4e008a86a81f405dfd155440d7f",
+      "width": 512,
+      "height": 512
+    },
+    {
+      "symbol": "ANTHROPIC",
+      "sourceUrl": "https://www.prestocks.com/logos/anthropic.png",
+      "sha256": "0aef3aadf5ad4324f34ea52fb02592fe9125e5b502c9eace00d20c189b400a65",
+      "width": 512,
+      "height": 512
+    },
+    {
+      "symbol": "FIGUREAI",
+      "sourceUrl": "https://www.prestocks.com/logos/figureai.png",
+      "sha256": "c0416b926bcefaed1bcaa0798ddb0b97877802f96a0175094ded8968f024b348",
+      "width": 512,
+      "height": 512
+    },
+    {
+      "symbol": "KALSHI",
+      "sourceUrl": "https://www.prestocks.com/logos/kalshi.png",
+      "sha256": "b422dfdf34d1232496e70af58fbb96aeaa2c4b29619f1c185c3a4fa57a72d53a",
+      "width": 512,
+      "height": 512
+    },
+    {
+      "symbol": "NEURALINK",
+      "sourceUrl": "https://www.prestocks.com/logos/neuralink.png",
+      "sha256": "f3593cd360329109c1f7b1cd9727cc6544b6a2fa953d012461b06265e177c6fb",
+      "width": 512,
+      "height": 512
+    },
+    {
+      "symbol": "OPENAI",
+      "sourceUrl": "https://www.prestocks.com/logos/openai.png",
+      "sha256": "d3bc1f4422d086b351c430f2409ad2f44d78c86a31fd3fa92790f402f0e07ea0",
+      "width": 512,
+      "height": 512
+    },
+    {
+      "symbol": "POLYMARKET",
+      "sourceUrl": "https://www.prestocks.com/logos/polymarket.png",
+      "sha256": "a5e69d6e07f6b1869aa06754681dc63f15f70168fe9a26c40e4e04aa9b6a2ed9",
+      "width": 512,
+      "height": 512
+    },
+    {
+      "symbol": "SPACEX",
+      "sourceUrl": "https://www.prestocks.com/logos/spacex.png",
+      "sha256": "a52fb73d94dca31d6406ff22186b30a98c82d480ce3a9af92ef8e7076f9ec224",
+      "width": 512,
+      "height": 512
+    }
+  ]
+}

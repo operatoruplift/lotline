@@ -18,6 +18,15 @@ export default function DemoPage() {
     <h1>See your next contribution<br />come together.</h1>
     <p className="demo-intro">Explore 832 Example assets, choose up to ten for a plan, and return to your split with a new contribution. These narrated tours show the September 12, 2026 planner release. Example balances and estimates are synthetic; recorded Live estimates are dated observations.</p>
     <p className="demo-intro">The app now also offers a prefilled Jupiter handoff and saved manual contribution reminders. A supported mainnet order has now passed semantic validation and unsigned simulation. In-app purchases remain gated on production credentials and restricted participant access; real settlement is not yet verified. Below the narrated tours, a September 19 controlled demonstration shows the newer review, receipt and recovery screens with a fake wallet and mocked providers.</p>
+    <section id="sponsor-demo" className="demo-technical" aria-labelledby="sponsor-demo-title">
+      <p className="eyebrow">SEPTEMBER 21, 2026 · PRESTOCKS AND PYTH</p>
+      <h2 id="sponsor-demo-title">A separate plan. Clear source context.</h2>
+      <p id="sponsor-demo-description" className="demo-intro">This silent, captioned rehearsal follows a PreStocks contribution from asset selection to exact allocation, issuer verification and a shared plan. It then shows an explicit Pyth-unavailable state in the xStocks planner. Catalogs, estimates and the unavailable response are controlled fixtures, labeled throughout. No wallet connects and no funds move; the clip does not claim a live oracle observation or a price comparison.</p>
+      <video controls muted playsInline preload="metadata" poster="/videos/release-20260921/sponsor-planning-poster.jpg" aria-label="Lotline PreStocks and Pyth controlled rehearsal" aria-describedby="sponsor-demo-description" data-demo-video="sponsor-planning" className="demo-video">
+        <source src="/videos/release-20260921/sponsor-planning.mp4" type="video/mp4" /><track default kind="captions" src="/videos/release-20260921/sponsor-planning.en.vtt" srcLang="en" label="English" />
+      </video>
+      <div className="demo-actions"><a href="/videos/release-20260921/sponsor-planning.mp4" download className="text-button">Download PreStocks and Pyth rehearsal</a><a href="/videos/release-20260921/sponsor-planning.transcript.txt" className="text-button">Read rehearsal description</a><Link href="/pre-ipo" className="button primary">Plan with PreStocks <ArrowRight size={16} /></Link></div>
+    </section>
     <section className="demo-technical" aria-labelledby="current-demo-title">
       <p className="eyebrow">SEPTEMBER 20, 2026 · CURRENT APPLICATION</p>
       <h2 id="current-demo-title">From a first plan to a clear review.</h2>

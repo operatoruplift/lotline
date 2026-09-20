@@ -4,6 +4,8 @@
 
 [Live website](https://lotlineonsolana.vercel.app) · [Try the example](https://lotlineonsolana.vercel.app/app?mode=example) · [Demo](https://lotlineonsolana.vercel.app/demo) · [Public source](https://github.com/operatoruplift/lotline)
 
+**September 21 sponsor update:** a separate [PreStocks planner](https://lotlineonsolana.vercel.app/pre-ipo) adds eight issuer-identified pre-IPO assets with mainnet mint verification, exact allocation, read-only Jupiter estimates, local drafts and universe-tagged share/export. PreStocks purchases are not enabled; transfer-fee/confidential token balances remain unavailable when their account semantics are unsupported. The xStocks review also implements independent Pyth references for AAPLx, MSFTx and NVDAx. Current Pyth prices require a server API key; no authenticated live-price delivery is claimed until that configuration is verified. See [sponsor release evidence](docs/sponsor-release-20260921.md).
+
 Lotline serves someone who already knows their chosen assets and split and wants to repeat a contribution accurately. Percentages apply to the new contribution, not target weights for an existing portfolio. Planning and Example mode are read-only. A staged Wallet Standard/Jupiter execution path is present but remains paused until its server readiness gates, durable journal, and reconciliation checks are deliberately enabled. Guest planning needs no registration or wallet extension. Existing Supabase users can explicitly save named plans across devices; public signup and recovery remain gated until SMTP delivery is verified.
 
 **September 20 contribution update:** first-use planning, typed provider errors, observed token scaling, semantic Jupiter/Raydium transaction validation, immutable ALT receipts and current demonstration footage are implemented. All seven Supabase migrations are applied and checked. A real unsigned mainnet order passed the validator and simulation; no trade was signed or broadcast. Public purchases remain disabled pending a server Jupiter key and reviewed restricted-launch participants. See the [current contribution release](docs/contribution-release-20260920.md) for exact local/hosted/CI evidence, supported-route limits and deployment revision. The original design, films, brand kit and ten-asset exact math are preserved. No competition entry has been submitted.
@@ -30,6 +32,7 @@ SUPABASE_SECRET_KEY='' LOTLINE_SHARED_LIMITS=false VERCEL=0 npm run dev -- --por
 | --- | --- | --- |
 | `SOLANA_RPC_URL` | Server only | Required for live mint validation, wallet balances, and scaled units. The example supplies public mainnet RPC; a dedicated provider is preferable for shared use. |
 | `JUPITER_API_KEY` | Server only | Optional while documented keyless access remains supported. |
+| `PYTH_API_KEY` | Server only | Required by the official current-price Hermes endpoint. Enables independent equity/token USD references for the three pinned mappings; missing access leaves estimates available. |
 | `NEXT_PUBLIC_SUPABASE_URL` | Public, build time | Hosted Supabase URL for accounts and shared provider coordination. |
 | `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | Public, build time | Current `sb_publishable_` key for optional authentication and owner-scoped cloud plans. |
 | `NEXT_PUBLIC_AUTH_EMAIL_ENABLED` | Public, build time | Set to the exact string `true` only after testing custom SMTP signup and recovery delivery. The launch deployment uses `false`; existing users can still sign in. |
@@ -129,7 +132,7 @@ Deployment was authorized after the local finish checkpoint. The [deployment rec
 
 ## Attribution
 
-Lotline application code is [MIT licensed](LICENSE). It uses Next.js/React, TypeScript, Tailwind, Solana Kit and official Token-2022 helpers, Supabase, Zod and Lucide; exact versions are in `package-lock.json`. Third-party libraries retain their licenses. Issuer logos identify xStocks and are attributed in the [catalog record](docs/xstocks-catalog.md). The selected template references guided the custom Next.js composition; user-supplied decorative media and their derivatives are documented in the [media manifest](docs/design-media-manifest.json). The pitch uses Higgsfield/Higgsedit and its documented Ainsley narration. Media provenance is not a blanket third-party redistribution license; preserve provider attribution and applicable rights when reusing those assets.
+Lotline application code is [MIT licensed](LICENSE). It uses Next.js/React, TypeScript, Tailwind, Solana Kit and official Token-2022 helpers, Supabase, Zod and Lucide; exact versions are in `package-lock.json`. Third-party libraries retain their licenses. Issuer logos identify xStocks and PreStocks; attribution is in the [xStocks catalog record](docs/xstocks-catalog.md) and [PreStocks integration record](docs/releases/2026-09-21/prestocks-integration.md). The selected template references guided the custom Next.js composition; user-supplied decorative media and their derivatives are documented in the [media manifest](docs/design-media-manifest.json). The pitch uses Higgsfield/Higgsedit and its documented Ainsley narration. Media provenance is not a blanket third-party redistribution license; preserve provider attribution and applicable rights when reusing those assets.
 
 ## Structure
 
@@ -147,4 +150,4 @@ Lotline application code is [MIT licensed](LICENSE). It uses Next.js/React, Type
 
 ## September 19 local continuation
 
-The [finish report](docs/finish-report-20260919.md) records additional wallet, recovery, receipt and manual-reminder fixes against `b843014`. That report records the local checkpoint before the separately authorized September 20 release; both pending migrations are now applied. In-app execution remains blocked by missing encoded swap validation in addition to external configuration; production continues to offer read-only planning and the official Jupiter handoff.
+The [finish report](docs/finish-report-20260919.md) records additional wallet, recovery, receipt and manual-reminder fixes against `b843014`. That historical checkpoint is superseded by the September 20 release: the migrations and narrow semantic validator are implemented and checked. Public purchases remain disabled pending authenticated execution access and reviewed participants; production offers read-only planning and the official Jupiter handoff.

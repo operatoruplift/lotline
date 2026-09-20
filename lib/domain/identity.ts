@@ -1,8 +1,9 @@
 import type { Basket, Mode } from './types';
+import type { PlannerUniverse } from './planner-universe';
 
 /** Includes draft strings and revision, so even a change-and-revert rejects an old request. */
-export function createPlanIdentity(mode: Mode, basket: Basket, revision: number): string {
-  return JSON.stringify([mode, revision, basket.budget, basket.items.map(item => [item.mint, item.percent])]);
+export function createPlanIdentity(mode: Mode, basket: Basket, revision: number, universe: PlannerUniverse = 'xstocks'): string {
+  return JSON.stringify([universe, mode, revision, basket.budget, basket.items.map(item => [item.mint, item.percent])]);
 }
 
 export function isCurrentResponse(expected: string, received: string): boolean {

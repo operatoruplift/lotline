@@ -3,7 +3,13 @@ export type State = 'success' | 'partial' | 'unavailable' | 'invalid-input' | 'c
 export type DataFailureReason = 'no-route' | 'issuer-halted' | 'unsupported-token' | 'rate-limited' | 'stale-verification' | 'provider-unavailable';
 export type Asset = {
   symbol: string; name: string; mint: string; decimals: number; tokenProgram: string;
-  halted: boolean; verifiedAt: string;
+  /** Null means the issuer does not publish a halt flag; it never means active. */
+  halted: boolean | null; verifiedAt: string;
+  issuerId?: 'xstocks' | 'prestocks';
+  instrumentId?: string;
+  issuerSourceUrl?: string;
+  productUrl?: string;
+  description?: string;
   /** Local bundled logo path. Live responses only expose this for curated symbols. */
   logoUrl?: string;
   /** The issuer URL from which the bundled logo and identity were verified. */

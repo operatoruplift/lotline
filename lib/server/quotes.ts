@@ -33,13 +33,11 @@ export function unavailableQuote(mint: string, usdcRaw: string, message: string,
   const timestamp = new Date().toISOString();
   return { mint, usdcRaw, state: 'unavailable', outRaw: null, units: null, fetchedAt: timestamp, expiresAt: timestamp, message, reasonCode };
 }
-async function freshQuote(asset: Asset, usdcRaw: string): Promise<Quote> {
+/** Both issuer adapters share this quote-only queue and the same provider budget. */
+export async function getReadOnlyQuote(mint: string, usdcRaw: string, verify: () => Promise<{ fetchedAt: string }>): Promise<Quote> {
   return quoteQueue.run(async () => {
-    // Recheck the issuer immediately before fetching; a halt never becomes a DEX market-hours claim.
-    const issuer = await getIssuerAsset(asset.symbol);
-    if (issuer.mint !== asset.mint) throw new ServiceError('unavailable', 'The issuer deployment changed. Reload the catalog.', 'stale-verification');
-    if (issuer.halted) throw new ServiceError('unavailable', 'The issuer reports a trading halt. Fresh estimates are paused for this asset.', 'issuer-halted');
-    const params = new URLSearchParams({ inputMint: USDC_MINT, outputMint: asset.mint, amount: usdcRaw });
+    const issuer = await verify();
+    const params = new URLSearchParams({ inputMint: USDC_MINT, outputMint: mint, amount: usdcRaw });
     const apiKey = process.env.JUPITER_API_KEY?.trim();
     // Only these three parameters are sent. No wallet/taker, transaction, or execute call exists.
     await reserveProviderSlot('jupiter');
@@ -49,10 +47,19 @@ async function freshQuote(asset: Asset, usdcRaw: string): Promise<Quote> {
     if (!Number.isFinite(issuerAge) || issuerAge < 0 || issuerAge >= 30_000) throw new ServiceError('unavailable', 'Issuer verification expired while waiting. Refresh estimates to recheck this asset.', 'stale-verification');
     const requestedAt = new Date().toISOString();
     const payload = await fetchJson(`https://api.jup.ag/swap/v2/order?${params}`, { headers: apiKey ? { 'x-api-key': apiKey } : {} });
-    const quote = normalizeQuote(payload, asset.mint, usdcRaw, requestedAt);
-    try { const converted = await convertRawUnitsWithContext(asset.mint, quote.outRaw!); quote.units = converted.units; quote.unitContext = converted.context; }
+    const quote = normalizeQuote(payload, mint, usdcRaw, requestedAt);
+    try { const converted = await convertRawUnitsWithContext(mint, quote.outRaw!); quote.units = converted.units; quote.unitContext = converted.context; }
     catch (error) { quote.message = safeMessage(error); quote.reasonCode = error instanceof ServiceError ? error.reasonCode ?? 'provider-unavailable' : 'provider-unavailable'; }
     return quote;
+  });
+}
+async function freshQuote(asset: Asset, usdcRaw: string): Promise<Quote> {
+  return getReadOnlyQuote(asset.mint, usdcRaw, async () => {
+    // Recheck the issuer immediately before fetching; a halt never becomes a DEX market-hours claim.
+    const issuer = await getIssuerAsset(asset.symbol);
+    if (issuer.mint !== asset.mint) throw new ServiceError('unavailable', 'The issuer deployment changed. Reload the catalog.', 'stale-verification');
+    if (issuer.halted) throw new ServiceError('unavailable', 'The issuer reports a trading halt. Fresh estimates are paused for this asset.', 'issuer-halted');
+    return issuer;
   });
 }
 async function getQuote(asset: Asset, usdcRaw: string): Promise<Quote> {

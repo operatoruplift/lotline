@@ -24,9 +24,9 @@ export function parseSavedBasket(value: unknown, allowedMints?: readonly string[
   return { version: 1, budget: candidate.budget, items };
 }
 
-export function loadBasket(storage: Pick<Storage, 'getItem'>, allowedMints?: readonly string[]): Basket | null {
+export function loadBasket(storage: Pick<Storage, 'getItem'>, allowedMints?: readonly string[], storageKey = BASKET_STORAGE_KEY): Basket | null {
   try {
-    const raw = storage.getItem(BASKET_STORAGE_KEY);
+    const raw = storage.getItem(storageKey);
     if (!raw || raw.length > MAX_STORED_LENGTH) return null;
     return parseSavedBasket(JSON.parse(raw), allowedMints);
   } catch {
@@ -35,11 +35,11 @@ export function loadBasket(storage: Pick<Storage, 'getItem'>, allowedMints?: rea
   }
 }
 
-export function saveBasket(storage: Pick<Storage, 'setItem'>, basket: Basket, allowedMints?: readonly string[]): boolean {
+export function saveBasket(storage: Pick<Storage, 'setItem'>, basket: Basket, allowedMints?: readonly string[], storageKey = BASKET_STORAGE_KEY): boolean {
   try {
     const safe = parseSavedBasket(basket, allowedMints);
     if (!safe) return false;
-    storage.setItem(BASKET_STORAGE_KEY, JSON.stringify(safe));
+    storage.setItem(storageKey, JSON.stringify(safe));
     return true;
   } catch {
     return false;

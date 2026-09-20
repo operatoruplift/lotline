@@ -1,0 +1,361 @@
+{
+  "startedAt": "2026-09-20T19:46:30.949Z",
+  "completedAt": "2026-09-20T19:46:53.726Z",
+  "source": "https://prestocks.com/api/prestocks",
+  "productsUrl": "https://prestocks.com/products",
+  "network": "Solana mainnet-beta",
+  "input": {
+    "symbol": "USDC",
+    "mint": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+    "rawPerAsset": "10000000",
+    "displayPerAsset": "10"
+  },
+  "provider": "Jupiter Swap V2 order with no taker",
+  "rpc": "Configured SOLANA_RPC_URL; value omitted",
+  "issuerHaltStatus": "not-published",
+  "results": [
+    {
+      "symbol": "ANDURIL",
+      "mint": "PresTj4Yc2bAR197Er7wz4UUKSfqt6FryBEdAriBoQB",
+      "status": "success",
+      "quote": {
+        "mint": "PresTj4Yc2bAR197Er7wz4UUKSfqt6FryBEdAriBoQB",
+        "state": "success",
+        "usdcRaw": "10000000",
+        "outRaw": "62342372",
+        "units": "0.062342372",
+        "fetchedAt": "2026-09-20T19:46:36.912Z",
+        "expiresAt": "2026-09-20T19:47:06.912Z",
+        "source": "Jupiter · okx",
+        "feeBps": 10,
+        "feeMint": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+        "unitContext": {
+          "source": "clock-sysvar",
+          "kind": "scaled",
+          "decimals": 9,
+          "tokenProgram": "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb",
+          "mintSlot": 448830116,
+          "observedAt": "2026-09-20T19:46:37.967Z",
+          "clockSlot": 448830116,
+          "unixTimestamp": "1789933596",
+          "multiplier": 1
+        }
+      }
+    },
+    {
+      "symbol": "ANTHROPIC",
+      "mint": "Pren1FvFX6J3E4kXhJuCiAD5aDmGEb7qJRncwA8Lkhw",
+      "status": "success",
+      "quote": {
+        "mint": "Pren1FvFX6J3E4kXhJuCiAD5aDmGEb7qJRncwA8Lkhw",
+        "state": "success",
+        "usdcRaw": "10000000",
+        "outRaw": "9560108",
+        "units": "0.009560108",
+        "fetchedAt": "2026-09-20T19:46:39.021Z",
+        "expiresAt": "2026-09-20T19:47:09.021Z",
+        "source": "Jupiter · metis",
+        "feeBps": 10,
+        "feeMint": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+        "unitContext": {
+          "source": "clock-sysvar",
+          "kind": "scaled",
+          "decimals": 9,
+          "tokenProgram": "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb",
+          "mintSlot": 448830124,
+          "observedAt": "2026-09-20T19:46:40.144Z",
+          "clockSlot": 448830124,
+          "unixTimestamp": "1789933599",
+          "multiplier": 1
+        }
+      }
+    },
+    {
+      "symbol": "FIGUREAI",
+      "mint": "PreZad18qfPtbxNpMtMuAuX2zVpvkEU8DnJx56faCWd",
+      "status": "success",
+      "quote": {
+        "mint": "PreZad18qfPtbxNpMtMuAuX2zVpvkEU8DnJx56faCWd",
+        "state": "success",
+        "usdcRaw": "10000000",
+        "outRaw": "55219100",
+        "units": "0.0552191",
+        "fetchedAt": "2026-09-20T19:46:41.922Z",
+        "expiresAt": "2026-09-20T19:47:11.922Z",
+        "source": "Jupiter · metis",
+        "feeBps": 10,
+        "feeMint": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+        "unitContext": {
+          "source": "clock-sysvar",
+          "kind": "scaled",
+          "decimals": 9,
+          "tokenProgram": "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb",
+          "mintSlot": 448830135,
+          "observedAt": "2026-09-20T19:46:42.837Z",
+          "clockSlot": 448830135,
+          "unixTimestamp": "1789933602",
+          "multiplier": 1
+        }
+      }
+    },
+    {
+      "symbol": "KALSHI",
+      "mint": "PreLWGkkeqG1s4HEfFZSy9moCrJ7btsHuUtfcCeoRua",
+      "status": "success",
+      "quote": {
+        "mint": "PreLWGkkeqG1s4HEfFZSy9moCrJ7btsHuUtfcCeoRua",
+        "state": "success",
+        "usdcRaw": "10000000",
+        "outRaw": "10983591",
+        "units": "0.010983591",
+        "fetchedAt": "2026-09-20T19:46:43.697Z",
+        "expiresAt": "2026-09-20T19:47:13.697Z",
+        "source": "Jupiter · metis",
+        "feeBps": 10,
+        "feeMint": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+        "unitContext": {
+          "source": "clock-sysvar",
+          "kind": "scaled",
+          "decimals": 9,
+          "tokenProgram": "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb",
+          "mintSlot": 448830141,
+          "observedAt": "2026-09-20T19:46:45.454Z",
+          "clockSlot": 448830141,
+          "unixTimestamp": "1789933603",
+          "multiplier": 1
+        }
+      }
+    },
+    {
+      "symbol": "NEURALINK",
+      "mint": "PrekqLJvJ3qVdXmBGDiexvwUTF4rLFDa6HWS4HJbw9S",
+      "status": "success",
+      "quote": {
+        "mint": "PrekqLJvJ3qVdXmBGDiexvwUTF4rLFDa6HWS4HJbw9S",
+        "state": "success",
+        "usdcRaw": "10000000",
+        "outRaw": "22854468",
+        "units": "0.022854468",
+        "fetchedAt": "2026-09-20T19:46:46.142Z",
+        "expiresAt": "2026-09-20T19:47:16.142Z",
+        "source": "Jupiter · metis",
+        "feeBps": 10,
+        "feeMint": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+        "unitContext": {
+          "source": "clock-sysvar",
+          "kind": "scaled",
+          "decimals": 9,
+          "tokenProgram": "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb",
+          "mintSlot": 448830151,
+          "observedAt": "2026-09-20T19:46:47.083Z",
+          "clockSlot": 448830151,
+          "unixTimestamp": "1789933606",
+          "multiplier": 1
+        }
+      }
+    },
+    {
+      "symbol": "OPENAI",
+      "mint": "PreweJYECqtQwBtpxHL171nL2K6umo692gTm7Q3rpgF",
+      "status": "success",
+      "quote": {
+        "mint": "PreweJYECqtQwBtpxHL171nL2K6umo692gTm7Q3rpgF",
+        "state": "success",
+        "usdcRaw": "10000000",
+        "outRaw": "5978878",
+        "units": "0.008885418",
+        "fetchedAt": "2026-09-20T19:46:48.682Z",
+        "expiresAt": "2026-09-20T19:47:18.682Z",
+        "source": "Jupiter · metis",
+        "feeBps": 10,
+        "feeMint": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+        "unitContext": {
+          "source": "clock-sysvar",
+          "kind": "scaled",
+          "decimals": 9,
+          "tokenProgram": "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb",
+          "mintSlot": 448830161,
+          "observedAt": "2026-09-20T19:46:49.560Z",
+          "clockSlot": 448830161,
+          "unixTimestamp": "1789933608",
+          "multiplier": 1.4861347
+        }
+      }
+    },
+    {
+      "symbol": "POLYMARKET",
+      "mint": "Pre8AREmFPtoJFT8mQSXQLh56cwJmM7CFDRuoGBZiUP",
+      "status": "success",
+      "quote": {
+        "mint": "Pre8AREmFPtoJFT8mQSXQLh56cwJmM7CFDRuoGBZiUP",
+        "state": "success",
+        "usdcRaw": "10000000",
+        "outRaw": "68606345",
+        "units": "0.068606345",
+        "fetchedAt": "2026-09-20T19:46:50.743Z",
+        "expiresAt": "2026-09-20T19:47:20.743Z",
+        "source": "Jupiter · metis",
+        "feeBps": 10,
+        "feeMint": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+        "unitContext": {
+          "source": "clock-sysvar",
+          "kind": "scaled",
+          "decimals": 9,
+          "tokenProgram": "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb",
+          "mintSlot": 448830167,
+          "observedAt": "2026-09-20T19:46:51.401Z",
+          "clockSlot": 448830167,
+          "unixTimestamp": "1789933610",
+          "multiplier": 1
+        }
+      }
+    },
+    {
+      "symbol": "SPACEX",
+      "mint": "PreANxuXjsy2pvisWWMNB6YaJNzr7681wJJr2rHsfTh",
+      "status": "success",
+      "quote": {
+        "mint": "PreANxuXjsy2pvisWWMNB6YaJNzr7681wJJr2rHsfTh",
+        "state": "success",
+        "usdcRaw": "10000000",
+        "outRaw": "16471441",
+        "units": "0.082357205",
+        "fetchedAt": "2026-09-20T19:46:52.843Z",
+        "expiresAt": "2026-09-20T19:47:22.843Z",
+        "source": "Jupiter · metis",
+        "feeBps": 10,
+        "feeMint": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+        "unitContext": {
+          "source": "clock-sysvar",
+          "kind": "scaled",
+          "decimals": 9,
+          "tokenProgram": "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb",
+          "mintSlot": 448830176,
+          "observedAt": "2026-09-20T19:46:53.724Z",
+          "clockSlot": 448830176,
+          "unixTimestamp": "1789933612",
+          "multiplier": 5
+        }
+      }
+    }
+  ],
+  "requests": [
+    {
+      "requestedAt": "2026-09-20T19:46:36.912Z",
+      "inputMint": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+      "outputMint": "PresTj4Yc2bAR197Er7wz4UUKSfqt6FryBEdAriBoQB",
+      "amount": "10000000",
+      "takerIncluded": false,
+      "parameterKeys": [
+        "amount",
+        "inputMint",
+        "outputMint"
+      ],
+      "status": 200,
+      "transactionReturned": false
+    },
+    {
+      "requestedAt": "2026-09-20T19:46:39.022Z",
+      "inputMint": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+      "outputMint": "Pren1FvFX6J3E4kXhJuCiAD5aDmGEb7qJRncwA8Lkhw",
+      "amount": "10000000",
+      "takerIncluded": false,
+      "parameterKeys": [
+        "amount",
+        "inputMint",
+        "outputMint"
+      ],
+      "status": 200,
+      "transactionReturned": false
+    },
+    {
+      "requestedAt": "2026-09-20T19:46:41.922Z",
+      "inputMint": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+      "outputMint": "PreZad18qfPtbxNpMtMuAuX2zVpvkEU8DnJx56faCWd",
+      "amount": "10000000",
+      "takerIncluded": false,
+      "parameterKeys": [
+        "amount",
+        "inputMint",
+        "outputMint"
+      ],
+      "status": 200,
+      "transactionReturned": false
+    },
+    {
+      "requestedAt": "2026-09-20T19:46:43.697Z",
+      "inputMint": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+      "outputMint": "PreLWGkkeqG1s4HEfFZSy9moCrJ7btsHuUtfcCeoRua",
+      "amount": "10000000",
+      "takerIncluded": false,
+      "parameterKeys": [
+        "amount",
+        "inputMint",
+        "outputMint"
+      ],
+      "status": 200,
+      "transactionReturned": false
+    },
+    {
+      "requestedAt": "2026-09-20T19:46:46.142Z",
+      "inputMint": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+      "outputMint": "PrekqLJvJ3qVdXmBGDiexvwUTF4rLFDa6HWS4HJbw9S",
+      "amount": "10000000",
+      "takerIncluded": false,
+      "parameterKeys": [
+        "amount",
+        "inputMint",
+        "outputMint"
+      ],
+      "status": 200,
+      "transactionReturned": false
+    },
+    {
+      "requestedAt": "2026-09-20T19:46:48.682Z",
+      "inputMint": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+      "outputMint": "PreweJYECqtQwBtpxHL171nL2K6umo692gTm7Q3rpgF",
+      "amount": "10000000",
+      "takerIncluded": false,
+      "parameterKeys": [
+        "amount",
+        "inputMint",
+        "outputMint"
+      ],
+      "status": 200,
+      "transactionReturned": false
+    },
+    {
+      "requestedAt": "2026-09-20T19:46:50.744Z",
+      "inputMint": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+      "outputMint": "Pre8AREmFPtoJFT8mQSXQLh56cwJmM7CFDRuoGBZiUP",
+      "amount": "10000000",
+      "takerIncluded": false,
+      "parameterKeys": [
+        "amount",
+        "inputMint",
+        "outputMint"
+      ],
+      "status": 200,
+      "transactionReturned": false
+    },
+    {
+      "requestedAt": "2026-09-20T19:46:52.843Z",
+      "inputMint": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+      "outputMint": "PreANxuXjsy2pvisWWMNB6YaJNzr7681wJJr2rHsfTh",
+      "amount": "10000000",
+      "takerIncluded": false,
+      "parameterKeys": [
+        "amount",
+        "inputMint",
+        "outputMint"
+      ],
+      "status": 200,
+      "transactionReturned": false
+    }
+  ],
+  "successCount": 8,
+  "unavailableCount": 0,
+  "transactionsSigned": 0,
+  "transactionsSubmitted": 0,
+  "note": "These are expired read-only observations, not orders or transfer support. Each displayed quantity uses the official mint and Clock conversion helper."
+}

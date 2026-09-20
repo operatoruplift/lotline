@@ -1,5 +1,7 @@
 # Stocklana requirements — dated official recheck
 
+**September 21, 2026 update:** the [official event page](https://hackathons.solana.com/hackathons/stocklana) now lists **September 25, 2026** as the submission deadline. The September 12 findings below are historical. PreStocks excludes competing pre-IPO token integrations; Pyth emphasizes meaningful live-data use. No registration or submission has been performed. See [current sponsor scope and evidence](sponsor-release-20260921.md).
+
 Checked **September 12, 2026 (UTC)** using the [official Stocklana event page](https://hackathons.solana.com/hackathons/stocklana) and its linked [Submit Project page](https://hackathons.solana.com/hackathons/stocklana/submit). No login, wallet connection, registration or submission was performed.
 
 ## Supplied brief versus independent confirmation

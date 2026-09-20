@@ -1,0 +1,62 @@
+{
+  "observedAt": "2026-09-20T19:13:44.754192+00:00",
+  "requestedDomains": {
+    "lotline.com": {
+      "vercelAvailability": "unavailable",
+      "presentInConnectedTeam": false
+    },
+    "lotline.solana": {
+      "vercelAvailability": "not-found",
+      "ianaDelegatedTld": false
+    }
+  },
+  "ianaListVersion": "2026092000",
+  "currentDomain": "https://lotlineonsolana.vercel.app",
+  "changesMade": false,
+  "purchasesMade": false,
+  "sources": [
+    "https://vercel.com/docs/domains/working-with-domains",
+    "https://www.iana.org/domains/root/db",
+    "https://data.iana.org/TLD/tlds-alpha-by-domain.txt"
+  ],
+  "note": "Read-only authenticated Vercel CLI checks. Paid Pro teams may claim one eligible non-premium first-year domain. Requested names cannot be assigned: .com is excluded/taken and .solana is not delegated in IANA. Name choice, account eligibility and renewal terms remain unresolved; no purchase or domain assignment made.",
+  "freeDomainOffer": {
+    "source": "https://vercel.com/docs/domains/free-domain-with-pro",
+    "firstYearOnly": true,
+    "eligibleTlds": [
+      "app",
+      "dev",
+      "online",
+      "site",
+      "space",
+      "store",
+      "tech",
+      "website"
+    ],
+    "excludesPremium": true,
+    "accountEligibilityVerified": false,
+    "renewalPriceVerified": true,
+    "checkoutVerified": false
+  },
+  "alternatives": {
+    "lotline.app": "unavailable",
+    "lotline.dev": "available",
+    "lotline.tech": "unavailable",
+    "lotline.space": "available"
+  },
+  "regularPricing": {
+    "currency": "USD",
+    "lotline.dev": {
+      "years": 1,
+      "purchasePrice": 9.99,
+      "renewalPrice": 13
+    },
+    "lotline.space": {
+      "years": 1,
+      "purchasePrice": 1.99,
+      "renewalPrice": 22
+    },
+    "promotionApplied": false
+  },
+  "browserAccess": "No enabled browser available to inspect promotion checkout."
+}

@@ -10,6 +10,28 @@ for (const width of [390, 1440]) {
     page.on('pageerror', error => errors.push(error.message));
     await page.goto('/demo');
     await expect(page.getByText(/Explore 832 Example assets, choose up to ten/)).toBeVisible();
+    await expect(page.locator('[data-demo-video]')).toHaveCount(6);
+    const sponsor = page.locator('[data-demo-video="sponsor-planning"]');
+    await expect(sponsor).toHaveAttribute('aria-describedby', 'sponsor-demo-description');
+    await expect(page.locator('#sponsor-demo-description')).toContainText('controlled fixtures');
+    await expect(page.locator('#sponsor-demo-description')).toContainText('explicit Pyth-unavailable state');
+    await sponsor.scrollIntoViewIfNeeded();
+    await sponsor.evaluate(node => (node as HTMLVideoElement).play());
+    await expect.poll(() => sponsor.evaluate(node => (node as HTMLVideoElement).currentTime)).toBeGreaterThan(.25);
+    const sponsorState = await sponsor.evaluate(node => { const video = node as HTMLVideoElement & { webkitAudioDecodedByteCount: number }; return { duration: video.duration, width: video.videoWidth, height: video.videoHeight, muted: video.muted, controls: video.controls, audioBytes: video.webkitAudioDecodedByteCount }; });
+    expect(sponsorState.duration).toBeGreaterThanOrEqual(25);
+    expect(sponsorState.duration).toBeLessThanOrEqual(45);
+    expect(sponsorState).toMatchObject({ width: 1440, height: 1000, muted: true, controls: true, audioBytes: 0 });
+    await expect.poll(() => sponsor.evaluate(node => (node as HTMLVideoElement).textTracks[0]?.cues?.length ?? 0)).toBe(6);
+    const sponsorCues = await sponsor.evaluate(node => Array.from((node as HTMLVideoElement).textTracks[0].cues ?? []).map(cue => ({ start: cue.startTime, end: cue.endTime, text: (cue as VTTCue).text })));
+    expect(sponsorCues.map(cue => cue.text).join(' ')).toMatch(/Pyth.*unavailable/i);
+    for (const cue of sponsorCues) { expect(cue.start).toBeGreaterThanOrEqual(0); expect(cue.end).toBeGreaterThan(cue.start); expect(cue.end).toBeLessThanOrEqual(sponsorState.duration + .1); }
+    await sponsor.evaluate(node => { const video = node as HTMLVideoElement; video.currentTime = video.duration / 2; });
+    await expect.poll(() => sponsor.evaluate(node => (node as HTMLVideoElement).seeking)).toBe(false);
+    await sponsor.evaluate(node => (node as HTMLVideoElement).pause());
+    const sponsorTranscript = await request.get('/videos/release-20260921/sponsor-planning.transcript.txt');
+    expect(sponsorTranscript.ok()).toBe(true);
+    expect(await sponsorTranscript.text()).toContain('Pyth unavailability is explicitly simulated');
 
     for (const key of ['first-minute', 'technical-proof']) {
       const player = page.locator(`[data-demo-video="${key}"]`);

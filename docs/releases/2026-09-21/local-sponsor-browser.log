@@ -1,0 +1,17 @@
+
+Running 10 tests using 1 worker
+
+(node:52414) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓   1 tests/e2e/market-reference.spec.ts:38:1 › Live references show confidence and original feed times while estimates retain their own amounts (21.8s)
+  ✓   2 tests/e2e/market-reference.spec.ts:55:1 › missing Pyth access leaves Jupiter estimates and export usable without invented prices (7.7s)
+  ✓   3 tests/e2e/market-reference.spec.ts:64:1 › refreshing a stale oracle observation cannot renew a thirty-second quote (10.7s)
+  ✓   4 tests/e2e/market-reference.spec.ts:80:1 › an old reference response cannot appear over a newly edited contribution (8.7s)
+  ✓   5 tests/e2e/market-reference.spec.ts:98:1 › unrequested mint data is rejected without disturbing valid quote amounts (7.2s)
+  ✓   6 tests/e2e/market-reference.spec.ts:105:1 › Example mode never requests Pyth prices (7.8s)
+  ✓   7 tests/e2e/market-reference.spec.ts:116:1 › reference details fit a 320px screen and pass accessibility checks (20.3s)
+  ✓   8 tests/e2e/prestocks-planner.spec.ts:14:1 › mobile PreStocks planning isolates drafts, uses its read endpoint, exports and shares without signing (18.9s)
+  ✓   9 tests/e2e/prestocks-planner.spec.ts:62:1 › shared links cannot replace a draft in the other asset catalog (18.4s)
+  ✓  10 tests/e2e/prestocks-planner.spec.ts:81:1 › unknown halt status does not weaken the existing xStocks catalog validator (5.2s)
+
+  10 passed (3.3m)
