@@ -1,0 +1,765 @@
+{
+  "observedAt": "2026-09-20T20:28:00.466Z",
+  "origin": "https://lotlineonsolana.vercel.app",
+  "deployment": {
+    "id": "dpl_GdKSUV3M26HA1k1ko5tbuoLN4wEX",
+    "commit": "319cb82b0f5cbcda7eab1d9c35ac2c4a2c5eda3a",
+    "immutableUrl": "https://lotline-r6ul3h05p-operatoruplift.vercel.app",
+    "provenance": "Previously recorded production deployment metadata; requests below target its canonical alias."
+  },
+  "purpose": "One sequential quote-only request and a separate official Token-2022 scaled-unit conversion request for each of the eight pinned PreStocks identities.",
+  "issuerSource": "https://prestocks.com/api/prestocks",
+  "quoteSource": "Jupiter /swap/v2/order through the deployed PreStocks quote adapter; no taker parameter.",
+  "unitSource": "Deployed unit endpoint uses the official Token-2022 mint conversion and Solana Clock; it is not an independent price oracle.",
+  "usdcPerEstimate": "10",
+  "quoteRequestsPerAsset": 1,
+  "unitRequestsPerSuccessfulQuote": 1,
+  "retries": 0,
+  "transactionsSigned": 0,
+  "transactionsSubmitted": 0,
+  "walletIncluded": false,
+  "takerIncluded": false,
+  "settlementVerified": false,
+  "state": "passed",
+  "assets": [
+    {
+      "symbol": "ANDURIL",
+      "mint": "PresTj4Yc2bAR197Er7wz4UUKSfqt6FryBEdAriBoQB",
+      "startedAt": "2026-09-20T20:28:02.268Z",
+      "state": "passed",
+      "request": {
+        "mint": "PresTj4Yc2bAR197Er7wz4UUKSfqt6FryBEdAriBoQB",
+        "usdcRaw": "10000000"
+      },
+      "quote": {
+        "path": "/api/prestocks/quotes",
+        "startedAt": "2026-09-20T20:28:02.268Z",
+        "completedAt": "2026-09-20T20:28:04.109Z",
+        "httpStatus": 200,
+        "cacheControl": "no-store",
+        "body": {
+          "state": "success",
+          "quotes": [
+            {
+              "mint": "PresTj4Yc2bAR197Er7wz4UUKSfqt6FryBEdAriBoQB",
+              "state": "success",
+              "usdcRaw": "10000000",
+              "outRaw": "62621409",
+              "units": "0.062621409",
+              "fetchedAt": "2026-09-20T20:28:03.700Z",
+              "expiresAt": "2026-09-20T20:28:33.700Z",
+              "source": "Jupiter · metis",
+              "feeBps": 10,
+              "feeMint": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+              "unitContext": {
+                "source": "clock-sysvar",
+                "kind": "scaled",
+                "decimals": 9,
+                "tokenProgram": "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb",
+                "mintSlot": 448839360,
+                "observedAt": "2026-09-20T20:28:04.083Z",
+                "clockSlot": 448839360,
+                "unixTimestamp": "1789936083",
+                "multiplier": 1
+              }
+            }
+          ]
+        }
+      },
+      "quoteVerifiedAt": "2026-09-20T20:28:04.109Z",
+      "units": {
+        "path": "/api/prestocks/units",
+        "startedAt": "2026-09-20T20:28:04.110Z",
+        "completedAt": "2026-09-20T20:28:04.468Z",
+        "httpStatus": 200,
+        "cacheControl": "no-store",
+        "body": {
+          "state": "success",
+          "items": [
+            {
+              "mint": "PresTj4Yc2bAR197Er7wz4UUKSfqt6FryBEdAriBoQB",
+              "units": "0.062621409",
+              "unitContext": {
+                "source": "clock-sysvar",
+                "kind": "scaled",
+                "decimals": 9,
+                "tokenProgram": "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb",
+                "mintSlot": 448839362,
+                "observedAt": "2026-09-20T20:28:04.449Z",
+                "clockSlot": 448839362,
+                "unixTimestamp": "1789936083",
+                "multiplier": 1
+              }
+            }
+          ]
+        }
+      },
+      "completedAt": "2026-09-20T20:28:04.468Z"
+    },
+    {
+      "symbol": "ANTHROPIC",
+      "mint": "Pren1FvFX6J3E4kXhJuCiAD5aDmGEb7qJRncwA8Lkhw",
+      "startedAt": "2026-09-20T20:28:04.468Z",
+      "state": "passed",
+      "request": {
+        "mint": "Pren1FvFX6J3E4kXhJuCiAD5aDmGEb7qJRncwA8Lkhw",
+        "usdcRaw": "10000000"
+      },
+      "quote": {
+        "path": "/api/prestocks/quotes",
+        "startedAt": "2026-09-20T20:28:04.468Z",
+        "completedAt": "2026-09-20T20:28:06.233Z",
+        "httpStatus": 200,
+        "cacheControl": "no-store",
+        "body": {
+          "state": "success",
+          "quotes": [
+            {
+              "mint": "Pren1FvFX6J3E4kXhJuCiAD5aDmGEb7qJRncwA8Lkhw",
+              "state": "success",
+              "usdcRaw": "10000000",
+              "outRaw": "9554898",
+              "units": "0.009554898",
+              "fetchedAt": "2026-09-20T20:28:05.803Z",
+              "expiresAt": "2026-09-20T20:28:35.803Z",
+              "source": "Jupiter · metis",
+              "feeBps": 10,
+              "feeMint": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+              "unitContext": {
+                "source": "clock-sysvar",
+                "kind": "scaled",
+                "decimals": 9,
+                "tokenProgram": "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb",
+                "mintSlot": 448839367,
+                "observedAt": "2026-09-20T20:28:06.205Z",
+                "clockSlot": 448839367,
+                "unixTimestamp": "1789936085",
+                "multiplier": 1
+              }
+            }
+          ]
+        }
+      },
+      "quoteVerifiedAt": "2026-09-20T20:28:06.233Z",
+      "units": {
+        "path": "/api/prestocks/units",
+        "startedAt": "2026-09-20T20:28:06.233Z",
+        "completedAt": "2026-09-20T20:28:06.607Z",
+        "httpStatus": 200,
+        "cacheControl": "no-store",
+        "body": {
+          "state": "success",
+          "items": [
+            {
+              "mint": "Pren1FvFX6J3E4kXhJuCiAD5aDmGEb7qJRncwA8Lkhw",
+              "units": "0.009554898",
+              "unitContext": {
+                "source": "clock-sysvar",
+                "kind": "scaled",
+                "decimals": 9,
+                "tokenProgram": "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb",
+                "mintSlot": 448839368,
+                "observedAt": "2026-09-20T20:28:06.578Z",
+                "clockSlot": 448839368,
+                "unixTimestamp": "1789936085",
+                "multiplier": 1
+              }
+            }
+          ]
+        }
+      },
+      "completedAt": "2026-09-20T20:28:06.607Z"
+    },
+    {
+      "symbol": "FIGUREAI",
+      "mint": "PreZad18qfPtbxNpMtMuAuX2zVpvkEU8DnJx56faCWd",
+      "startedAt": "2026-09-20T20:28:06.607Z",
+      "state": "passed",
+      "request": {
+        "mint": "PreZad18qfPtbxNpMtMuAuX2zVpvkEU8DnJx56faCWd",
+        "usdcRaw": "10000000"
+      },
+      "quote": {
+        "path": "/api/prestocks/quotes",
+        "startedAt": "2026-09-20T20:28:06.607Z",
+        "completedAt": "2026-09-20T20:28:08.316Z",
+        "httpStatus": 200,
+        "cacheControl": "no-store",
+        "body": {
+          "state": "success",
+          "quotes": [
+            {
+              "mint": "PreZad18qfPtbxNpMtMuAuX2zVpvkEU8DnJx56faCWd",
+              "state": "success",
+              "usdcRaw": "10000000",
+              "outRaw": "55219100",
+              "units": "0.0552191",
+              "fetchedAt": "2026-09-20T20:28:07.900Z",
+              "expiresAt": "2026-09-20T20:28:37.900Z",
+              "source": "Jupiter · metis",
+              "feeBps": 10,
+              "feeMint": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+              "unitContext": {
+                "source": "clock-sysvar",
+                "kind": "scaled",
+                "decimals": 9,
+                "tokenProgram": "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb",
+                "mintSlot": 448839375,
+                "observedAt": "2026-09-20T20:28:08.296Z",
+                "clockSlot": 448839375,
+                "unixTimestamp": "1789936087",
+                "multiplier": 1
+              }
+            }
+          ]
+        }
+      },
+      "quoteVerifiedAt": "2026-09-20T20:28:08.316Z",
+      "units": {
+        "path": "/api/prestocks/units",
+        "startedAt": "2026-09-20T20:28:08.316Z",
+        "completedAt": "2026-09-20T20:28:08.729Z",
+        "httpStatus": 200,
+        "cacheControl": "no-store",
+        "body": {
+          "state": "success",
+          "items": [
+            {
+              "mint": "PreZad18qfPtbxNpMtMuAuX2zVpvkEU8DnJx56faCWd",
+              "units": "0.0552191",
+              "unitContext": {
+                "source": "clock-sysvar",
+                "kind": "scaled",
+                "decimals": 9,
+                "tokenProgram": "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb",
+                "mintSlot": 448839376,
+                "observedAt": "2026-09-20T20:28:08.704Z",
+                "clockSlot": 448839376,
+                "unixTimestamp": "1789936087",
+                "multiplier": 1
+              }
+            }
+          ]
+        }
+      },
+      "completedAt": "2026-09-20T20:28:08.730Z"
+    },
+    {
+      "symbol": "KALSHI",
+      "mint": "PreLWGkkeqG1s4HEfFZSy9moCrJ7btsHuUtfcCeoRua",
+      "startedAt": "2026-09-20T20:28:08.730Z",
+      "state": "passed",
+      "request": {
+        "mint": "PreLWGkkeqG1s4HEfFZSy9moCrJ7btsHuUtfcCeoRua",
+        "usdcRaw": "10000000"
+      },
+      "quote": {
+        "path": "/api/prestocks/quotes",
+        "startedAt": "2026-09-20T20:28:08.730Z",
+        "completedAt": "2026-09-20T20:28:10.325Z",
+        "httpStatus": 200,
+        "cacheControl": "no-store",
+        "body": {
+          "state": "success",
+          "quotes": [
+            {
+              "mint": "PreLWGkkeqG1s4HEfFZSy9moCrJ7btsHuUtfcCeoRua",
+              "state": "success",
+              "usdcRaw": "10000000",
+              "outRaw": "10763903",
+              "units": "0.010763903",
+              "fetchedAt": "2026-09-20T20:28:10.001Z",
+              "expiresAt": "2026-09-20T20:28:40.001Z",
+              "source": "Jupiter · metis",
+              "feeBps": 10,
+              "feeMint": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+              "unitContext": {
+                "source": "clock-sysvar",
+                "kind": "scaled",
+                "decimals": 9,
+                "tokenProgram": "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb",
+                "mintSlot": 448839383,
+                "observedAt": "2026-09-20T20:28:10.305Z",
+                "clockSlot": 448839383,
+                "unixTimestamp": "1789936089",
+                "multiplier": 1
+              }
+            }
+          ]
+        }
+      },
+      "quoteVerifiedAt": "2026-09-20T20:28:10.325Z",
+      "units": {
+        "path": "/api/prestocks/units",
+        "startedAt": "2026-09-20T20:28:10.325Z",
+        "completedAt": "2026-09-20T20:28:10.708Z",
+        "httpStatus": 200,
+        "cacheControl": "no-store",
+        "body": {
+          "state": "success",
+          "items": [
+            {
+              "mint": "PreLWGkkeqG1s4HEfFZSy9moCrJ7btsHuUtfcCeoRua",
+              "units": "0.010763903",
+              "unitContext": {
+                "source": "clock-sysvar",
+                "kind": "scaled",
+                "decimals": 9,
+                "tokenProgram": "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb",
+                "mintSlot": 448839384,
+                "observedAt": "2026-09-20T20:28:10.684Z",
+                "clockSlot": 448839384,
+                "unixTimestamp": "1789936089",
+                "multiplier": 1
+              }
+            }
+          ]
+        }
+      },
+      "completedAt": "2026-09-20T20:28:10.708Z"
+    },
+    {
+      "symbol": "NEURALINK",
+      "mint": "PrekqLJvJ3qVdXmBGDiexvwUTF4rLFDa6HWS4HJbw9S",
+      "startedAt": "2026-09-20T20:28:10.708Z",
+      "state": "passed",
+      "request": {
+        "mint": "PrekqLJvJ3qVdXmBGDiexvwUTF4rLFDa6HWS4HJbw9S",
+        "usdcRaw": "10000000"
+      },
+      "quote": {
+        "path": "/api/prestocks/quotes",
+        "startedAt": "2026-09-20T20:28:10.708Z",
+        "completedAt": "2026-09-20T20:28:12.601Z",
+        "httpStatus": 200,
+        "cacheControl": "no-store",
+        "body": {
+          "state": "success",
+          "quotes": [
+            {
+              "mint": "PrekqLJvJ3qVdXmBGDiexvwUTF4rLFDa6HWS4HJbw9S",
+              "state": "success",
+              "usdcRaw": "10000000",
+              "outRaw": "23154393",
+              "units": "0.023154393",
+              "fetchedAt": "2026-09-20T20:28:12.105Z",
+              "expiresAt": "2026-09-20T20:28:42.105Z",
+              "source": "Jupiter · metis",
+              "feeBps": 10,
+              "feeMint": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+              "unitContext": {
+                "source": "clock-sysvar",
+                "kind": "scaled",
+                "decimals": 9,
+                "tokenProgram": "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb",
+                "mintSlot": 448839392,
+                "observedAt": "2026-09-20T20:28:12.570Z",
+                "clockSlot": 448839392,
+                "unixTimestamp": "1789936091",
+                "multiplier": 1
+              }
+            }
+          ]
+        }
+      },
+      "quoteVerifiedAt": "2026-09-20T20:28:12.601Z",
+      "units": {
+        "path": "/api/prestocks/units",
+        "startedAt": "2026-09-20T20:28:12.601Z",
+        "completedAt": "2026-09-20T20:28:12.933Z",
+        "httpStatus": 200,
+        "cacheControl": "no-store",
+        "body": {
+          "state": "success",
+          "items": [
+            {
+              "mint": "PrekqLJvJ3qVdXmBGDiexvwUTF4rLFDa6HWS4HJbw9S",
+              "units": "0.023154393",
+              "unitContext": {
+                "source": "clock-sysvar",
+                "kind": "scaled",
+                "decimals": 9,
+                "tokenProgram": "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb",
+                "mintSlot": 448839393,
+                "observedAt": "2026-09-20T20:28:12.916Z",
+                "clockSlot": 448839393,
+                "unixTimestamp": "1789936092",
+                "multiplier": 1
+              }
+            }
+          ]
+        }
+      },
+      "completedAt": "2026-09-20T20:28:12.933Z"
+    },
+    {
+      "symbol": "OPENAI",
+      "mint": "PreweJYECqtQwBtpxHL171nL2K6umo692gTm7Q3rpgF",
+      "startedAt": "2026-09-20T20:28:12.933Z",
+      "state": "passed",
+      "request": {
+        "mint": "PreweJYECqtQwBtpxHL171nL2K6umo692gTm7Q3rpgF",
+        "usdcRaw": "10000000"
+      },
+      "quote": {
+        "path": "/api/prestocks/quotes",
+        "startedAt": "2026-09-20T20:28:12.933Z",
+        "completedAt": "2026-09-20T20:28:14.621Z",
+        "httpStatus": 200,
+        "cacheControl": "no-store",
+        "body": {
+          "state": "success",
+          "quotes": [
+            {
+              "mint": "PreweJYECqtQwBtpxHL171nL2K6umo692gTm7Q3rpgF",
+              "state": "success",
+              "usdcRaw": "10000000",
+              "outRaw": "5968580",
+              "units": "0.008870114",
+              "fetchedAt": "2026-09-20T20:28:14.202Z",
+              "expiresAt": "2026-09-20T20:28:44.202Z",
+              "source": "Jupiter · metis",
+              "feeBps": 10,
+              "feeMint": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+              "unitContext": {
+                "source": "clock-sysvar",
+                "kind": "scaled",
+                "decimals": 9,
+                "tokenProgram": "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb",
+                "mintSlot": 448839399,
+                "observedAt": "2026-09-20T20:28:14.600Z",
+                "clockSlot": 448839399,
+                "unixTimestamp": "1789936093",
+                "multiplier": 1.4861347
+              }
+            }
+          ]
+        }
+      },
+      "quoteVerifiedAt": "2026-09-20T20:28:14.621Z",
+      "units": {
+        "path": "/api/prestocks/units",
+        "startedAt": "2026-09-20T20:28:14.621Z",
+        "completedAt": "2026-09-20T20:28:14.994Z",
+        "httpStatus": 200,
+        "cacheControl": "no-store",
+        "body": {
+          "state": "success",
+          "items": [
+            {
+              "mint": "PreweJYECqtQwBtpxHL171nL2K6umo692gTm7Q3rpgF",
+              "units": "0.008870114",
+              "unitContext": {
+                "source": "clock-sysvar",
+                "kind": "scaled",
+                "decimals": 9,
+                "tokenProgram": "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb",
+                "mintSlot": 448839401,
+                "observedAt": "2026-09-20T20:28:14.975Z",
+                "clockSlot": 448839401,
+                "unixTimestamp": "1789936094",
+                "multiplier": 1.4861347
+              }
+            }
+          ]
+        }
+      },
+      "completedAt": "2026-09-20T20:28:14.994Z"
+    },
+    {
+      "symbol": "POLYMARKET",
+      "mint": "Pre8AREmFPtoJFT8mQSXQLh56cwJmM7CFDRuoGBZiUP",
+      "startedAt": "2026-09-20T20:28:14.995Z",
+      "state": "passed",
+      "request": {
+        "mint": "Pre8AREmFPtoJFT8mQSXQLh56cwJmM7CFDRuoGBZiUP",
+        "usdcRaw": "10000000"
+      },
+      "quote": {
+        "path": "/api/prestocks/quotes",
+        "startedAt": "2026-09-20T20:28:14.995Z",
+        "completedAt": "2026-09-20T20:28:16.629Z",
+        "httpStatus": 200,
+        "cacheControl": "no-store",
+        "body": {
+          "state": "success",
+          "quotes": [
+            {
+              "mint": "Pre8AREmFPtoJFT8mQSXQLh56cwJmM7CFDRuoGBZiUP",
+              "state": "success",
+              "usdcRaw": "10000000",
+              "outRaw": "69375000",
+              "units": "0.069375",
+              "fetchedAt": "2026-09-20T20:28:16.302Z",
+              "expiresAt": "2026-09-20T20:28:46.302Z",
+              "source": "Jupiter · metis",
+              "feeBps": 10,
+              "feeMint": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+              "unitContext": {
+                "source": "clock-sysvar",
+                "kind": "scaled",
+                "decimals": 9,
+                "tokenProgram": "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb",
+                "mintSlot": 448839407,
+                "observedAt": "2026-09-20T20:28:16.607Z",
+                "clockSlot": 448839407,
+                "unixTimestamp": "1789936095",
+                "multiplier": 1
+              }
+            }
+          ]
+        }
+      },
+      "quoteVerifiedAt": "2026-09-20T20:28:16.629Z",
+      "units": {
+        "path": "/api/prestocks/units",
+        "startedAt": "2026-09-20T20:28:16.629Z",
+        "completedAt": "2026-09-20T20:28:16.974Z",
+        "httpStatus": 200,
+        "cacheControl": "no-store",
+        "body": {
+          "state": "success",
+          "items": [
+            {
+              "mint": "Pre8AREmFPtoJFT8mQSXQLh56cwJmM7CFDRuoGBZiUP",
+              "units": "0.069375",
+              "unitContext": {
+                "source": "clock-sysvar",
+                "kind": "scaled",
+                "decimals": 9,
+                "tokenProgram": "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb",
+                "mintSlot": 448839409,
+                "observedAt": "2026-09-20T20:28:16.952Z",
+                "clockSlot": 448839409,
+                "unixTimestamp": "1789936096",
+                "multiplier": 1
+              }
+            }
+          ]
+        }
+      },
+      "completedAt": "2026-09-20T20:28:16.974Z"
+    },
+    {
+      "symbol": "SPACEX",
+      "mint": "PreANxuXjsy2pvisWWMNB6YaJNzr7681wJJr2rHsfTh",
+      "startedAt": "2026-09-20T20:28:16.974Z",
+      "state": "passed",
+      "request": {
+        "mint": "PreANxuXjsy2pvisWWMNB6YaJNzr7681wJJr2rHsfTh",
+        "usdcRaw": "10000000"
+      },
+      "quote": {
+        "path": "/api/prestocks/quotes",
+        "startedAt": "2026-09-20T20:28:16.974Z",
+        "completedAt": "2026-09-20T20:28:18.916Z",
+        "httpStatus": 200,
+        "cacheControl": "no-store",
+        "body": {
+          "state": "success",
+          "quotes": [
+            {
+              "mint": "PreANxuXjsy2pvisWWMNB6YaJNzr7681wJJr2rHsfTh",
+              "state": "success",
+              "usdcRaw": "10000000",
+              "outRaw": "16472984",
+              "units": "0.08236492",
+              "fetchedAt": "2026-09-20T20:28:18.500Z",
+              "expiresAt": "2026-09-20T20:28:48.500Z",
+              "source": "Jupiter · metis",
+              "feeBps": 10,
+              "feeMint": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+              "unitContext": {
+                "source": "clock-sysvar",
+                "kind": "scaled",
+                "decimals": 9,
+                "tokenProgram": "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb",
+                "mintSlot": 448839416,
+                "observedAt": "2026-09-20T20:28:18.878Z",
+                "clockSlot": 448839416,
+                "unixTimestamp": "1789936097",
+                "multiplier": 5
+              }
+            }
+          ]
+        }
+      },
+      "quoteVerifiedAt": "2026-09-20T20:28:18.916Z",
+      "units": {
+        "path": "/api/prestocks/units",
+        "startedAt": "2026-09-20T20:28:18.916Z",
+        "completedAt": "2026-09-20T20:28:19.286Z",
+        "httpStatus": 200,
+        "cacheControl": "no-store",
+        "body": {
+          "state": "success",
+          "items": [
+            {
+              "mint": "PreANxuXjsy2pvisWWMNB6YaJNzr7681wJJr2rHsfTh",
+              "units": "0.08236492",
+              "unitContext": {
+                "source": "clock-sysvar",
+                "kind": "scaled",
+                "decimals": 9,
+                "tokenProgram": "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb",
+                "mintSlot": 448839418,
+                "observedAt": "2026-09-20T20:28:19.269Z",
+                "clockSlot": 448839418,
+                "unixTimestamp": "1789936098",
+                "multiplier": 5
+              }
+            }
+          ]
+        }
+      },
+      "completedAt": "2026-09-20T20:28:19.287Z"
+    }
+  ],
+  "catalog": {
+    "path": "/api/prestocks/assets",
+    "startedAt": "2026-09-20T20:28:00.468Z",
+    "completedAt": "2026-09-20T20:28:02.267Z",
+    "httpStatus": 200,
+    "cacheControl": "no-store",
+    "body": {
+      "state": "success",
+      "assets": [
+        {
+          "symbol": "ANDURIL",
+          "name": "Anduril PreStocks",
+          "mint": "PresTj4Yc2bAR197Er7wz4UUKSfqt6FryBEdAriBoQB",
+          "decimals": 9,
+          "tokenProgram": "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb",
+          "halted": null,
+          "verifiedAt": "2026-09-20T20:28:01.439Z",
+          "issuerId": "prestocks",
+          "instrumentId": "prestocks:solana:PresTj4Yc2bAR197Er7wz4UUKSfqt6FryBEdAriBoQB",
+          "issuerSourceUrl": "https://prestocks.com/api/prestocks",
+          "productUrl": "https://www.prestocks.com/anduril",
+          "logoUrl": "/logos/prestocks/ANDURIL.png",
+          "logoSourceUrl": "https://www.prestocks.com/logos/anduril.png",
+          "description": "Pre-IPO economic exposure issued by PreStocks. Read-only planning; issuer trading-halt status is not published. Token transfer fees and issuer controls apply."
+        },
+        {
+          "symbol": "ANTHROPIC",
+          "name": "Anthropic PreStocks",
+          "mint": "Pren1FvFX6J3E4kXhJuCiAD5aDmGEb7qJRncwA8Lkhw",
+          "decimals": 9,
+          "tokenProgram": "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb",
+          "halted": null,
+          "verifiedAt": "2026-09-20T20:28:01.439Z",
+          "issuerId": "prestocks",
+          "instrumentId": "prestocks:solana:Pren1FvFX6J3E4kXhJuCiAD5aDmGEb7qJRncwA8Lkhw",
+          "issuerSourceUrl": "https://prestocks.com/api/prestocks",
+          "productUrl": "https://www.prestocks.com/anthropic",
+          "logoUrl": "/logos/prestocks/ANTHROPIC.png",
+          "logoSourceUrl": "https://www.prestocks.com/logos/anthropic.png",
+          "description": "Pre-IPO economic exposure issued by PreStocks. Read-only planning; issuer trading-halt status is not published. Token transfer fees and issuer controls apply."
+        },
+        {
+          "symbol": "FIGUREAI",
+          "name": "Figure AI PreStocks",
+          "mint": "PreZad18qfPtbxNpMtMuAuX2zVpvkEU8DnJx56faCWd",
+          "decimals": 9,
+          "tokenProgram": "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb",
+          "halted": null,
+          "verifiedAt": "2026-09-20T20:28:01.439Z",
+          "issuerId": "prestocks",
+          "instrumentId": "prestocks:solana:PreZad18qfPtbxNpMtMuAuX2zVpvkEU8DnJx56faCWd",
+          "issuerSourceUrl": "https://prestocks.com/api/prestocks",
+          "productUrl": "https://www.prestocks.com/figureai",
+          "logoUrl": "/logos/prestocks/FIGUREAI.png",
+          "logoSourceUrl": "https://www.prestocks.com/logos/figureai.png",
+          "description": "Pre-IPO economic exposure issued by PreStocks. Read-only planning; issuer trading-halt status is not published. Token transfer fees and issuer controls apply."
+        },
+        {
+          "symbol": "KALSHI",
+          "name": "Kalshi PreStocks",
+          "mint": "PreLWGkkeqG1s4HEfFZSy9moCrJ7btsHuUtfcCeoRua",
+          "decimals": 9,
+          "tokenProgram": "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb",
+          "halted": null,
+          "verifiedAt": "2026-09-20T20:28:01.439Z",
+          "issuerId": "prestocks",
+          "instrumentId": "prestocks:solana:PreLWGkkeqG1s4HEfFZSy9moCrJ7btsHuUtfcCeoRua",
+          "issuerSourceUrl": "https://prestocks.com/api/prestocks",
+          "productUrl": "https://www.prestocks.com/kalshi",
+          "logoUrl": "/logos/prestocks/KALSHI.png",
+          "logoSourceUrl": "https://www.prestocks.com/logos/kalshi.png",
+          "description": "Pre-IPO economic exposure issued by PreStocks. Read-only planning; issuer trading-halt status is not published. Token transfer fees and issuer controls apply."
+        },
+        {
+          "symbol": "NEURALINK",
+          "name": "Neuralink PreStocks",
+          "mint": "PrekqLJvJ3qVdXmBGDiexvwUTF4rLFDa6HWS4HJbw9S",
+          "decimals": 9,
+          "tokenProgram": "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb",
+          "halted": null,
+          "verifiedAt": "2026-09-20T20:28:01.439Z",
+          "issuerId": "prestocks",
+          "instrumentId": "prestocks:solana:PrekqLJvJ3qVdXmBGDiexvwUTF4rLFDa6HWS4HJbw9S",
+          "issuerSourceUrl": "https://prestocks.com/api/prestocks",
+          "productUrl": "https://www.prestocks.com/neuralink",
+          "logoUrl": "/logos/prestocks/NEURALINK.png",
+          "logoSourceUrl": "https://www.prestocks.com/logos/neuralink.png",
+          "description": "Pre-IPO economic exposure issued by PreStocks. Read-only planning; issuer trading-halt status is not published. Token transfer fees and issuer controls apply."
+        },
+        {
+          "symbol": "OPENAI",
+          "name": "OpenAI PreStocks",
+          "mint": "PreweJYECqtQwBtpxHL171nL2K6umo692gTm7Q3rpgF",
+          "decimals": 9,
+          "tokenProgram": "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb",
+          "halted": null,
+          "verifiedAt": "2026-09-20T20:28:01.439Z",
+          "issuerId": "prestocks",
+          "instrumentId": "prestocks:solana:PreweJYECqtQwBtpxHL171nL2K6umo692gTm7Q3rpgF",
+          "issuerSourceUrl": "https://prestocks.com/api/prestocks",
+          "productUrl": "https://www.prestocks.com/openai",
+          "logoUrl": "/logos/prestocks/OPENAI.png",
+          "logoSourceUrl": "https://www.prestocks.com/logos/openai.png",
+          "description": "Pre-IPO economic exposure issued by PreStocks. Read-only planning; issuer trading-halt status is not published. Token transfer fees and issuer controls apply."
+        },
+        {
+          "symbol": "POLYMARKET",
+          "name": "Polymarket PreStocks",
+          "mint": "Pre8AREmFPtoJFT8mQSXQLh56cwJmM7CFDRuoGBZiUP",
+          "decimals": 9,
+          "tokenProgram": "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb",
+          "halted": null,
+          "verifiedAt": "2026-09-20T20:28:01.439Z",
+          "issuerId": "prestocks",
+          "instrumentId": "prestocks:solana:Pre8AREmFPtoJFT8mQSXQLh56cwJmM7CFDRuoGBZiUP",
+          "issuerSourceUrl": "https://prestocks.com/api/prestocks",
+          "productUrl": "https://www.prestocks.com/polymarket",
+          "logoUrl": "/logos/prestocks/POLYMARKET.png",
+          "logoSourceUrl": "https://www.prestocks.com/logos/polymarket.png",
+          "description": "Pre-IPO economic exposure issued by PreStocks. Read-only planning; issuer trading-halt status is not published. Token transfer fees and issuer controls apply."
+        },
+        {
+          "symbol": "SPACEX",
+          "name": "SpaceX PreStocks",
+          "mint": "PreANxuXjsy2pvisWWMNB6YaJNzr7681wJJr2rHsfTh",
+          "decimals": 9,
+          "tokenProgram": "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb",
+          "halted": null,
+          "verifiedAt": "2026-09-20T20:28:01.439Z",
+          "issuerId": "prestocks",
+          "instrumentId": "prestocks:solana:PreANxuXjsy2pvisWWMNB6YaJNzr7681wJJr2rHsfTh",
+          "issuerSourceUrl": "https://prestocks.com/api/prestocks",
+          "productUrl": "https://www.prestocks.com/spacex",
+          "logoUrl": "/logos/prestocks/SPACEX.png",
+          "logoSourceUrl": "https://www.prestocks.com/logos/spacex.png",
+          "description": "Pre-IPO economic exposure issued by PreStocks. Read-only planning; issuer trading-halt status is not published. Token transfer fees and issuer controls apply."
+        }
+      ],
+      "unavailable": []
+    }
+  },
+  "completedAt": "2026-09-20T20:28:19.287Z",
+  "summary": {
+    "passed": 8,
+    "failed": 0,
+    "totalPinned": 8
+  }
+}

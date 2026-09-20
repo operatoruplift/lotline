@@ -1,0 +1,304 @@
+{
+  "observedAt": "2026-09-20T20:23:53.115Z",
+  "origin": "https://lotlineonsolana.vercel.app",
+  "checks": {
+    "catalog": {
+      "httpStatus": 200,
+      "cacheControl": "no-store",
+      "body": {
+        "state": "success",
+        "assets": [
+          {
+            "symbol": "ANDURIL",
+            "name": "Anduril PreStocks",
+            "mint": "PresTj4Yc2bAR197Er7wz4UUKSfqt6FryBEdAriBoQB",
+            "decimals": 9,
+            "tokenProgram": "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb",
+            "halted": null,
+            "verifiedAt": "2026-09-20T20:23:54.679Z",
+            "issuerId": "prestocks",
+            "instrumentId": "prestocks:solana:PresTj4Yc2bAR197Er7wz4UUKSfqt6FryBEdAriBoQB",
+            "issuerSourceUrl": "https://prestocks.com/api/prestocks",
+            "productUrl": "https://www.prestocks.com/anduril",
+            "logoUrl": "/logos/prestocks/ANDURIL.png",
+            "logoSourceUrl": "https://www.prestocks.com/logos/anduril.png",
+            "description": "Pre-IPO economic exposure issued by PreStocks. Read-only planning; issuer trading-halt status is not published. Token transfer fees and issuer controls apply."
+          },
+          {
+            "symbol": "ANTHROPIC",
+            "name": "Anthropic PreStocks",
+            "mint": "Pren1FvFX6J3E4kXhJuCiAD5aDmGEb7qJRncwA8Lkhw",
+            "decimals": 9,
+            "tokenProgram": "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb",
+            "halted": null,
+            "verifiedAt": "2026-09-20T20:23:54.679Z",
+            "issuerId": "prestocks",
+            "instrumentId": "prestocks:solana:Pren1FvFX6J3E4kXhJuCiAD5aDmGEb7qJRncwA8Lkhw",
+            "issuerSourceUrl": "https://prestocks.com/api/prestocks",
+            "productUrl": "https://www.prestocks.com/anthropic",
+            "logoUrl": "/logos/prestocks/ANTHROPIC.png",
+            "logoSourceUrl": "https://www.prestocks.com/logos/anthropic.png",
+            "description": "Pre-IPO economic exposure issued by PreStocks. Read-only planning; issuer trading-halt status is not published. Token transfer fees and issuer controls apply."
+          },
+          {
+            "symbol": "FIGUREAI",
+            "name": "Figure AI PreStocks",
+            "mint": "PreZad18qfPtbxNpMtMuAuX2zVpvkEU8DnJx56faCWd",
+            "decimals": 9,
+            "tokenProgram": "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb",
+            "halted": null,
+            "verifiedAt": "2026-09-20T20:23:54.679Z",
+            "issuerId": "prestocks",
+            "instrumentId": "prestocks:solana:PreZad18qfPtbxNpMtMuAuX2zVpvkEU8DnJx56faCWd",
+            "issuerSourceUrl": "https://prestocks.com/api/prestocks",
+            "productUrl": "https://www.prestocks.com/figureai",
+            "logoUrl": "/logos/prestocks/FIGUREAI.png",
+            "logoSourceUrl": "https://www.prestocks.com/logos/figureai.png",
+            "description": "Pre-IPO economic exposure issued by PreStocks. Read-only planning; issuer trading-halt status is not published. Token transfer fees and issuer controls apply."
+          },
+          {
+            "symbol": "KALSHI",
+            "name": "Kalshi PreStocks",
+            "mint": "PreLWGkkeqG1s4HEfFZSy9moCrJ7btsHuUtfcCeoRua",
+            "decimals": 9,
+            "tokenProgram": "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb",
+            "halted": null,
+            "verifiedAt": "2026-09-20T20:23:54.679Z",
+            "issuerId": "prestocks",
+            "instrumentId": "prestocks:solana:PreLWGkkeqG1s4HEfFZSy9moCrJ7btsHuUtfcCeoRua",
+            "issuerSourceUrl": "https://prestocks.com/api/prestocks",
+            "productUrl": "https://www.prestocks.com/kalshi",
+            "logoUrl": "/logos/prestocks/KALSHI.png",
+            "logoSourceUrl": "https://www.prestocks.com/logos/kalshi.png",
+            "description": "Pre-IPO economic exposure issued by PreStocks. Read-only planning; issuer trading-halt status is not published. Token transfer fees and issuer controls apply."
+          },
+          {
+            "symbol": "NEURALINK",
+            "name": "Neuralink PreStocks",
+            "mint": "PrekqLJvJ3qVdXmBGDiexvwUTF4rLFDa6HWS4HJbw9S",
+            "decimals": 9,
+            "tokenProgram": "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb",
+            "halted": null,
+            "verifiedAt": "2026-09-20T20:23:54.679Z",
+            "issuerId": "prestocks",
+            "instrumentId": "prestocks:solana:PrekqLJvJ3qVdXmBGDiexvwUTF4rLFDa6HWS4HJbw9S",
+            "issuerSourceUrl": "https://prestocks.com/api/prestocks",
+            "productUrl": "https://www.prestocks.com/neuralink",
+            "logoUrl": "/logos/prestocks/NEURALINK.png",
+            "logoSourceUrl": "https://www.prestocks.com/logos/neuralink.png",
+            "description": "Pre-IPO economic exposure issued by PreStocks. Read-only planning; issuer trading-halt status is not published. Token transfer fees and issuer controls apply."
+          },
+          {
+            "symbol": "OPENAI",
+            "name": "OpenAI PreStocks",
+            "mint": "PreweJYECqtQwBtpxHL171nL2K6umo692gTm7Q3rpgF",
+            "decimals": 9,
+            "tokenProgram": "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb",
+            "halted": null,
+            "verifiedAt": "2026-09-20T20:23:54.679Z",
+            "issuerId": "prestocks",
+            "instrumentId": "prestocks:solana:PreweJYECqtQwBtpxHL171nL2K6umo692gTm7Q3rpgF",
+            "issuerSourceUrl": "https://prestocks.com/api/prestocks",
+            "productUrl": "https://www.prestocks.com/openai",
+            "logoUrl": "/logos/prestocks/OPENAI.png",
+            "logoSourceUrl": "https://www.prestocks.com/logos/openai.png",
+            "description": "Pre-IPO economic exposure issued by PreStocks. Read-only planning; issuer trading-halt status is not published. Token transfer fees and issuer controls apply."
+          },
+          {
+            "symbol": "POLYMARKET",
+            "name": "Polymarket PreStocks",
+            "mint": "Pre8AREmFPtoJFT8mQSXQLh56cwJmM7CFDRuoGBZiUP",
+            "decimals": 9,
+            "tokenProgram": "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb",
+            "halted": null,
+            "verifiedAt": "2026-09-20T20:23:54.679Z",
+            "issuerId": "prestocks",
+            "instrumentId": "prestocks:solana:Pre8AREmFPtoJFT8mQSXQLh56cwJmM7CFDRuoGBZiUP",
+            "issuerSourceUrl": "https://prestocks.com/api/prestocks",
+            "productUrl": "https://www.prestocks.com/polymarket",
+            "logoUrl": "/logos/prestocks/POLYMARKET.png",
+            "logoSourceUrl": "https://www.prestocks.com/logos/polymarket.png",
+            "description": "Pre-IPO economic exposure issued by PreStocks. Read-only planning; issuer trading-halt status is not published. Token transfer fees and issuer controls apply."
+          },
+          {
+            "symbol": "SPACEX",
+            "name": "SpaceX PreStocks",
+            "mint": "PreANxuXjsy2pvisWWMNB6YaJNzr7681wJJr2rHsfTh",
+            "decimals": 9,
+            "tokenProgram": "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb",
+            "halted": null,
+            "verifiedAt": "2026-09-20T20:23:54.679Z",
+            "issuerId": "prestocks",
+            "instrumentId": "prestocks:solana:PreANxuXjsy2pvisWWMNB6YaJNzr7681wJJr2rHsfTh",
+            "issuerSourceUrl": "https://prestocks.com/api/prestocks",
+            "productUrl": "https://www.prestocks.com/spacex",
+            "logoUrl": "/logos/prestocks/SPACEX.png",
+            "logoSourceUrl": "https://www.prestocks.com/logos/spacex.png",
+            "description": "Pre-IPO economic exposure issued by PreStocks. Read-only planning; issuer trading-halt status is not published. Token transfer fees and issuer controls apply."
+          }
+        ],
+        "unavailable": []
+      }
+    },
+    "quote": {
+      "httpStatus": 200,
+      "cacheControl": "no-store",
+      "body": {
+        "state": "success",
+        "quotes": [
+          {
+            "mint": "PreweJYECqtQwBtpxHL171nL2K6umo692gTm7Q3rpgF",
+            "state": "success",
+            "usdcRaw": "10000000",
+            "outRaw": "5968576",
+            "units": "0.008870108",
+            "fetchedAt": "2026-09-20T20:23:57.617Z",
+            "expiresAt": "2026-09-20T20:24:27.617Z",
+            "source": "Jupiter · metis",
+            "feeBps": 10,
+            "feeMint": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+            "unitContext": {
+              "source": "clock-sysvar",
+              "kind": "scaled",
+              "decimals": 9,
+              "tokenProgram": "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb",
+              "mintSlot": 448838440,
+              "observedAt": "2026-09-20T20:23:58.102Z",
+              "clockSlot": 448838440,
+              "unixTimestamp": "1789935836",
+              "multiplier": 1.4861347
+            }
+          }
+        ]
+      }
+    },
+    "units": {
+      "httpStatus": 200,
+      "cacheControl": "no-store",
+      "body": {
+        "state": "success",
+        "items": [
+          {
+            "mint": "PreweJYECqtQwBtpxHL171nL2K6umo692gTm7Q3rpgF",
+            "units": "0.008870108",
+            "unitContext": {
+              "source": "clock-sysvar",
+              "kind": "scaled",
+              "decimals": 9,
+              "tokenProgram": "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb",
+              "mintSlot": 448838443,
+              "observedAt": "2026-09-20T20:23:58.457Z",
+              "clockSlot": 448838443,
+              "unixTimestamp": "1789935837",
+              "multiplier": 1.4861347
+            }
+          }
+        ]
+      }
+    },
+    "wrongUniverse": {
+      "httpStatus": 400,
+      "cacheControl": "no-store",
+      "body": {
+        "state": "invalid-input",
+        "quotes": [],
+        "message": "Choose a verified PreStocks asset from this catalog."
+      }
+    },
+    "pyth": {
+      "httpStatus": 503,
+      "cacheControl": "no-store",
+      "body": {
+        "source": "pyth",
+        "state": "configuration-required",
+        "fetchedAt": "2026-09-20T20:23:59.400Z",
+        "expiresAt": "2026-09-20T20:23:59.400Z",
+        "items": [
+          {
+            "mint": "XsbEhLAtcf6HdfpFZ5xEMdqW8nfAvcsP5bdudRLJzJp",
+            "state": "configuration-required",
+            "comparison": "not-comparable",
+            "message": "Pyth price access is not configured. Your Jupiter estimates remain available."
+          }
+        ],
+        "message": "Pyth price access is not configured. Your Jupiter estimates remain available."
+      }
+    },
+    "execution": {
+      "httpStatus": 200,
+      "cacheControl": "no-store",
+      "body": {
+        "state": "configuration-required",
+        "enabled": false,
+        "reconciliationAvailable": true,
+        "chain": "solana:mainnet",
+        "policyVersion": "2026-09-14.v1",
+        "validatorVersion": "jupiter-route-v2-raydium-clmm-v1",
+        "limits": {
+          "slippageBps": 100,
+          "maximumPriorityFeeLamports": "5000000",
+          "maximumTotalSolCostLamports": "10000000",
+          "maximumTokenFeeBps": 100
+        },
+        "supportedWalletFeatures": [
+          "solana:signTransaction"
+        ],
+        "message": "In-app purchases are not available in this release. You can plan a contribution and review it independently on Jupiter."
+      }
+    },
+    "logos": [
+      {
+        "symbol": "ANDURIL",
+        "path": "/logos/prestocks/ANDURIL.png",
+        "httpStatus": 200,
+        "contentType": "image/png"
+      },
+      {
+        "symbol": "ANTHROPIC",
+        "path": "/logos/prestocks/ANTHROPIC.png",
+        "httpStatus": 200,
+        "contentType": "image/png"
+      },
+      {
+        "symbol": "FIGUREAI",
+        "path": "/logos/prestocks/FIGUREAI.png",
+        "httpStatus": 200,
+        "contentType": "image/png"
+      },
+      {
+        "symbol": "KALSHI",
+        "path": "/logos/prestocks/KALSHI.png",
+        "httpStatus": 200,
+        "contentType": "image/png"
+      },
+      {
+        "symbol": "NEURALINK",
+        "path": "/logos/prestocks/NEURALINK.png",
+        "httpStatus": 200,
+        "contentType": "image/png"
+      },
+      {
+        "symbol": "OPENAI",
+        "path": "/logos/prestocks/OPENAI.png",
+        "httpStatus": 200,
+        "contentType": "image/png"
+      },
+      {
+        "symbol": "POLYMARKET",
+        "path": "/logos/prestocks/POLYMARKET.png",
+        "httpStatus": 200,
+        "contentType": "image/png"
+      },
+      {
+        "symbol": "SPACEX",
+        "path": "/logos/prestocks/SPACEX.png",
+        "httpStatus": 200,
+        "contentType": "image/png"
+      }
+    ]
+  },
+  "transactionsSigned": 0,
+  "transactionsSubmitted": 0,
+  "state": "passed",
+  "completedAt": "2026-09-20T20:24:00.191Z"
+}

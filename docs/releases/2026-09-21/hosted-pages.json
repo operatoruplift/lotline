@@ -1,0 +1,31 @@
+{
+  "observedAt": "2026-09-20T20:24:22.837Z",
+  "origin": "https://lotlineonsolana.vercel.app",
+  "state": "passed",
+  "checks": [
+    {
+      "path": "/pre-ipo",
+      "httpStatus": 200,
+      "expectedContentPresent": true
+    },
+    {
+      "path": "/demo",
+      "httpStatus": 200,
+      "expectedContentPresent": true
+    },
+    {
+      "path": "/app",
+      "httpStatus": 200,
+      "expectedContentPresent": true
+    },
+    {
+      "path": "/brand-kit",
+      "httpStatus": 200,
+      "expectedContentPresent": true
+    }
+  ],
+  "demoManifest": {
+    "httpStatus": 200,
+    "sha256": "9ee0b9e5a03001bd8662b6998a2a0179f2d2cae6b4ca5348c3972bb18654799c"
+  }
+}

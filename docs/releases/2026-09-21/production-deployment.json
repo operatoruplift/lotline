@@ -1,0 +1,24 @@
+{
+  "id": "dpl_GdKSUV3M26HA1k1ko5tbuoLN4wEX",
+  "url": "lotline-r6ul3h05p-operatoruplift.vercel.app",
+  "readyState": "READY",
+  "target": "production",
+  "alias": [
+    "lotlineonsolana.vercel.app",
+    "lotlinesolana.vercel.app",
+    "lotline-operatoruplift.vercel.app",
+    "lotline-git-main-operatoruplift.vercel.app"
+  ],
+  "createdAt": 1789935760341,
+  "readyAt": 1789935806447,
+  "observedAt": "2026-09-20T20:24:22.440762+00:00",
+  "commit": "319cb82b0f5cbcda7eab1d9c35ac2c4a2c5eda3a",
+  "canonical": "https://lotlineonsolana.vercel.app",
+  "pullRequest": "https://github.com/operatoruplift/lotline/pull/1",
+  "ciRun": "https://github.com/operatoruplift/lotline/actions/runs/35535079258",
+  "unitTestsPassed": 466,
+  "unitTestsSkipped": 2,
+  "browserTestsPassed": 101,
+  "mainCiRun": "https://github.com/operatoruplift/lotline/actions/runs/35535347531",
+  "mainCiResult": "success"
+}
