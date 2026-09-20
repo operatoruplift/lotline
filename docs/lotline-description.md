@@ -14,6 +14,10 @@ Start without an account in the interactive Example, which includes 832 dated as
 
 Save a split on your device, share a plan for review, export its calculations or set a manual contribution reminder with a calendar event. Existing account users can opt into named cloud plans. The installable web app works across desktop and mobile, with offline Example planning and a downloadable brand kit.
 
+A separate PreStocks planner brings the same exact contribution arithmetic to eight verified pre-IPO token identities. Search issuer assets, build a split, request read-only estimates, and save or share the plan with its catalog identity preserved. This flow has its own device draft and does not offer cloud saves, automatic investing or in-app purchases. Unsupported wallet-account extensions remain explicitly unavailable.
+
+For AAPLx, MSFTx and NVDAx, an optional Pyth panel can show underlying-equity and token USD observations with original publication times and confidence intervals. Live delivery requires a configured Pyth API key. The token feed's unit basis is unverified, so Lotline does not calculate a premium, discount or oracle-equivalent execution price. Reference data never replaces or extends a Jupiter estimate.
+
 The contribution engine also implements explicit Wallet Standard approval, a narrow validated Jupiter/Raydium route, durable attempt history, exact-message receipt checks and recovery after uncertain results. A real unsigned mainnet order has passed validation and simulation. **Public in-app purchases remain gated on production access configuration, and real purchase settlement has not yet been verified.** The independent Jupiter handoff is available for reviewing a trade externally. Each future in-app purchase requires its own fresh review and wallet approval; reminders never invest automatically.
 
 Lotline makes your chosen contribution understandable and repeatable. It does not choose investments, promise returns or turn tokenized exposure into shareholder rights.

@@ -1,13 +1,14 @@
 import { Check, ChevronDown, ExternalLink, ShieldCheck } from 'lucide-react';
 import { formatUsdc, validatePlan } from '@/lib/domain/math';
 import type { Asset, Basket, Mode, Quote } from '@/lib/domain/types';
+import type { PlannerUniverse } from '@/lib/domain/planner-universe';
 
 export function utcTime(value: string): string {
   const timestamp = Date.parse(value);
   return Number.isFinite(timestamp) ? new Date(timestamp).toISOString().replace('T', ' ').replace(/\.\d{3}Z$/, ' UTC') : 'Unavailable';
 }
 
-export function VerificationReceipt({ basket, assets, mode, quotes }: { basket: Basket; assets: Asset[]; mode: Mode; quotes: Quote[] }) {
+export function VerificationReceipt({ basket, assets, mode, quotes, universe = 'xstocks' }: { basket: Basket; assets: Asset[]; mode: Mode; quotes: Quote[]; universe?: PlannerUniverse }) {
   const plan = validatePlan(basket);
   if (!plan.valid) return null;
   const total = plan.allocations.reduce((sum, item) => sum + BigInt(item.usdcRaw), 0n);
@@ -28,9 +29,10 @@ export function VerificationReceipt({ basket, assets, mode, quotes }: { basket: 
           {extraMicro > 0n && <p className="receipt-remainder">Includes the {extraMicro.toString()} micro-USDC remainder assigned to this asset.</p>}
           <dl>
             <div><dt>Solana mint</dt><dd><a href={`https://explorer.solana.com/address/${asset.mint}`} target="_blank" rel="noopener noreferrer">{asset.mint}<ExternalLink size={11} /><span className="sr-only"> (opens Solana Explorer in a new tab)</span></a></dd></div>
-            <div><dt>Issuer source</dt><dd><a href={`https://api.xstocks.fi/api/v2/public/assets/${encodeURIComponent(asset.symbol)}`} target="_blank" rel="noopener noreferrer">xStocks asset metadata <ExternalLink size={11} /><span className="sr-only"> (opens in a new tab)</span></a></dd></div>
+            <div><dt>Issuer source</dt><dd>{universe === 'prestocks' ? asset.issuerSourceUrl ? <a href={asset.issuerSourceUrl} target="_blank" rel="noopener noreferrer">PreStocks asset metadata <ExternalLink size={11} /><span className="sr-only"> (opens in a new tab)</span></a> : 'Source unavailable' : <a href={`https://api.xstocks.fi/api/v2/public/assets/${encodeURIComponent(asset.symbol)}`} target="_blank" rel="noopener noreferrer">xStocks asset metadata <ExternalLink size={11} /><span className="sr-only"> (opens in a new tab)</span></a>}</dd></div>
+            {universe === 'prestocks' && <><div><dt>Trading halt status</dt><dd>{asset.halted === null ? 'Not published by PreStocks' : asset.halted ? 'Issuer halt reported' : 'No issuer halt reported'}</dd></div>{asset.productUrl && <div><dt>Product details</dt><dd><a href={asset.productUrl} target="_blank" rel="noopener noreferrer">View on PreStocks <ExternalLink size={11} /><span className="sr-only"> (opens in a new tab)</span></a></dd></div>}</>}
             {asset.underlyingSymbol && <div><dt>Underlying</dt><dd>{asset.underlyingSymbol}{asset.underlyingIsin ? ` · ${asset.underlyingIsin}` : ''}</dd></div>}
-            {asset.issuerIsin && <div><dt>xStock ISIN</dt><dd>{asset.issuerIsin}</dd></div>}
+            {asset.issuerIsin && <div><dt>{universe === 'xstocks' ? 'xStock ISIN' : 'Issuer ISIN'}</dt><dd>{asset.issuerIsin}</dd></div>}
             {asset.logoSourceUrl && <div><dt>Logo source</dt><dd><a href={asset.logoSourceUrl} target="_blank" rel="noopener noreferrer">Official issuer logo <ExternalLink size={11} /><span className="sr-only"> (opens in a new tab)</span></a></dd></div>}
             {mode === 'live' && <div><dt>Identity checked</dt><dd><time dateTime={asset.verifiedAt}>{utcTime(asset.verifiedAt)}</time></dd></div>}
             <div><dt>Token program</dt><dd className="receipt-mint">{asset.tokenProgram}</dd></div>
@@ -38,7 +40,7 @@ export function VerificationReceipt({ basket, assets, mode, quotes }: { basket: 
           </dl>
         </article>;
       })}</div>
-      <p>{mode === 'live' ? 'Displayed xStock units use the official Token-2022 mint conversion and chain time. Resulting holdings add raw balances to raw quote output before conversion.' : 'Example balances include a non-unit multiplier to demonstrate scaled token units.'} Review current amounts and fees on Jupiter.</p>
+      <p>{mode === 'live' ? `Displayed ${universe === 'prestocks' ? 'PreStock' : 'xStock'} units use the official Token-2022 mint conversion and chain time. Resulting holdings add raw balances to raw quote output before conversion.` : 'Example balances include a non-unit multiplier to demonstrate scaled token units.'} Review current amounts and fees on Jupiter.</p>
     </div>
   </details>;
 }

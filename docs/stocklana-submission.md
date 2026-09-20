@@ -1,6 +1,6 @@
 # Lotline — Stocklana submission draft
 
-**Last updated:** September 20, 2026. **Status:** draft, not submitted. The redesigned application, expanded Example, manual reminders and current demo package are deployed at [lotlineonsolana.vercel.app](https://lotlineonsolana.vercel.app). The current contribution release records exact deployment and evidence separately. Team/contact details still need to be supplied before submission. [Official requirements check](stocklana-check.md)
+**Last updated:** September 21, 2026. **Status:** draft, not submitted. The redesigned application, expanded Example, manual reminders and current demo package are deployed at [lotlineonsolana.vercel.app](https://lotlineonsolana.vercel.app). The current contribution release records exact deployment and evidence separately. Team/contact details still need to be supplied before submission. [Official requirements check](stocklana-check.md)
 
 ## Project and team
 
@@ -64,3 +64,11 @@ The custom design follows L1 Kova, L4 Veloce, L5 Heritage Grove and L6 Liquid Gl
 See the [September 20 contribution release](contribution-release-20260920.md) for the deployed source reference, CI, hosted browser/provider checks and outstanding execution requirements. The [September 19 finish report](finish-report-20260919.md) preserves detailed local implementation evidence. Team names/contact remain owner-supplied fields; no submission has been sent.
 
 Current first-use and technical evidence recordings are on the demo page, labeled controlled rehearsal. [Current short/full description](lotline-description.md).
+
+## September 21 sponsor scope
+
+The separate [PreStocks planner](https://lotlineonsolana.vercel.app/pre-ipo) uses eight issuer identities checked against mainnet, exact contribution arithmetic, read-only Jupiter estimates, isolated local drafts, universe-tagged share links and exports. The current transfer-fee extensions are outside the purchase validator; unsupported nonzero wallet account formats remain unavailable. No PreStocks purchase is claimed.
+
+The xStocks review now includes a Pyth reference adapter for AAPLx/MSFTx/NVDAx equity and token feeds. Feed identity discovery is verified; current prices require a server API key and authenticated live delivery remains unverified. The token feed unit basis remains unverified, so there is no premium/discount calculation.
+
+PreStocks is the additional sponsor target. Tessera, Clawpump and Meteora DBC are not implemented or claimed. The official PreStocks bounty excludes non-PreStocks pre-IPO token integrations. Pyth is a conditional integration pending price access, not a completed sponsor proof. [Current evidence](sponsor-release-20260921.md).

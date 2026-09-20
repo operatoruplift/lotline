@@ -2,6 +2,7 @@ import { z } from 'zod';
 import type { DataFailureReason, Holding, HoldingsResponse, ProjectionResponse, Quote, QuotesResponse } from '../domain/types';
 import { API_BATCH_SIZE } from '../domain/limits';
 import { USDC_MINT } from '../demo/example';
+import type { PlannerApiPrefix } from '../domain/planner-universe';
 
 async function read<T>(response: Response): Promise<T> {
   if (!response.headers.get('content-type')?.includes('application/json')) throw new Error('The service returned an unreadable response. Please retry.');
@@ -51,13 +52,13 @@ async function readQuotes(response: Response, batch: { mint: string; usdcRaw: st
 }
 
 /** Keep requests small and publish each completed batch with original timestamps. */
-export async function requestQuotes(items: { mint: string; usdcRaw: string }[], signal: AbortSignal, progress: (result: QuotesResponse, done: number) => void): Promise<QuotesResponse> {
+export async function requestQuotes(items: { mint: string; usdcRaw: string }[], signal: AbortSignal, progress: (result: QuotesResponse, done: number) => void, apiPrefix: PlannerApiPrefix = '/api'): Promise<QuotesResponse> {
   const quotes: Quote[] = [];
   for (let offset = 0; offset < items.length; offset += API_BATCH_SIZE) {
     signal.throwIfAborted();
     const batch = items.slice(offset, offset + API_BATCH_SIZE);
     try {
-      const response = await readQuotes(await fetch('/api/quotes', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ items: batch }), signal }), batch);
+      const response = await readQuotes(await fetch(`${apiPrefix}/quotes`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ items: batch }), signal }), batch);
       signal.throwIfAborted();
       const timestamp = new Date().toISOString();
       quotes.push(...batch.map(({ mint, usdcRaw }): Quote => response.quotes.find(quote => quote.mint === mint && quote.usdcRaw === usdcRaw) ?? { mint, usdcRaw, state: 'unavailable', outRaw: null, units: null, fetchedAt: timestamp, expiresAt: timestamp, message: response.message ?? 'No estimate was returned for this asset.', reasonCode: 'provider-unavailable' }));
@@ -71,7 +72,7 @@ export async function requestQuotes(items: { mint: string; usdcRaw: string }[], 
   return quoteResult(quotes);
 }
 
-export async function requestHoldings(owner: string, mints: string[], signal: AbortSignal): Promise<HoldingsResponse> {
+export async function requestHoldings(owner: string, mints: string[], signal: AbortSignal, apiPrefix: PlannerApiPrefix = '/api'): Promise<HoldingsResponse> {
   const missing = (mint: string, error: unknown): Holding => ({ mint, state: 'unavailable', raw: null, units: null, message: message(error) });
   const holdings: Holding[] = [];
   let usdc = missing(USDC_MINT, new Error('USDC balance could not be verified.'));
@@ -81,7 +82,7 @@ export async function requestHoldings(owner: string, mints: string[], signal: Ab
     const batch = mints.slice(offset, offset + API_BATCH_SIZE);
     try {
       const params = new URLSearchParams({ owner, mints: batch.join(',') });
-      const response = await read<HoldingsResponse>(await fetch(`/api/holdings?${params}`, { signal }));
+      const response = await read<HoldingsResponse>(await fetch(`${apiPrefix}/holdings?${params}`, { signal }));
       signal.throwIfAborted();
       holdings.push(...batch.map(mint => response.holdings.find(holding => holding.mint === mint) ?? missing(mint, new Error(response.message ?? 'No balance was returned for this asset.'))));
       if (usdc.state !== 'success' || usdc.units === null) usdc = response.usdc;
@@ -97,13 +98,13 @@ export async function requestHoldings(owner: string, mints: string[], signal: Ab
   return { state: complete === all.length ? 'success' : all.some(holding => holding.state === 'success') ? 'partial' : 'unavailable', holdings, usdc, fetchedAt: fetchedAt ?? new Date().toISOString() };
 }
 
-export async function requestUnits(items: { mint: string; raw: string }[], signal: AbortSignal): Promise<ProjectionResponse> {
+export async function requestUnits(items: { mint: string; raw: string }[], signal: AbortSignal, apiPrefix: PlannerApiPrefix = '/api'): Promise<ProjectionResponse> {
   const results: ProjectionResponse['items'] = [];
   for (let offset = 0; offset < items.length; offset += API_BATCH_SIZE) {
     signal.throwIfAborted();
     const batch = items.slice(offset, offset + API_BATCH_SIZE);
     try {
-      const response = await read<ProjectionResponse>(await fetch('/api/units', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ items: batch }), signal }));
+      const response = await read<ProjectionResponse>(await fetch(`${apiPrefix}/units`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ items: batch }), signal }));
       signal.throwIfAborted();
       results.push(...batch.map(({ mint }) => response.items.find(item => item.mint === mint) ?? { mint, units: null, message: 'Resulting units could not be verified.' }));
     } catch (error) {

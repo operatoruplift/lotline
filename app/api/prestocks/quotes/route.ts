@@ -1,0 +1,16 @@
+import { getPreStocksQuotes } from '@/lib/server/prestocks';
+import { readSmallJson, safeMessage, ServiceError } from '@/lib/server/common';
+import { httpStatus, noStore, quotesRequestSchema } from '@/lib/server/requests';
+export const dynamic = 'force-dynamic';
+export const maxDuration = 60;
+export async function POST(request: Request) {
+  try {
+    const parsed = quotesRequestSchema.safeParse(await readSmallJson(request));
+    if (!parsed.success) throw new ServiceError('invalid-input', 'Choose up to three unique verified PreStocks mints and a total amount no greater than 1,000,000 USDC.');
+    const body = await getPreStocksQuotes(parsed.data.items);
+    return Response.json(body, { status: httpStatus(body.state), headers: noStore });
+  } catch (error) {
+    const state = error instanceof ServiceError ? error.kind : 'unavailable';
+    return Response.json({ state, quotes: [], message: safeMessage(error) }, { status: httpStatus(state), headers: noStore });
+  }
+}

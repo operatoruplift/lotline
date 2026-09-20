@@ -5,12 +5,13 @@ import { Link2, ShieldCheck } from 'lucide-react';
 import { formatUsdc, parseBudget, validatePlan } from '@/lib/domain/math';
 import { buildPlanLink, decodePlanHash, PLAN_HASH_PREFIX, type SharedPlan } from '@/lib/domain/share';
 import type { Asset, Basket, Mode } from '@/lib/domain/types';
+import type { PlannerUniverse } from '@/lib/domain/planner-universe';
 import styles from './plan-transfer.module.css';
 
 type Incoming = { hash: string; plan: SharedPlan | null };
-type Props = { basket: Basket; mode: Mode; assets: Asset[]; disabled?: boolean; onLoad: (basket: Basket, mode: Mode) => void };
+type Props = { basket: Basket; mode: Mode; assets: Asset[]; universe?: PlannerUniverse; disabled?: boolean; onLoad: (basket: Basket, mode: Mode) => void };
 
-export function PlanTransfer({ basket, mode, assets, disabled = false, onLoad }: Props) {
+export function PlanTransfer({ basket, mode, assets, universe = 'xstocks', disabled = false, onLoad }: Props) {
   const [incoming, setIncoming] = useState<Incoming | null>(null);
   const [message, setMessage] = useState('');
   const [failed, setFailed] = useState(false);
@@ -40,12 +41,12 @@ export function PlanTransfer({ basket, mode, assets, disabled = false, onLoad }:
         }
         return;
       }
-      queueMicrotask(() => { if (active) { const next = { hash, plan: decodePlanHash(hash) }; incomingRef.current = next; setIncoming(next); } });
+      queueMicrotask(() => { if (active) { const decoded = decodePlanHash(hash); const next = { hash, plan: decoded && (decoded.universe ?? 'xstocks') === universe ? decoded : null }; incomingRef.current = next; setIncoming(next); } });
     };
     read();
     window.addEventListener('hashchange', read);
     return () => { active = false; window.removeEventListener('hashchange', read); };
-  }, []);
+  }, [universe]);
 
   useEffect(() => {
     const element = dialog.current;
@@ -86,7 +87,7 @@ export function PlanTransfer({ basket, mode, assets, disabled = false, onLoad }:
     if (!canShare || copying) return;
     setCopying(true); setFailed(false); setMessage('');
     try {
-      const link = buildPlanLink(window.location.origin, basket, mode);
+      const link = buildPlanLink(window.location.origin, basket, mode, universe);
       await navigator.clipboard.writeText(link);
       setMessage('Plan link copied. The recipient can review it before applying.');
     } catch {
@@ -105,7 +106,7 @@ export function PlanTransfer({ basket, mode, assets, disabled = false, onLoad }:
       <div className={styles.dialogBody}>
         <span className={styles.eyebrow}><Link2 size={15} aria-hidden="true" /> SHARED WITH YOU</span>
         <h2 id="shared-plan-title">Review shared plan</h2>
-        <p id="shared-plan-description">{shared ? 'A user-defined split. Review it before replacing your draft. Anyone with this link can see these choices.' : 'This plan link is invalid, incomplete, or uses an unsupported version. Your draft has not been changed.'}</p>
+        <p id="shared-plan-description">{shared ? 'A user-defined split. Review it before replacing your draft. Anyone with this link can see these choices.' : 'This plan link is invalid, incomplete, uses an unsupported version, or belongs to a different asset catalog. Your draft has not been changed.'}</p>
         {shared && <>
           <div className={styles.summary}><div><span>Contribution budget</span><strong>{formatUsdc(parseBudget(shared.basket.budget))} <small>USDC</small></strong></div><span className={styles.mode}>{shared.mode === 'example' ? 'Example · synthetic data' : 'Live · fresh estimates needed'}</span></div>
           <table className={styles.table}><caption className={styles.srOnly}>Shared allocation choices</caption><thead><tr><th scope="col">Asset</th><th scope="col">Split</th><th scope="col">USDC</th></tr></thead><tbody>{shared.basket.items.map((item, index) => {
