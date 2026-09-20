@@ -4,6 +4,9 @@ import release from '../../docs/video-release-manifest.json' with { type: 'json'
 
 for (const width of [390, 1440]) {
   test(`preserved tours and current contribution demonstrations decode at ${width}px`, async ({ page, request }) => {
+    // Six films each decode, load captions, and seek before the page accessibility scan.
+    // Allow their cumulative work while retaining the shared 10-second assertion limits.
+    test.setTimeout(180_000);
     await page.setViewportSize({ width, height: 1000 });
     await page.emulateMedia({ reducedMotion: 'reduce' });
     const errors: string[] = [];
