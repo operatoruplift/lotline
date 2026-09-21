@@ -1,6 +1,5 @@
 import type { Metadata } from 'next';
 import Image from 'next/image';
-import Link from 'next/link';
 import { ArrowDownToLine, ArrowUpRight, Check, FileText, Smartphone } from 'lucide-react';
 import { SiteFooter, SiteHeader } from '@/components/site-shell';
 import styles from './page.module.css';
@@ -135,6 +134,6 @@ export default function BrandKitPage() {
     </section>)}
 
     <section className={styles.palette} aria-labelledby="palette-title"><div><p className="eyebrow"><span className="eyebrow-rule" /> THE PALETTE</p><h2 id="palette-title">Quiet color.<br /><em>Clear signal.</em></h2><p>Warm paper, deep forest, and the softer shades between.</p></div><div className={styles.swatches}><div><i className={styles.swatchForest} /><strong>Forest</strong><span>#174D3C</span></div><div><i className={styles.swatchPaper} /><strong>Paper</strong><span>#F5F4EE</span></div><div><i className={styles.swatchSage} /><strong>Sage</strong><span>#BFD5A9</span></div><div><i className={styles.swatchMoss} /><strong>Moss</strong><span>#6E8D6B</span></div></div></section>
-    <section className={styles.guide}><div><p className="eyebrow"><span className="eyebrow-rule" /> KEEP IT CONSISTENT</p><h2>The mark carries the plan.</h2><p>Keep the three open channels, rounded ends, and clear center intact. Use the supplied SVGs whenever possible, and give the mark at least one mark-height of breathing room.</p></div><Link className="button secondary" href="/brand-kit/brand-guide.md" target="_blank" rel="noopener noreferrer">Read the brand guide <FileText size={15} aria-hidden="true" /></Link></section>
+    <section className={styles.guide}><div><p className="eyebrow"><span className="eyebrow-rule" /> KEEP IT CONSISTENT</p><h2>The mark carries the plan.</h2><p>Keep the three open channels, rounded ends, and clear center intact. Use the supplied SVGs whenever possible, and give the mark at least one mark-height of breathing room.</p></div><a className="button secondary" href="/brand-kit/brand-guide.md" target="_blank" rel="noopener noreferrer">Read the brand guide <FileText size={15} aria-hidden="true" /></a></section>
   </main><SiteFooter /></>;
 }
