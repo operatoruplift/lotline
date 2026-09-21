@@ -7,7 +7,7 @@ vi.mock('../lib/server/catalog', () => ({ selectedAssets: async (mints: string[]
     return asset;
   });
 } }));
-vi.mock('../lib/server/solana', () => ({ loadRawBalanceWithContext: async () => { vi.setSystemTime(Date.now() + 10_000); return { raw: '100', slot: 123, frozenRaw: '0', accountCount: 1 }; }, convertRawUnitsWithContext: async () => ({ units: '1', context: { source: 'clock-sysvar', kind: 'scaled', decimals: 8, tokenProgram: 'TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb', mintSlot: 123, clockSlot: 123, unixTimestamp: '1789840000', multiplier: 1, observedAt: new Date().toISOString() } }) }));
+vi.mock('../lib/server/solana', () => ({ loadRawBalanceWithContext: async () => { vi.setSystemTime(Date.now() + 10_000); return { raw: '100', slot: 123, frozenRaw: '0', accountCount: 1 }; }, convertRawUnitsWithContext: async () => ({ units: '1', context: { source: 'clock-sysvar', kind: 'scaled', decimals: 8, tokenProgram: 'TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb', mintSlot: 123, clockSlot: 123, unixTimestamp: '1789840000', multiplier: 1, observedAt: new Date().toISOString() } }), convertRawUnitsBatch: async (entries: { mint: string; raw: string }[]) => new Map(entries.map(entry => [entry.mint, { units: '1', context: { source: 'clock-sysvar', kind: 'scaled', decimals: 8, tokenProgram: 'TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb', mintSlot: 123, clockSlot: 123, unixTimestamp: '1789840000', multiplier: 1, observedAt: new Date().toISOString() } }])) }));
 afterEach(() => vi.useRealTimers());
 it('dates a sequential balance snapshot from its first read and keeps it on cache hits', async () => {
   vi.useFakeTimers(); const started = Date.now();

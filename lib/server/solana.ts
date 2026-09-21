@@ -172,33 +172,33 @@ export async function loadMints(mints: readonly string[]): Promise<Map<string, M
   return result;
 }
 
-/** Capture both accounts at one confirmed slot, then give those exact bytes to the official helper. */
-export async function convertRawUnitsWithContext(mint: string, raw: string): Promise<{ units: string; context: UnitContext }> {
-  if (!addressSchema.safeParse(mint).success || !rawSchema.safeParse(raw).success) throw new ServiceError('invalid-input', 'The mint or raw units are invalid.');
-  await verifyMainnetRpc();
-  const parsed = multipleAccountsSchema.safeParse(await rpcRequest('getMultipleAccounts', [[mint, CLOCK], { encoding: 'base64', commitment: 'confirmed' }]));
-  if (!parsed.success || parsed.data.value.length !== 2 || !parsed.data.value[0]) throw new ServiceError('unavailable', 'Mint scaling could not be verified. Units unavailable.');
-  const snapshot = parsed.data;
-  const mintAccount = snapshot.value[0]!;
+type ChainAccount = NonNullable<z.infer<typeof multipleAccountsSchema>['value'][number]>;
+
+/**
+ * Convert one mint against an already-captured snapshot. The caller supplies the
+ * exact mint and Clock bytes plus the slot they were read at, so a batch shares
+ * one observation instead of re-reading the Clock once per mint.
+ */
+async function convertAgainstSnapshot(mint: string, raw: string, mintAccount: ChainAccount, clockAccount: ChainAccount | null, slot: number, observedAt: string): Promise<{ units: string; context: UnitContext }> {
   const info = verifyMintAccount(mint, mintAccount);
   const decoded = getMintDecoder().decode(Buffer.from(mintAccount.data[0], 'base64'));
   const scale = (unwrapOption(decoded.extensions) ?? []).find(extension => extension.__kind === 'ScaledUiAmountConfig');
-  const context: UnitContext = { source: 'mint', kind: 'standard', decimals: info.decimals, tokenProgram: info.tokenProgram, mintSlot: snapshot.context.slot, observedAt: new Date().toISOString() };
+  const context: UnitContext = { source: 'mint', kind: 'standard', decimals: info.decimals, tokenProgram: info.tokenProgram, mintSlot: slot, observedAt };
   if (scale) {
-    const clock = snapshot.value[1];
+    const clock = clockAccount;
     if (!clock || clock.executable || clock.owner !== 'Sysvar1111111111111111111111111111111111111') throw new ServiceError('unavailable', 'Chain time is unavailable. Units cannot be verified.');
     const clockBytes = Buffer.from(clock.data[0], 'base64');
     if (clockBytes.length !== 40) throw new ServiceError('unavailable', 'Chain time is unavailable. Units cannot be verified.');
     // The helper decodes this same Clock timestamp. No block-time or local-clock fallback is used.
     const timestamp = clockBytes.readBigInt64LE(32);
     if (timestamp < 0n) throw new ServiceError('unavailable', 'Chain time is unavailable. Units cannot be verified.');
-    Object.assign(context, { source: 'clock-sysvar', kind: 'scaled', clockSlot: snapshot.context.slot, unixTimestamp: timestamp.toString(), multiplier: timestamp >= scale.newMultiplierEffectiveTimestamp ? scale.newMultiplier : scale.multiplier });
+    Object.assign(context, { source: 'clock-sysvar', kind: 'scaled', clockSlot: slot, unixTimestamp: timestamp.toString(), multiplier: timestamp >= scale.newMultiplierEffectiveTimestamp ? scale.newMultiplier : scale.multiplier });
   }
   const rpc = {
     getAccountInfo: (key: string) => ({ send: async () => {
       if (key !== mint && key !== CLOCK) throw new ServiceError('unavailable', 'Unexpected scaling account.');
-      const account = snapshot.value[key === mint ? 0 : 1];
-      return { context: { slot: BigInt(snapshot.context.slot) }, value: account && {
+      const account = key === mint ? mintAccount : clockAccount;
+      return { context: { slot: BigInt(slot) }, value: account && {
         ...account, lamports: BigInt(Math.trunc(account.lamports)), rentEpoch: 0n,
       } };
     } }),
@@ -209,6 +209,63 @@ export async function convertRawUnitsWithContext(mint: string, raw: string): Pro
     return { units, context };
   } catch { throw new ServiceError('unavailable', 'Mint scaling or chain time could not be verified. Units unavailable.'); }
 }
+
+/**
+ * Convert several mints from a single confirmed observation.
+ *
+ * Each Live read reserves a slot from one globally shared provider budget, so
+ * reading the Clock once per mint multiplied that cost by the basket size for no
+ * added accuracy. One read also gives every mint the same slot, which is a more
+ * honest snapshot than per-mint slots taken seconds apart. Failures stay
+ * per-mint: a mint that cannot be verified does not spoil the others.
+ */
+export async function convertRawUnitsBatch(entries: readonly { mint: string; raw: string }[]): Promise<Map<string, { units: string; context: UnitContext } | ServiceError>> {
+  const result = new Map<string, { units: string; context: UnitContext } | ServiceError>();
+  if (entries.length === 0) return result;
+  const invalid = new ServiceError('invalid-input', 'The mint or raw units are invalid.');
+  const valid = entries.filter(entry => {
+    const ok = addressSchema.safeParse(entry.mint).success && rawSchema.safeParse(entry.raw).success;
+    if (!ok) result.set(entry.mint, invalid);
+    return ok;
+  });
+  if (valid.length === 0) return result;
+  await verifyMainnetRpc();
+  const mints = [...new Set(valid.map(entry => entry.mint))];
+  const unavailable = new ServiceError('unavailable', 'Mint scaling could not be verified. Units unavailable.');
+  let parsed;
+  try {
+    parsed = multipleAccountsSchema.safeParse(await rpcRequest('getMultipleAccounts', [[...mints, CLOCK], { encoding: 'base64', commitment: 'confirmed' }]));
+  } catch (error) {
+    for (const entry of valid) result.set(entry.mint, error instanceof ServiceError ? error : unavailable);
+    return result;
+  }
+  if (!parsed.success || parsed.data.value.length !== mints.length + 1) {
+    for (const entry of valid) result.set(entry.mint, unavailable);
+    return result;
+  }
+  const snapshot = parsed.data;
+  const clockAccount = snapshot.value[mints.length] ?? null;
+  const observedAt = new Date().toISOString();
+  await Promise.all(valid.map(async entry => {
+    const mintAccount = snapshot.value[mints.indexOf(entry.mint)];
+    if (!mintAccount) { result.set(entry.mint, unavailable); return; }
+    try {
+      result.set(entry.mint, await convertAgainstSnapshot(entry.mint, entry.raw, mintAccount, clockAccount, snapshot.context.slot, observedAt));
+    } catch (error) {
+      result.set(entry.mint, error instanceof ServiceError ? error : unavailable);
+    }
+  }));
+  return result;
+}
+
+/** Capture both accounts at one confirmed slot, then give those exact bytes to the official helper. */
+export async function convertRawUnitsWithContext(mint: string, raw: string): Promise<{ units: string; context: UnitContext }> {
+  const outcome = (await convertRawUnitsBatch([{ mint, raw }])).get(mint);
+  if (!outcome) throw new ServiceError('unavailable', 'Mint scaling could not be verified. Units unavailable.');
+  if (outcome instanceof ServiceError) throw outcome;
+  return outcome;
+}
+
 
 /** Compatibility wrapper for callers that do not display historical conversion provenance. */
 export async function convertRawUnits(mint: string, raw: string): Promise<string> {

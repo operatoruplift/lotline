@@ -21,6 +21,7 @@ vi.mock('../lib/server/solana', () => ({
     ] } } };
   },
   convertRawUnitsWithContext: async () => ({ units: '0.008941576', context: { source: 'clock-sysvar', kind: 'scaled', decimals: 9, tokenProgram: PROGRAM, mintSlot: 123, clockSlot: 123, unixTimestamp: '1789930000', multiplier: 1.4861347, observedAt: new Date().toISOString() } }),
+  convertRawUnitsBatch: async (entries: { mint: string; raw: string }[]) => new Map(entries.map(entry => [entry.mint, { units: '0.008941576', context: { source: 'clock-sysvar', kind: 'scaled', decimals: 9, tokenProgram: PROGRAM, mintSlot: 123, clockSlot: 123, unixTimestamp: '1789930000', multiplier: 1.4861347, observedAt: new Date().toISOString() } }])),
   loadRawBalanceWithContext: async (_owner: string, mint: string) => {
     if (state.balanceUnavailable && mint !== USDC) {
       const { ServiceError } = await import('../lib/server/common');
