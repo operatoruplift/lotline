@@ -20,7 +20,7 @@
 .collectionLabel{font-size:9px;letter-spacing:1.1px;color:#5b6f60;flex-shrink:0}
 .collectionBar nav{display:flex;justify-content:space-between;gap:18px;flex:1;flex-wrap:wrap}
 .collectionBar a{display:inline-flex;align-items:center;gap:9px;min-height:34px;color:#294f3a;font-size:11px}
-.collectionBar a>span{font-size:8px;color:#6b766d}
+.collectionBar a>span{font-size:8px;color:#58665c}
 .collectionBar a:hover{color:#18211d;text-decoration:underline;text-underline-offset:5px}
 .phoneNote{display:flex;align-items:flex-start;gap:15px;padding:27px 0 0;color:#3a5947;max-width:1216px}
 .phoneNote>svg{margin-top:3px}
