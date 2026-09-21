@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import Image from 'next/image';
 import Link from 'next/link';
-import { ArrowDownToLine, ArrowUpRight, Check, FileText } from 'lucide-react';
+import { ArrowDownToLine, ArrowUpRight, Check, FileText, Smartphone } from 'lucide-react';
 import { SiteFooter, SiteHeader } from '@/components/site-shell';
 import styles from './page.module.css';
 
@@ -12,7 +12,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: 'Lotline brand kit',
     description: 'A complete set of Lotline assets for profiles, social posts, ads, and headers.',
-    images: [{ url: '/brand-kit/og-image.png', width: 1200, height: 630, alt: 'Lotline brand kit' }],
+    images: [{ url: '/brand-kit/og-image.png?v=sculpture-2', width: 1200, height: 630, alt: 'Lotline brand kit' }],
   },
 };
 
@@ -26,6 +26,9 @@ type Asset = {
   previewHeight: number;
   tone?: 'dark' | 'light';
 };
+
+const assetVersion = 'sculpture-2';
+const assetUrl = (file: string) => `/brand-kit/${file}?v=${assetVersion}`;
 
 const assets: Record<string, Asset[]> = {
   'Logos and marks': [
@@ -49,7 +52,7 @@ const assets: Record<string, Asset[]> = {
   ],
   'Headers and wallpapers': [
     { file: 'header-x.png', label: 'X header', description: 'Profile header with a generous safe center.', dimensions: 'PNG · 1500 × 500', preview: '/brand-kit/header-x.png', previewWidth: 1500, previewHeight: 500, tone: 'dark' },
-    { file: 'header-linkedin.png', label: 'LinkedIn cover', description: 'Cover artwork sized for LinkedIn profiles and pages.', dimensions: 'PNG · 1584 × 396', preview: '/brand-kit/header-linkedin.png', previewWidth: 1584, previewHeight: 396 },
+    { file: 'header-linkedin.png', label: 'LinkedIn cover', description: 'A wide cover sized for your LinkedIn profile.', dimensions: 'PNG · 1584 × 396', preview: '/brand-kit/header-linkedin.png', previewWidth: 1584, previewHeight: 396 },
     { file: 'wallpaper-phone.png', label: 'Phone wallpaper', description: 'Tall lock screen background with quiet icon space.', dimensions: 'PNG · 1290 × 2796', preview: '/brand-kit/wallpaper-phone.png', previewWidth: 1290, previewHeight: 2796 },
     { file: 'wallpaper-desktop.png', label: 'Desktop wallpaper', description: 'Wide desktop background for demos and presentations.', dimensions: 'PNG · 2880 × 1800', preview: '/brand-kit/wallpaper-desktop.png', previewWidth: 2880, previewHeight: 1800, tone: 'dark' },
     { file: 'background-paper.svg', label: 'Background · paper', description: 'Flexible 16:9 paper canvas for your own layouts.', dimensions: 'SVG · 1920 × 1080', preview: '/brand-kit/background-paper.svg', previewWidth: 1920, previewHeight: 1080 },
@@ -57,14 +60,39 @@ const assets: Record<string, Asset[]> = {
   ],
 };
 
+const collections = [
+  { title: 'Social and ads', id: 'social', number: '01', description: 'A clear first impression, wherever your story is shared.', layout: 'campaigns' },
+  { title: 'Headers and wallpapers', id: 'wallpapers', number: '02', description: 'A little more space. A quieter kind of presence.', layout: 'wallpapers' },
+  { title: 'Profiles and app icons', id: 'profiles', number: '03', description: 'The same familiar mark, made for your smallest canvas.', layout: 'profiles' },
+  { title: 'Logos and marks', id: 'logos', number: '04', description: 'The essentials. Scalable, transparent, and ready to use.', layout: 'logos' },
+] as const;
+
 function AssetCard({ asset }: { asset: Asset }) {
-  return <article className={styles.card}>
-    <div className={`${styles.preview} ${asset.tone === 'dark' ? styles.previewDark : ''}`}>
-      <Image src={asset.preview} alt="" width={asset.previewWidth} height={asset.previewHeight} sizes="(max-width: 700px) 88vw, 360px" />
-    </div>
+  const isPortrait = asset.previewHeight > asset.previewWidth;
+  const isHeader = asset.previewWidth / asset.previewHeight >= 3;
+  const isLogo = asset.file.startsWith('lotline-');
+  const isMark = asset.file.startsWith('lotline-mark');
+  const previewClass = [
+    styles.preview,
+    asset.tone === 'dark' ? styles.previewDark : '',
+    isPortrait ? styles.previewPortrait : '',
+    isHeader ? styles.previewHeader : '',
+    isLogo ? styles.previewLogo : '',
+    isMark ? styles.previewMark : '',
+  ].filter(Boolean).join(' ');
+
+  return <article className={`${styles.card} ${isHeader ? styles.cardHeader : ''}`}>
+    <a className={previewClass} href={assetUrl(asset.file)} target="_blank" rel="noopener noreferrer" aria-label={`Preview ${asset.label} at full size (opens in a new tab)`}>
+      <Image src={`${asset.preview}?v=${assetVersion}`} alt="" width={asset.previewWidth} height={asset.previewHeight} sizes={isHeader ? '(max-width: 700px) 90vw, 1216px' : '(max-width: 700px) 90vw, (max-width: 1000px) 45vw, 600px'} />
+      <span className={styles.previewHint} aria-hidden="true"><ArrowUpRight size={16} /></span>
+    </a>
     <div className={styles.cardBody}>
-      <div><h3>{asset.label}</h3><p>{asset.description}</p></div>
-      <div className={styles.cardMeta}><span>{asset.dimensions}</span><a className={styles.download} href={`/brand-kit/${asset.file}`} download={asset.file}>Download <ArrowDownToLine size={14} aria-hidden="true" /></a></div>
+      <div className={styles.cardTitle}><h3>{asset.label}</h3><span>{asset.dimensions}</span></div>
+      <p>{asset.description}</p>
+      <div className={styles.cardActions}>
+        <a className={styles.openImage} href={assetUrl(asset.file)} target="_blank" rel="noopener noreferrer" aria-label={`Open ${asset.label} at full size (opens in a new tab)`}>Open full size <ArrowUpRight size={14} aria-hidden="true" /></a>
+        <a className={styles.download} href={assetUrl(asset.file)} download={asset.file} aria-label={`Download ${asset.label}`}>Download <ArrowDownToLine size={14} aria-hidden="true" /></a>
+      </div>
     </div>
   </article>;
 }
@@ -75,18 +103,38 @@ export default function BrandKitPage() {
       <div className={styles.heroCopy}>
         <p className="eyebrow"><span className="eyebrow-rule" /> THE LOTLINE BRAND KIT</p>
         <h1>A complete kit,<br /><em>ready to move.</em></h1>
-        <p className={styles.lede}>Save the Lotline identity to your phone, your social profiles, and your next presentation. Every export uses the same branching mark, calm palette, and clear voice.</p>
-        <div className={styles.heroActions}><a className="button primary large" href="/brand-kit/lotline-brand-kit.zip" download="lotline-brand-kit.zip">Download full kit <ArrowDownToLine size={16} /></a><a className="text-button" href="/brand-kit/brand-guide.md" target="_blank" rel="noopener noreferrer">Open usage guide <ArrowUpRight size={15} /></a></div>
-        <p className={styles.ready}><Check size={15} aria-hidden="true" /> Updated September 2026 · 19 ready-to-use exports</p>
-        <p className={styles.phoneNote}>On a phone, tap any individual download and use your browser’s share menu to save the image. The full kit ZIP goes to Files.</p>
+        <p className={styles.lede}>A familiar mark. A fresh perspective. Wallpapers, profiles, and social artwork with room to breathe — made to make Lotline yours.</p>
+        <div className={styles.heroActions}><a className="button primary large" href="/brand-kit/lotline-brand-kit.zip" download="lotline-brand-kit.zip">Download full kit <ArrowDownToLine size={16} aria-hidden="true" /></a><a className="text-button" href="#collections">Explore the collection <ArrowDownToLine size={15} aria-hidden="true" /></a></div>
+        <p className={styles.ready}><Check size={15} aria-hidden="true" /> 19 ready-to-use exports · PNG + SVG</p>
       </div>
-      <div className={styles.heroTile} aria-label="Lotline brand preview">
-        <Image src="/brand-kit/social-square.png" alt="Lotline social post preview" width={1080} height={1080} loading="eager" sizes="(max-width: 800px) 84vw, 440px" />
-        <span className={styles.tileTag}>LOTLINE / BRAND SYSTEM</span>
+      <div className={styles.heroVisual}>
+        <div className={styles.heroTopline}><span>LOTLINE / OBJECTS OF CLARITY</span><span>VOL. 02</span></div>
+        <div className={styles.heroTile}>
+          <Image src={assetUrl('social-square.png')} alt="Lotline social artwork in the collection’s paper and forest palette" width={1080} height={1080} loading="eager" sizes="(max-width: 700px) 85vw, 540px" />
+        </div>
+        <div className={styles.heroPhone}>
+          <Image src={assetUrl('wallpaper-phone.png')} alt="A preview of the Lotline phone wallpaper" width={1290} height={2796} loading="eager" sizes="(max-width: 700px) 28vw, 165px" />
+        </div>
+        <p className={styles.visualCaption}><span>Form, light, and a clear next step.</span><span>01 — 19</span></p>
       </div>
     </section>
-    <section className={styles.palette} aria-labelledby="palette-title"><div><p className="eyebrow"><span className="eyebrow-rule" /> THE PALETTE</p><h2 id="palette-title">Quiet color.<br /><em>Clear signal.</em></h2></div><div className={styles.swatches}><div><i className={styles.swatchForest} /><strong>Forest</strong><span>#174D3C</span></div><div><i className={styles.swatchPaper} /><strong>Paper</strong><span>#F5F4EE</span></div><div><i className={styles.swatchSage} /><strong>Sage</strong><span>#BFD5A9</span></div><div><i className={styles.swatchMoss} /><strong>Moss</strong><span>#6E8D6B</span></div></div></section>
-    {Object.entries(assets).map(([heading, items]) => <section className={styles.assetSection} key={heading} aria-labelledby={heading.toLowerCase().replaceAll(' ', '-')}><div className={styles.sectionHeading}><div><p className="eyebrow"><span className="eyebrow-rule" /> DOWNLOADABLE ASSETS</p><h2 id={heading.toLowerCase().replaceAll(' ', '-')}>{heading}</h2></div><p>{items.length} exports · Tap download to save an individual file.</p></div><div className={styles.grid}>{items.map(asset => <AssetCard key={asset.file} asset={asset} />)}</div></section>)}
-    <section className={styles.guide}><div><p className="eyebrow"><span className="eyebrow-rule" /> KEEP IT CONSISTENT</p><h2>The mark carries the plan.</h2><p>Keep the three open channels, rounded ends, and clear center intact. Use the supplied SVGs whenever possible, and give the mark at least one mark-height of breathing room.</p></div><Link className="button secondary" href="/brand-kit/brand-guide.md" target="_blank">Read the brand guide <FileText size={15} /></Link></section>
+
+    <div className={styles.collectionBar} id="collections">
+      <p className={styles.collectionLabel}>THE COLLECTION</p>
+      <nav aria-label="Brand kit collections">{collections.map(collection => <a key={collection.id} href={`#${collection.id}`}><span>{collection.number}</span>{collection.title}<ArrowUpRight size={13} aria-hidden="true" /></a>)}</nav>
+    </div>
+
+    <aside className={styles.phoneNote} aria-label="Saving assets on your phone">
+      <Smartphone size={20} strokeWidth={1.5} aria-hidden="true" />
+      <div><strong>Made to save. Made to share.</strong><p>On your phone, choose <b>Open full size</b>, then touch and hold the image or use the share menu to save it to Photos. Use Download for a file; the full ZIP saves to Files.</p></div>
+    </aside>
+
+    {collections.map(collection => <section className={`${styles.assetSection} ${styles[collection.layout]}`} key={collection.id} id={collection.id} aria-labelledby={`${collection.id}-title`}>
+      <div className={styles.sectionHeading}><div><p className={styles.sectionNumber}>COLLECTION / {collection.number}</p><h2 id={`${collection.id}-title`}>{collection.title}</h2></div><p>{collection.description}<span>{assets[collection.title].length} exports</span></p></div>
+      <div className={styles.grid}>{assets[collection.title].map(asset => <AssetCard key={asset.file} asset={asset} />)}</div>
+    </section>)}
+
+    <section className={styles.palette} aria-labelledby="palette-title"><div><p className="eyebrow"><span className="eyebrow-rule" /> THE PALETTE</p><h2 id="palette-title">Quiet color.<br /><em>Clear signal.</em></h2><p>Warm paper, deep forest, and the softer shades between.</p></div><div className={styles.swatches}><div><i className={styles.swatchForest} /><strong>Forest</strong><span>#174D3C</span></div><div><i className={styles.swatchPaper} /><strong>Paper</strong><span>#F5F4EE</span></div><div><i className={styles.swatchSage} /><strong>Sage</strong><span>#BFD5A9</span></div><div><i className={styles.swatchMoss} /><strong>Moss</strong><span>#6E8D6B</span></div></div></section>
+    <section className={styles.guide}><div><p className="eyebrow"><span className="eyebrow-rule" /> KEEP IT CONSISTENT</p><h2>The mark carries the plan.</h2><p>Keep the three open channels, rounded ends, and clear center intact. Use the supplied SVGs whenever possible, and give the mark at least one mark-height of breathing room.</p></div><Link className="button secondary" href="/brand-kit/brand-guide.md" target="_blank" rel="noopener noreferrer">Read the brand guide <FileText size={15} aria-hidden="true" /></Link></section>
   </main><SiteFooter /></>;
 }

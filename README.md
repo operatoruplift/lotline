@@ -2,9 +2,9 @@
 
 **Your next contribution, clearly.** Choose up to 10 issuer-verified Solana xStocks, set your contribution percentages, enter a USDC budget, and request estimated units. Keep the split for next time, or copy/export the plan for independent review on Jupiter. A public-wallet balance read is optional.
 
-[Live website](https://lotlineonsolana.vercel.app) · [Try the example](https://lotlineonsolana.vercel.app/app?mode=example) · [Demo](https://lotlineonsolana.vercel.app/demo) · [Public source](https://github.com/operatoruplift/lotline)
+[Live website](https://lotline.dev) · [Try the example](https://lotline.dev/app?mode=example) · [Demo](https://lotline.dev/demo) · [Public source](https://github.com/operatoruplift/lotline)
 
-**September 21 sponsor update:** a separate [PreStocks planner](https://lotlineonsolana.vercel.app/pre-ipo) adds eight issuer-identified pre-IPO assets with mainnet mint verification, exact allocation, read-only Jupiter estimates, local drafts and universe-tagged share/export. PreStocks purchases are not enabled; transfer-fee/confidential token balances remain unavailable when their account semantics are unsupported. The xStocks review also implements independent Pyth references for AAPLx, MSFTx and NVDAx. Current Pyth prices require a server API key; no authenticated live-price delivery is claimed until that configuration is verified. See [sponsor release evidence](docs/sponsor-release-20260921.md).
+**September 21 sponsor update:** a separate [PreStocks planner](https://lotline.dev/pre-ipo) adds eight issuer-identified pre-IPO assets with mainnet mint verification, exact allocation, read-only Jupiter estimates, local drafts and universe-tagged share/export. PreStocks purchases are not enabled; transfer-fee/confidential token balances remain unavailable when their account semantics are unsupported. The xStocks review also implements independent Pyth references for AAPLx, MSFTx and NVDAx. Current Pyth prices require a server API key; no authenticated live-price delivery is claimed until that configuration is verified. See [sponsor release evidence](docs/sponsor-release-20260921.md).
 
 Lotline serves someone who already knows their chosen assets and split and wants to repeat a contribution accurately. Percentages apply to the new contribution, not target weights for an existing portfolio. Planning and Example mode are read-only. A staged Wallet Standard/Jupiter execution path is present but remains paused until its server readiness gates, durable journal, and reconciliation checks are deliberately enabled. Guest planning needs no registration or wallet extension. Existing Supabase users can explicitly save named plans across devices; public signup and recovery remain gated until SMTP delivery is verified.
 
@@ -73,7 +73,7 @@ For a quick precision check, set **10.000001 USDC** at **50/30/20**. The exact a
 
 ## Storage and services
 
-Guest basket settings, budget, and the manual review cadence are saved in versioned localStorage on the current browser/device, with safe recovery from corrupt values. Supabase handles optional email/password authentication and session cookies. An explicit cloud save stores a plan name, verified mints, basis-point weights, and exact budget under the signed-in owner. Wallet addresses, balances, quotes, and projections are excluded. The database enforces owner access with forced row-level security, validates plan content, and limits each account to 20 plans. Users can load or delete their saved plans. See [accounts](docs/accounts.md) and [privacy and storage](https://lotlineonsolana.vercel.app/privacy).
+Guest basket settings, budget, and the manual review cadence are saved in versioned localStorage on the current browser/device, with safe recovery from corrupt values. Supabase handles optional email/password authentication and session cookies. An explicit cloud save stores a plan name, verified mints, basis-point weights, and exact budget under the signed-in owner. Wallet addresses, balances, quotes, and projections are excluded. The database enforces owner access with forced row-level security, validates plan content, and limits each account to 20 plans. Users can load or delete their saved plans. See [accounts](docs/accounts.md) and [privacy and storage](https://lotline.dev/privacy).
 
 Live provider requests use narrow same-origin handlers; authentication uses the official Supabase browser client. Server adapters validate issuer, Solana RPC, and Jupiter response data and expose normalized fields. RPC URLs, API keys, and raw provider errors are not returned. Catalog caching is approximately one hour; holdings approximately 15 seconds; identical quotes only briefly within freshness. Requests have timeouts, queue bounds, and a user-driven retry path.
 
@@ -125,7 +125,7 @@ Deployment was authorized after the local finish checkpoint. The [deployment rec
 - [MotionSites component recommendations and Dribbble references](docs/design-direction.md)
 - [Implemented selected redesign](docs/redesign-delivery.md) and [exact media provenance](docs/design-media.md)
 - [Current product and technical films, Ainsley narration, captions and transcripts](docs/video-release.md)
-- [Downloadable Lotline brand kit](https://lotlineonsolana.vercel.app/brand-kit) with profiles, wallpapers, social art, ads, backgrounds, headers, and SVG marks
+- [Downloadable Lotline brand kit](https://lotline.dev/brand-kit) with profiles, wallpapers, social art, ads, backgrounds, headers, and SVG marks
 - [Pitch production and archival editable source](docs/video/README.md)
 - [Technical walkthrough and archival source](docs/technical-video.md)
 - [Historical deployed screenshots](docs/screenshots/); current local screenshot/capture paths are recorded in [redesign delivery](docs/redesign-delivery.md)

@@ -1,31 +1,40 @@
 # Lotline brand kit
 
-Updated September 2026. Lotline is a calm, precise planning tool for a user's next xStocks contribution.
+Sculpture collection, September 21, 2026. A contribution planner on Solana.
 
-## Core identity
+## Visual direction
 
-- Forest: **#174D3C**
-- Deep forest: **#0B2A20**
-- Paper: **#F5F4EE**
-- Sage: **#BFD5A9**
-- Moss: **#6E8D6B**
-- Ink: **#18211D**
-- Clay: **#E7D8CE**
+Warm ivory, smoked sage glass, deep forest and restrained typography. The sculpture is an atmospheric background, not a new logo. Keep the selected three-branch mark exactly as supplied. No neon green, fake performance charts, investment promises or decorations crossing text.
 
-The branching mark has three open channels meeting at one junction. Keep its orientation, open center, rounded ends, and clear space. Use the supplied SVGs whenever possible.
+## Palette
 
-## Type and voice
+- forest: #174D3C
+- deep: #112B24
+- paper: #F5F4EE
+- sage: #BFD5A9
+- moss: #6E8D6B
+- ink: #18211D
+- eucalyptus: #87998A
+- stone: #DCDDD2
 
-Use an editorial serif for the short display line “Your next contribution, clearly.” and a clean sans-serif for interface copy. Speak with calm precision: explain the next action, show the exact number, and make the user's decision visible. Avoid hype, price promises, performance claims, and language that suggests Lotline signs or executes trades.
+## Formats and safe areas
 
-## Asset guidance
+- Profiles: 1024 × 1024 PNG and SVG. Mark only, with generous circular-crop clearance.
+- Phone wallpaper: 1290 × 2796. Quiet upper area for the clock; minimal lower branding.
+- Desktop wallpaper: 2880 × 1800. Artwork to the right, icon space to the left.
+- Social square: 1080 × 1080. Story: 1080 × 1920.
+- Ad: 1200 × 628. Open Graph: 1200 × 630.
+- X header: 1500 × 500. LinkedIn: 1584 × 396. Important type stays out of the lower-left avatar overlap. Platform crops vary; inspect your uploaded preview.
+- Backgrounds: 1920 × 1080 self-contained SVGs with embedded artwork for decks and new layouts.
 
-- Profile images are for avatars and app profiles. Keep the complete square artwork.
-- Wallpapers: phone 1290×2796; desktop 2880×1800. The central area is intentionally quiet for icons.
-- Backgrounds: paper and forest SVG canvases at 1920×1080 for posts, decks, and overlays.
-- Social square/story: 1080×1080 and 1080×1920.
-- Ad landscape: 1200×628.
-- Headers: X 1500×500; LinkedIn 1584×396. Recheck platform safe areas after upload.
-- OG image: 1200×630 for link previews.
+## Production
 
-Do not recolor the mark, stretch it, add shadows, put it over busy imagery, or combine it with third-party logos. Keep at least one mark-height of clear space around the symbol. Stock issuer logos are separate official metadata assets and are not part of the Lotline mark.
+The two original background materials were generated with the built-in image-generation tool. Source PNGs are preserved in art/. Typography and the exact production mark are native vector layouts in scripts/generate-brand-kit.mjs. PNG exports are rasterized from those compositions. The core logo geometry, orientation and colors are unchanged.
+
+## Saving on a phone
+
+Use Open full size, then save through the browser image or share menu. Downloads may go to Files. The ZIP includes all 19 exports, both original artwork files, this guide and the manifest.
+
+## Voice
+
+Your next contribution, clearly. Explain the next action in plain words. Never imply investment performance or that an illustration proves a completed purchase.

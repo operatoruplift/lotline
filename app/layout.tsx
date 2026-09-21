@@ -4,7 +4,7 @@ import { MotionProvider } from '@/components/motion-provider';
 import './globals.css';
 
 export const metadata: Metadata = {
-  metadataBase: new URL('https://lotlineonsolana.vercel.app'),
+  metadataBase: new URL('https://lotline.dev'),
   title: { default: 'Lotline — Your next contribution, clearly.', template: '%s · Lotline' },
   description: 'A clear plan for your next xStocks contribution. Choose your split, get read-only estimates, and take your plan with you.',
   alternates: { canonical: '/' },
@@ -15,13 +15,13 @@ export const metadata: Metadata = {
     siteName: 'Lotline',
     locale: 'en_US',
     type: 'website',
-    images: [{ url: '/icons/icon-512.png?v=branch-1', width: 512, height: 512, alt: 'Lotline mark' }],
+    images: [{ url: '/brand-kit/og-image.png?v=sculpture-2', width: 1200, height: 630, alt: 'Lotline — Your next contribution, clearly.' }],
   },
   twitter: {
     card: 'summary_large_image',
     title: 'Lotline — Your next contribution, clearly.',
     description: 'Plan your next xStocks contribution with exact USDC splits and read-only estimates.',
-    images: ['/icons/icon-512.png?v=branch-1'],
+    images: ['/brand-kit/og-image.png?v=sculpture-2'],
   },
   appleWebApp: { capable: true, title: 'Lotline', statusBarStyle: 'default' },
   applicationName: 'Lotline',

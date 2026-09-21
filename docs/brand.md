@@ -29,4 +29,11 @@ The earlier pitch and technical videos and dated screenshot records retain the b
 
 ## Social brand kit
 
-The complete downloadable kit is available at [`/brand-kit`](https://lotlineonsolana.vercel.app/brand-kit) and is generated with `npm run brand:kit`. It contains the current SVG marks and wordmarks, light and dark profile images, phone and desktop wallpapers, reusable paper and forest backgrounds, social square and story artwork, ad and Open Graph images, and X and LinkedIn headers. The page provides individual downloads for saving to a phone plus `lotline-brand-kit.zip` for the full package and `brand-guide.md` for usage notes.
+The complete downloadable kit is available at [`/brand-kit`](https://lotline.dev/brand-kit) and is generated with `npm run brand:kit`. It contains the current SVG marks and wordmarks, light and dark profile images, phone and desktop wallpapers, reusable paper and forest backgrounds, social square and story artwork, ad and Open Graph images, and X and LinkedIn headers. The page provides individual downloads for saving to a phone plus `lotline-brand-kit.zip` for the full package and `brand-guide.md` for usage notes.
+
+
+## Sculpture collection, September 21, 2026
+
+The downloadable kit now uses warm ivory and smoked-sage glass artwork with editorial type. All 19 existing export names and dimensions remain available. Profile images use the exact selected mark with generous circular-crop clearance. Wallpapers reserve space for phone clocks and desktop icons; headers keep important type away from the lower-left avatar area. Every asset can be opened at full size or downloaded individually. The complete ZIP also includes both source-art masters.
+
+The core logo geometry and production app icons are unchanged. Source materials and generation prompts are documented in [the collection release notes](brand-sculpture-20260921.md). The footer retains continuous animation with a muted sage grade and a warm paper wash.

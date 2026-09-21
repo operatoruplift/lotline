@@ -1,6 +1,6 @@
 import type { MetadataRoute } from 'next';
 
-const siteUrl = 'https://lotlineonsolana.vercel.app';
+const siteUrl = 'https://lotline.dev';
 
 export default function sitemap(): MetadataRoute.Sitemap {
   return [

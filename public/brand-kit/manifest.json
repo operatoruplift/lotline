@@ -1,96 +1,122 @@
 {
-  "version": 1,
-  "updated": "2026-09",
+  "version": 2,
+  "collection": "Sculpture",
+  "updated": "2026-09-21",
   "brand": "Lotline",
   "palette": {
     "forest": "#174D3C",
-    "deep": "#0B2A20",
+    "deep": "#112B24",
     "paper": "#F5F4EE",
     "sage": "#BFD5A9",
     "moss": "#6E8D6B",
     "ink": "#18211D",
-    "clay": "#E7D8CE"
+    "eucalyptus": "#87998A",
+    "stone": "#DCDDD2"
   },
+  "sourceArt": [
+    "art/ivory-sculpture.png",
+    "art/forest-sculpture.png"
+  ],
   "assets": {
     "lotline-mark.svg": {
-      "bytes": 376,
-      "sha256": "bd50c2badff9493cf9792870caf849cc8d30620e702ba4985e1aa517bd59078d"
+      "bytes": 421,
+      "sha256": "fa5e726be7ba8d6443b1ac75c9f1765c529760b663ef1abaedb8123e3826d3f3"
     },
     "lotline-mark-light.svg": {
-      "bytes": 376,
-      "sha256": "ae0717298d8ed0c148fa82fdf010e64fc54279480003e36e6960c54392491618"
+      "bytes": 421,
+      "sha256": "ba863462596f56e8960161febbce9781531c14df2554aef80ac9b0780135a7b5"
     },
     "lotline-mark-monochrome.svg": {
-      "bytes": 376,
-      "sha256": "ab652459952e7149d2f8c8715d222c21106c21f5a431edab6b2e11d460087663"
+      "bytes": 421,
+      "sha256": "a3db56a2c114bebef027950e135ea61dbcf33045ba4393e864e59bc0a8cac24d"
     },
     "lotline-wordmark.svg": {
-      "bytes": 597,
-      "sha256": "73c4b4f47e065b4371be76d16a54ea68592ec0d80bebfae7e3ef9bc64bbb5da5"
+      "bytes": 629,
+      "sha256": "51b2f8d4d480039818de358b9ea9773313d6d285b7d072719b3d857f6cf2a8af"
     },
     "lotline-wordmark-light.svg": {
-      "bytes": 597,
-      "sha256": "e072381b1bcfa680488afe5c76eca524814a7dcac1c1d370a31a0c06e0e6efa9"
+      "bytes": 629,
+      "sha256": "708f4a7db26d521eccea93b15400e76df6e97fb2d03fd52c4458225347273afc"
     },
     "profile-light.svg": {
-      "bytes": 755,
-      "sha256": "5e17648c4533f4b237c6f4086c44380be56a4112eb30666287976dcd7dc86cde"
-    },
-    "profile-dark.svg": {
-      "bytes": 755,
-      "sha256": "3f24b7ea0a9996321288ca3514ce6fdf5dc629b80b59b98b61088308e600ab64"
+      "bytes": 652,
+      "sha256": "6f2d1663fb673d2637898ac40278784269b2c10d813dbcf3cd6a137c038cf003"
     },
     "profile-light.png": {
-      "bytes": 29464,
-      "sha256": "6829a33619c6a97cbabc29c6ebcc16752e9bc905f80a54899e4f3b751f66e0dd"
+      "bytes": 40118,
+      "sha256": "dc76de97ce963666181a617a527e8a02ab41423a293331b31cef9cb473307c2b",
+      "width": 1024,
+      "height": 1024
+    },
+    "profile-dark.svg": {
+      "bytes": 652,
+      "sha256": "57cc3d15d0d43363fe43e7ab89b44a87229c3b62833048e9ab4ad36c9ed99732"
     },
     "profile-dark.png": {
-      "bytes": 30777,
-      "sha256": "1bcc90d317d996e32ba5b7b8a1d9b2b6a650c74326791d1125076e502e252688"
-    },
-    "background-paper.svg": {
-      "bytes": 759,
-      "sha256": "2398b9133e5b2bd9ec9d265e28472b8a38d4eb80724438c6cd12668d651c05f3"
-    },
-    "background-forest.svg": {
-      "bytes": 759,
-      "sha256": "54b1a2c93168c8e0ba73d7bd3d30f4c59b0f9100a69d276f7ca1aed45873b78a"
+      "bytes": 66626,
+      "sha256": "2e3ffc0b52f7004f6473fd4b951b223c52005fef79a0db7679209715b852e896",
+      "width": 1024,
+      "height": 1024
     },
     "wallpaper-phone.png": {
-      "bytes": 78341,
-      "sha256": "15f903433f6e7b95aa7972d56350102cbcb8875c58882a5d43fe04075105470a"
+      "bytes": 5013207,
+      "sha256": "93788377055b49bc4fdefadc2508115e13b8a710b8e26274234c74b3f6437a68",
+      "width": 1290,
+      "height": 2796
     },
     "wallpaper-desktop.png": {
-      "bytes": 90405,
-      "sha256": "ac455a8cd02925f6d1243ecef122fe01f524300f7df63aa8820857ea6f4e6948"
+      "bytes": 6915787,
+      "sha256": "e6b13a827e8b46301882a8c2ed002a078054836aa67e11f0bff5dfef3e95697a",
+      "width": 2880,
+      "height": 1800
+    },
+    "background-paper.svg": {
+      "bytes": 576513,
+      "sha256": "eb817e0b4e39908b53a4d8119b324a7d9e44b3cbea58523a875681a2bb7fee3c"
+    },
+    "background-forest.svg": {
+      "bytes": 645935,
+      "sha256": "c6662d64d6e1441aa2f4b6f6f77ca421d296b6a93ea88180723f563ac9ddb3b4"
     },
     "social-square.png": {
-      "bytes": 62332,
-      "sha256": "9e12010ed08d86a78104c5b67836faa207c760b6ebac513f7dd19a1c2a892b81"
+      "bytes": 1132675,
+      "sha256": "ce281db13b155e5069b0c090a1787ea096fed690edd7cdad0f25601bb61bd133",
+      "width": 1080,
+      "height": 1080
     },
     "social-story.png": {
-      "bytes": 67585,
-      "sha256": "84ae1f45f4f4145a792c72f60ed0a889d36b52e78d19247d6326da9a9d3b1f0c"
+      "bytes": 2428437,
+      "sha256": "eff9d577dd9434dbe99dd478765ca7953dece40a1dcecf24bb89fc80d7244c60",
+      "width": 1080,
+      "height": 1920
     },
     "ad-landscape.png": {
-      "bytes": 48330,
-      "sha256": "e42ca92dbe82089b64b1d7860456467b3ca02819498aec35c7947d5bae781189"
-    },
-    "header-x.png": {
-      "bytes": 32078,
-      "sha256": "b2aabcd4ecf8979dea37598a6f7f1671f6cd44c6bf66508678edd688710a12d6"
-    },
-    "header-linkedin.png": {
-      "bytes": 32503,
-      "sha256": "48c9a82c9714b94e1508397852eb70e1390690ff43927eaa97662ac9384b6121"
+      "bytes": 902953,
+      "sha256": "966b09fcb2467794951510e31a32b40b5b3d9c2663c713e671e8cf89ffbab7db",
+      "width": 1200,
+      "height": 628
     },
     "og-image.png": {
-      "bytes": 46625,
-      "sha256": "98afddc87d4f82bbcb8f10e600455d6e9cd8b1f6b96be4f53505822f2c04ada1"
+      "bytes": 904973,
+      "sha256": "17675665db34632d165ad85046e2bfdd7f45e79a20b070869a9d0f0c67b3ce99",
+      "width": 1200,
+      "height": 630
+    },
+    "header-x.png": {
+      "bytes": 687102,
+      "sha256": "c909e3d37425ab8eb242e0b66dd1fe1a14210a79fb51fed5546ab2e3eb9269c3",
+      "width": 1500,
+      "height": 500
+    },
+    "header-linkedin.png": {
+      "bytes": 551135,
+      "sha256": "5d520d73e0a31e86bd8d05a7ea080d07a625feed68e409e34a8097c4ee64687b",
+      "width": 1584,
+      "height": 396
     },
     "brand-guide.md": {
-      "bytes": 1621,
-      "sha256": "35cc640a4c5cb1fd828e8e37015839311e0599072634e4d3377fa96757ea8d75"
+      "bytes": 1929,
+      "sha256": "965d119736207c27fcfc7b4783a0b64dc038269e3498d3eeae23fae258caf024"
     }
   }
 }

@@ -1,6 +1,6 @@
 # Lotline — Stocklana submission draft
 
-**Last updated:** September 21, 2026. **Status:** draft, not submitted. The redesigned application, expanded Example, manual reminders and current demo package are deployed at [lotlineonsolana.vercel.app](https://lotlineonsolana.vercel.app). The current contribution release records exact deployment and evidence separately. Team/contact details still need to be supplied before submission. [Official requirements check](stocklana-check.md)
+**Last updated:** September 21, 2026. **Status:** draft, not submitted. The redesigned application, expanded Example, manual reminders and current demo package are deployed at [lotlineonsolana.vercel.app](https://lotline.dev). The current contribution release records exact deployment and evidence separately. Team/contact details still need to be supplied before submission. [Official requirements check](stocklana-check.md)
 
 ## Project and team
 
@@ -42,11 +42,11 @@ Signup/recovery await verified SMTP delivery. Optional Tokens.xyz context awaits
 ## Links to include
 
 - [Public source](https://github.com/operatoruplift/lotline)
-- [Live website](https://lotlineonsolana.vercel.app)
-- [Interactive Example](https://lotlineonsolana.vercel.app/app?mode=example)
-- [Demo page with captions and transcripts](https://lotlineonsolana.vercel.app/demo)
-- [Preserved September 12 narrated product film](https://lotlineonsolana.vercel.app/videos/release-20260912/product.mp4)
-- [Preserved September 12 narrated technical film](https://lotlineonsolana.vercel.app/videos/release-20260912/technical.mp4)
+- [Live website](https://lotline.dev)
+- [Interactive Example](https://lotline.dev/app?mode=example)
+- [Demo page with captions and transcripts](https://lotline.dev/demo)
+- [Preserved September 12 narrated product film](https://lotline.dev/videos/release-20260912/product.mp4)
+- [Preserved September 12 narrated technical film](https://lotline.dev/videos/release-20260912/technical.mp4)
 - [Current transcripts, captions and production evidence](video-release.md)
 - [Optional 115-second live presentation script](stocklana-demo-script.md) — a separate recording/presentation outline, not the transcript or duration of the current product film
 - [Execution walkthrough script](execution-demo-script.md) — staged review, receipt recovery and manual reminder flow; live signing requires separate authorization
@@ -67,7 +67,7 @@ Current first-use and technical evidence recordings are on the demo page, labele
 
 ## September 21 sponsor scope
 
-The separate [PreStocks planner](https://lotlineonsolana.vercel.app/pre-ipo) uses eight issuer identities checked against mainnet, exact contribution arithmetic, read-only Jupiter estimates, isolated local drafts, universe-tagged share links and exports. The current transfer-fee extensions are outside the purchase validator; unsupported nonzero wallet account formats remain unavailable. No PreStocks purchase is claimed.
+The separate [PreStocks planner](https://lotline.dev/pre-ipo) uses eight issuer identities checked against mainnet, exact contribution arithmetic, read-only Jupiter estimates, isolated local drafts, universe-tagged share links and exports. The current transfer-fee extensions are outside the purchase validator; unsupported nonzero wallet account formats remain unavailable. No PreStocks purchase is claimed.
 
 The xStocks review now includes a Pyth reference adapter for AAPLx/MSFTx/NVDAx equity and token feeds. Feed identity discovery is verified; current prices require a server API key and authenticated live delivery remains unverified. The token feed unit basis remains unverified, so there is no premium/discount calculation.
 

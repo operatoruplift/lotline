@@ -22,4 +22,4 @@ The contribution engine also implements explicit Wallet Standard approval, a nar
 
 Lotline makes your chosen contribution understandable and repeatable. It does not choose investments, promise returns or turn tokenized exposure into shareholder rights.
 
-[Website](https://lotlineonsolana.vercel.app) · [App](https://lotlineonsolana.vercel.app/app) · [Demo](https://lotlineonsolana.vercel.app/demo) · [Brand kit](https://lotlineonsolana.vercel.app/brand-kit) · [Source](https://github.com/operatoruplift/lotline)
+[Website](https://lotline.dev) · [App](https://lotline.dev/app) · [Demo](https://lotline.dev/demo) · [Brand kit](https://lotline.dev/brand-kit) · [Source](https://github.com/operatoruplift/lotline)
