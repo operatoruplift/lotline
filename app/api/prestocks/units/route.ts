@@ -1,9 +1,11 @@
 import { getPreStocksUnits } from '@/lib/server/prestocks';
 import { readSmallJson, safeMessage, ServiceError } from '@/lib/server/common';
 import { httpStatus, noStore, unitsRequestSchema } from '@/lib/server/requests';
+import { enforceReadRateLimit } from '@/lib/server/read-limits';
 export const dynamic = 'force-dynamic';
 export async function POST(request: Request) {
   try {
+    await enforceReadRateLimit(request);
     const parsed = unitsRequestSchema.safeParse(await readSmallJson(request));
     if (!parsed.success) throw new ServiceError('invalid-input', 'Choose up to three unique verified PreStocks mints with bounded raw token amounts.');
     const body = await getPreStocksUnits(parsed.data.items);

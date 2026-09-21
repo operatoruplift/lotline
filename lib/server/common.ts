@@ -21,7 +21,7 @@ export function safeMessage(error: unknown): string {
 }
 export async function fetchJson(url: string, init?: RequestInit): Promise<unknown> {
   try {
-    const response = await fetch(url, { ...init, cache: 'no-store', signal: AbortSignal.timeout(12_000) });
+    const response = await fetch(url, { ...init, cache: 'no-store', redirect: 'error', signal: AbortSignal.timeout(12_000) });
     if (response.status === 429) throw new ServiceError('unavailable', 'Service rate limit reached. Wait a moment, then refresh.', 'rate-limited', response.status);
     if (response.status === 401 || response.status === 403) throw new ServiceError('unavailable', 'The service denied access. Check server configuration or try again later.', 'provider-unavailable', response.status);
     if (!response.ok) throw new ServiceError('unavailable', 'The upstream service is temporarily unavailable. Please retry.', 'provider-unavailable', response.status);
