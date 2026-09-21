@@ -2,10 +2,19 @@
 project_id = "lotline"
 
 [auth]
-site_url = "https://lotlineonsolana.vercel.app"
+site_url = "https://lotline.dev"
 additional_redirect_urls = [
+  "https://lotline.dev",
+  "https://lotline.dev/auth/callback",
+  "https://lotline.dev/auth/callback?next=/auth/update-password",
+  "https://lotlineonsolana.vercel.app",
   "https://lotlineonsolana.vercel.app/auth/callback",
   "https://lotlineonsolana.vercel.app/auth/callback?next=/auth/update-password",
+  "https://lotlinesolana.vercel.app",
+  "https://lotlinesolana.vercel.app/auth/callback",
+  "https://lotlinesolana.vercel.app/auth/callback?next=/auth/update-password",
+  "https://lotline-omega.vercel.app/auth/callback",
+  "https://lotline-omega.vercel.app/auth/callback?next=/auth/update-password",
   "http://localhost:3000/auth/callback",
   "http://localhost:3000/auth/callback?next=/auth/update-password",
   "http://127.0.0.1:3000/auth/callback",

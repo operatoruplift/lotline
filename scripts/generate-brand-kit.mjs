@@ -1,4 +1,4 @@
-import { mkdir, readFile, writeFile } from 'node:fs/promises';
+import { mkdir, readFile, writeFile, rm } from 'node:fs/promises';
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
 import { createHash } from 'node:crypto';
@@ -8,51 +8,68 @@ const run = promisify(execFile);
 const output = new URL('../public/brand-kit/', import.meta.url);
 const mark = JSON.parse(await readFile(new URL('../lib/brand/mark.json', import.meta.url), 'utf8'));
 await mkdir(output, { recursive: true });
-const C = { forest: '#174D3C', deep: '#0B2A20', paper: '#F5F4EE', sage: '#BFD5A9', moss: '#6E8D6B', ink: '#18211D', clay: '#E7D8CE' };
-const esc = value => String(value).replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;').replaceAll('"', '&quot;');
-const path = (color = C.forest, width = mark.strokeWidth) => `<path d="${mark.path}" fill="none" stroke="${color}" stroke-width="${width}" stroke-linecap="round" stroke-linejoin="round"/>`;
-const logo = (x, y, scale = 1, color = C.forest) => `<g transform="translate(${x} ${y}) scale(${scale})">${path(color)}</g>`;
-const text = (value, x, y, size, color = C.ink, weight = 500, anchor = 'start', family = 'Arial, Helvetica, sans-serif', spacing = 0) => `<text x="${x}" y="${y}" fill="${color}" font-family="${family}" font-size="${size}px" font-weight="${weight}" text-anchor="${anchor}"${spacing ? ` letter-spacing="${spacing}px"` : ''}>${esc(value)}</text>`;
-const svg = (width, height, body) => `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}"><title>Lotline brand asset</title>${body}</svg>`;
-const grid = (width, height, color, opacity = .07, size = 90) => `<path d="M0 ${size}H${width}M0 ${size * 2}H${width}M${size} 0V${height}M${size * 2} 0V${height}" stroke="${color}" stroke-opacity="${opacity}"/>`;
-const line = (width, height, color = C.moss, opacity = .35) => `<path d="M${width * .06} ${height * .72} C${width * .26} ${height * .49},${width * .4} ${height * .82},${width * .55} ${height * .56} S${width * .8} ${height * .34},${width * .94} ${height * .2}" fill="none" stroke="${color}" stroke-opacity="${opacity}" stroke-width="3" stroke-linecap="round"/><circle cx="${width * .06}" cy="${height * .72}" r="8" fill="${color}"/><circle cx="${width * .55}" cy="${height * .56}" r="8" fill="${color}"/><circle cx="${width * .94}" cy="${height * .2}" r="8" fill="${color}"/>`;
+const C = { forest: '#174D3C', deep: '#112B24', paper: '#F5F4EE', sage: '#BFD5A9', moss: '#6E8D6B', ink: '#18211D', eucalyptus: '#87998A', stone: '#DCDDD2' };
 const files = [];
+const esc = value => String(value).replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;').replaceAll('"', '&quot;');
+const symbol = (x, y, size, color = C.forest) => `<g transform="translate(${x} ${y}) scale(${size / 32})"><path d="${mark.path}" fill="none" stroke="${color}" stroke-width="${mark.strokeWidth}" stroke-linecap="round" stroke-linejoin="round"/></g>`;
+const text = (value, x, y, size, color = C.forest, o = {}) => `<text x="${x}" y="${y}" fill="${color}" font-family="${o.serif ? 'Georgia, serif' : 'Arial, Helvetica, sans-serif'}" font-size="${size}" font-weight="${o.weight ?? 400}" letter-spacing="${o.spacing ?? 0}" text-anchor="${o.anchor ?? 'start'}"${o.italic ? ' font-style="italic"' : ''}>${esc(value)}</text>`;
+const lockup = (x, y, size = 42, color = C.forest) => `${symbol(x, y - size * .79, size, color)}${text('Lotline.', x + size * 1.35, y, size, color, { weight: 700, spacing: -size * .045 })}`;
+const label = (value, x, y, size = 13, color = C.forest, anchor = 'start') => text(value, x, y, size, color, { weight: 600, spacing: size * .14, anchor });
+const rect = (x, y, width, height, fill, extra = '') => `<rect x="${x}" y="${y}" width="${width}" height="${height}" fill="${fill}" ${extra}/>`;
+const svg = (w, h, body, title = 'Lotline brand artwork') => `<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}"><title>${esc(title)}</title>${body}</svg>`;
+const rule = (x, y, width, color = C.forest, opacity = .2) => `<path d="M${x} ${y}h${width}" fill="none" stroke="${color}" stroke-opacity="${opacity}"/>`;
 async function save(name, data) { await writeFile(new URL(name, output), data); files.push(name); }
-async function png(name, width, height, source) { await save(name, await sharp(Buffer.from(source)).png({ compressionLevel: 9 }).toBuffer()); }
+async function png(name, source) { await save(name, await sharp(Buffer.from(source)).png({ compressionLevel: 9 }).toBuffer()); }
 
-await save('lotline-mark.svg', svg(32, 32, path()));
-await save('lotline-mark-light.svg', svg(32, 32, path(C.paper)));
-await save('lotline-mark-monochrome.svg', svg(32, 32, path(C.ink)));
-await save('lotline-wordmark.svg', svg(520, 128, `${logo(8, 18, 2.9)}${text('Lotline.', 145, 93, 78, C.forest, 700, 'start', 'Arial, Helvetica, sans-serif', -3)}`));
-await save('lotline-wordmark-light.svg', svg(520, 128, `${logo(8, 18, 2.9, C.paper)}${text('Lotline.', 145, 93, 78, C.paper, 700, 'start', 'Arial, Helvetica, sans-serif', -3)}`));
-const profile = (background, foreground) => svg(1024, 1024, `<rect width="1024" height="1024" fill="${background}"/><circle cx="512" cy="512" r="360" fill="none" stroke="${foreground}" stroke-opacity=".12" stroke-width="2"/>${logo(370, 346, 8.9, foreground)}${text('LOTLINE', 512, 770, 42, foreground, 600, 'middle', 'Arial, Helvetica, sans-serif', 8)}`);
-await save('profile-light.svg', profile(C.paper, C.forest));
-await save('profile-dark.svg', profile(C.forest, C.paper));
-await png('profile-light.png', 1024, 1024, profile(C.paper, C.forest));
-await png('profile-dark.png', 1024, 1024, profile(C.forest, C.paper));
+// Generated artwork is a background material. The production mark and every
+// text label remain deterministic vector geometry in these native SVG layouts.
+const art = {};
+for (const tone of ['ivory', 'forest']) {
+  const data = await sharp(new URL(`art/${tone}-sculpture.png`, output).pathname).jpeg({ quality: 94, chromaSubsampling: '4:4:4' }).toBuffer();
+  art[tone] = `data:image/jpeg;base64,${data.toString('base64')}`;
+}
+const artwork = (tone, x, y, w, h, position = 'xMidYMid slice') => `<image href="${art[tone]}" x="${x}" y="${y}" width="${w}" height="${h}" preserveAspectRatio="${position}"/>`;
+const fade = (id, color, direction = 'down') => `<defs><linearGradient id="${id}" x1="0" y1="0" x2="${direction === 'right' ? '1' : '0'}" y2="${direction === 'right' ? '0' : '1'}"><stop stop-color="${color}"/><stop offset="1" stop-color="${color}" stop-opacity="0"/></linearGradient></defs>`;
 
-await save('background-paper.svg', svg(1920, 1080, `<rect width="1920" height="1080" fill="${C.paper}"/>${grid(1920, 1080, C.forest, .055, 110)}<circle cx="1710" cy="-80" r="430" fill="${C.sage}" fill-opacity=".2"/>${line(1920, 1080, C.moss, .28)}`));
-await save('background-forest.svg', svg(1920, 1080, `<rect width="1920" height="1080" fill="${C.forest}"/>${grid(1920, 1080, C.paper, .08, 110)}<circle cx="1710" cy="-80" r="430" fill="${C.sage}" fill-opacity=".16"/>${line(1920, 1080, C.sage, .38)}`));
-
-const phone = svg(1290, 2796, `<rect width="1290" height="2796" fill="${C.paper}"/><rect x="44" y="44" width="1202" height="2708" rx="38" fill="none" stroke="${C.forest}" stroke-opacity=".12"/>${grid(1290, 2796, C.forest, .055, 110)}${line(1290, 2796)}${logo(455, 1070, 11.8)}${text('Lotline.', 645, 1338, 70, C.forest, 700, 'middle', 'Arial, Helvetica, sans-serif', -2)}${text('YOUR NEXT CONTRIBUTION, CLEARLY.', 645, 1446, 21, C.moss, 600, 'middle', 'Arial, Helvetica, sans-serif', 4)}${text('Choose your split. Review your next step.', 645, 2360, 27, C.forest, 500, 'middle')}`);
-const desktop = svg(2880, 1800, `<rect width="2880" height="1800" fill="${C.forest}"/>${grid(2880, 1800, C.paper, .08, 140)}<circle cx="2380" cy="-160" r="700" fill="${C.sage}" fill-opacity=".14"/>${line(2880, 1800, C.sage, .45)}${logo(198, 186, 9.1, C.paper)}${text('Lotline.', 465, 404, 86, C.paper, 700, 'start', 'Arial, Helvetica, sans-serif', -2)}${text('YOUR NEXT CONTRIBUTION, CLEARLY.', 215, 1440, 32, C.sage, 600, 'start', 'Arial, Helvetica, sans-serif', 5)}${text('Choose your split. Review your next step.', 215, 1510, 30, C.paper, 400)}`);
-await png('wallpaper-phone.png', 1290, 2796, phone);
-await png('wallpaper-desktop.png', 2880, 1800, desktop);
-
-const square = svg(1080, 1080, `<rect width="1080" height="1080" fill="${C.paper}"/>${grid(1080, 1080, C.forest)}<rect x="40" y="40" width="1000" height="1000" rx="42" fill="none" stroke="${C.forest}" stroke-opacity=".16"/>${logo(76, 72, 3.9)}${text('LOTLINE', 270, 128, 25, C.forest, 700, 'start', 'Arial, Helvetica, sans-serif', 5)}${text('Your next', 78, 460, 94, C.forest, 400, 'start', 'Georgia, serif', -2)}${text('contribution,', 78, 560, 94, C.forest, 400, 'start', 'Georgia, serif', -2)}${text('clearly.', 78, 660, 94, C.forest, 400, 'start', 'Georgia, serif', -2)}${line(1080, 1080)}${text('Plan your xStocks split with exact USDC allocations.', 78, 900, 24, C.moss, 500)}${text('lotlineonsolana.vercel.app', 78, 968, 18, C.forest, 600, 'start', 'Arial, Helvetica, sans-serif', 1)}`);
-const story = svg(1080, 1920, `<rect width="1080" height="1920" fill="${C.forest}"/>${grid(1080, 1920, C.paper)}${logo(78, 92, 4.1, C.paper)}${text('LOTLINE', 272, 148, 26, C.paper, 700, 'start', 'Arial, Helvetica, sans-serif', 5)}${text('One clear plan', 78, 730, 90, C.paper, 400, 'start', 'Georgia, serif', -2)}${text('for your next', 78, 830, 90, C.paper, 400, 'start', 'Georgia, serif', -2)}${text('contribution.', 78, 930, 90, C.sage, 400, 'start', 'Georgia, serif', -2)}<rect x="78" y="1080" width="924" height="410" rx="28" fill="${C.paper}" fill-opacity=".1" stroke="${C.paper}" stroke-opacity=".25"/>${logo(442, 1155, 6.2, C.sage)}${text('Choose your assets. Set your split.', 540, 1575, 28, C.paper, 500, 'middle')}${text('lotlineonsolana.vercel.app', 78, 1814, 22, C.sage, 600, 'start', 'Arial, Helvetica, sans-serif', 1)}`);
-const ad = svg(1200, 628, `<rect width="1200" height="628" fill="${C.paper}"/>${grid(1200, 628, C.forest, .07, 80)}${logo(58, 42, 2.55)}${text('LOTLINE', 150, 96, 23, C.forest, 700, 'start', 'Arial, Helvetica, sans-serif', 4)}${text('Your next contribution,', 64, 286, 56, C.forest, 400, 'start', 'Georgia, serif', -1)}${text('clearly.', 64, 350, 56, C.forest, 400, 'start', 'Georgia, serif', -1)}${text('Exact USDC splits for the xStocks you choose.', 64, 430, 22, C.moss, 500)}<rect x="840" y="78" width="280" height="472" rx="28" fill="${C.forest}"/>${logo(952, 178, 5.1, C.paper)}${text('10.000001', 980, 365, 29, C.paper, 600, 'middle', 'Arial, Helvetica, sans-serif', 1)}${text('50 / 30 / 20', 980, 411, 20, C.sage, 600, 'middle', 'Arial, Helvetica, sans-serif', 2)}${line(1200, 628)}`);
-const headerX = svg(1500, 500, `<rect width="1500" height="500" fill="${C.forest}"/>${grid(1500, 500, C.paper, .08, 100)}${logo(70, 92, 5.2, C.paper)}${text('Lotline.', 250, 198, 84, C.paper, 700, 'start', 'Arial, Helvetica, sans-serif', -2)}${text('Your next contribution, clearly.', 250, 278, 30, C.sage, 500)}${text('Plan · verify · review', 250, 342, 22, C.paper, 400)}${line(1500, 500, C.sage, .45)}`);
-const headerLinkedIn = svg(1584, 396, `<rect width="1584" height="396" fill="${C.paper}"/>${grid(1584, 396, C.forest, .07, 96)}${logo(68, 72, 4.1)}${text('Lotline.', 210, 162, 70, C.forest, 700, 'start', 'Arial, Helvetica, sans-serif', -2)}${text('A clear plan for your next xStocks contribution.', 210, 232, 27, C.moss, 500)}${text('Exact allocations · verified mints · quote-only review', 210, 290, 18, C.forest, 600, 'start', 'Arial, Helvetica, sans-serif', 1)}${line(1584, 396)}`);
-const og = svg(1200, 630, `<rect width="1200" height="630" fill="${C.paper}"/>${grid(1200, 630, C.forest)}${logo(70, 60, 3.3)}${text('Lotline.', 190, 142, 56, C.forest, 700, 'start', 'Arial, Helvetica, sans-serif', -2)}${text('Your next contribution,', 72, 320, 68, C.forest, 400, 'start', 'Georgia, serif', -2)}${text('clearly.', 72, 394, 68, C.forest, 400, 'start', 'Georgia, serif', -2)}${text('Choose your split. Review your next step.', 72, 472, 24, C.moss, 500)}<rect x="910" y="112" width="210" height="370" rx="24" fill="${C.forest}"/>${logo(981, 190, 3.8, C.paper)}${line(1200, 630)}`);
-for (const [name, width, height, artwork] of [['social-square.png', 1080, 1080, square], ['social-story.png', 1080, 1920, story], ['ad-landscape.png', 1200, 628, ad], ['header-x.png', 1500, 500, headerX], ['header-linkedin.png', 1584, 396, headerLinkedIn], ['og-image.png', 1200, 630, og]]) await png(name, width, height, artwork);
-
-await save('brand-guide.md', `# Lotline brand kit\n\nUpdated September 2026. Lotline is a calm, precise planning tool for a user's next xStocks contribution.\n\n## Core identity\n\n- Forest: **${C.forest}**\n- Deep forest: **${C.deep}**\n- Paper: **${C.paper}**\n- Sage: **${C.sage}**\n- Moss: **${C.moss}**\n- Ink: **${C.ink}**\n- Clay: **${C.clay}**\n\nThe branching mark has three open channels meeting at one junction. Keep its orientation, open center, rounded ends, and clear space. Use the supplied SVGs whenever possible.\n\n## Type and voice\n\nUse an editorial serif for the short display line “Your next contribution, clearly.” and a clean sans-serif for interface copy. Speak with calm precision: explain the next action, show the exact number, and make the user's decision visible. Avoid hype, price promises, performance claims, and language that suggests Lotline signs or executes trades.\n\n## Asset guidance\n\n- Profile images are for avatars and app profiles. Keep the complete square artwork.\n- Wallpapers: phone 1290×2796; desktop 2880×1800. The central area is intentionally quiet for icons.\n- Social square/story: 1080×1080 and 1080×1920.\n- Ad landscape: 1200×628.\n- Headers: X 1500×500; LinkedIn 1584×396. Recheck platform safe areas after upload.\n- OG image: 1200×630 for link previews.\n\nDo not recolor the mark, stretch it, add shadows, put it over busy imagery, or combine it with third-party logos. Keep at least one mark-height of clear space around the symbol. Stock issuer logos are separate official metadata assets and are not part of the Lotline mark.\n`);
-const guidePath = new URL('brand-guide.md', output);
-const guideText = await readFile(guidePath, 'utf8');
-await writeFile(guidePath, guideText.replace('- Wallpapers: phone 1290×2796; desktop 2880×1800. The central area is intentionally quiet for icons.', '- Wallpapers: phone 1290×2796; desktop 2880×1800. The central area is intentionally quiet for icons.\n- Backgrounds: paper and forest SVG canvases at 1920×1080 for posts, decks, and overlays.'));
-const metadata = { version: 1, updated: '2026-09', brand: 'Lotline', palette: C, assets: {} };
-for (const name of files) { const data = await readFile(new URL(name, output)); metadata.assets[name] = { bytes: data.length, sha256: createHash('sha256').update(data).digest('hex') }; }
+await save('lotline-mark.svg', svg(32, 32, symbol(0, 0, 32)));
+await save('lotline-mark-light.svg', svg(32, 32, symbol(0, 0, 32, C.paper)));
+await save('lotline-mark-monochrome.svg', svg(32, 32, symbol(0, 0, 32, C.ink)));
+await save('lotline-wordmark.svg', svg(520, 128, lockup(14, 91, 80)));
+await save('lotline-wordmark-light.svg', svg(520, 128, lockup(14, 91, 80, C.paper)));
+function profile(dark) {
+  const bg = dark ? C.deep : C.paper;
+  const fg = dark ? C.paper : C.forest;
+  return svg(1024, 1024, `<defs><radialGradient id="light" cx=".24" cy=".12" r=".94"><stop stop-color="${dark ? '#486157' : '#FFFFFF'}"/><stop offset="1" stop-color="${bg}"/></radialGradient></defs>${rect(0, 0, 1024, 1024, 'url(#light)')}${symbol(232, 232, 560, fg)}`, 'Lotline profile image');
+}
+for (const [tone, dark] of [['light', false], ['dark', true]]) {
+  await save(`profile-${tone}.svg`, profile(dark));
+  await png(`profile-${tone}.png`, profile(dark));
+}
+// Quiet clock and icon areas; the exact mark is a small signature only.
+const phone = svg(1290, 2796, `${rect(0, 0, 1290, 2796, C.deep)}${artwork('forest', 0, 0, 1290, 2796)}${symbol(592, 2440, 106, C.paper)}`, 'Lotline sculptural phone wallpaper');
+const desktop = svg(2880, 1800, `${artwork('ivory', 0, 0, 2880, 1800)}${lockup(180, 1624, 56)}${label('A SMALL PLAN. A CLEAR NEXT STEP.', 182, 1683, 17)}`, 'Lotline sculptural desktop wallpaper');
+await png('wallpaper-phone.png', phone);
+await png('wallpaper-desktop.png', desktop);
+await save('background-paper.svg', svg(1920, 1080, artwork('ivory', 0, 0, 1920, 1080), 'Lotline ivory sculpture background'));
+await save('background-forest.svg', svg(1920, 1080, `${rect(0, 0, 1920, 1080, C.deep)}${artwork('forest', 600, -240, 1320, 1980)}${fade('left', C.deep, 'right')}${rect(600, 0, 600, 1080, 'url(#left)')}`, 'Lotline forest sculpture background'));
+const square = svg(1080, 1080, `${rect(0, 0, 1080, 1080, C.paper)}${artwork('ivory', 0, 330, 1080, 720)}${fade('top', C.paper)}${rect(0, 330, 1080, 170, 'url(#top)')}${lockup(68, 105, 40)}${label('CONTRIBUTION PLANNING', 1012, 98, 12, C.forest, 'end')}${text('Small steps.', 65, 252, 94, C.forest, { serif: true, spacing: -4 })}${text('Clear direction.', 65, 359, 94, C.forest, { serif: true, italic: true, spacing: -4 })}${rect(0, 966, 1080, 114, C.deep)}${text('Your assets. Your split. Your next contribution.', 68, 1020, 22, C.paper)}${label('LOTLINE / ON SOLANA', 68, 1051, 10, '#BFCDBF')}`, 'Lotline social post: Small steps. Clear direction.');
+const story = svg(1080, 1920, `${rect(0, 0, 1080, 1920, C.deep)}${artwork('forest', 0, 200, 1080, 1720)}${fade('top', C.deep)}${rect(0, 190, 1080, 430, 'url(#top)')}${lockup(82, 200, 48, C.paper)}${label('YOUR NEXT CONTRIBUTION', 86, 340, 14, '#C2CDBF')}${text('A little clarity.', 80, 466, 89, C.paper, { serif: true, spacing: -3 })}${text('A clear next step.', 80, 571, 89, C.paper, { serif: true, italic: true, spacing: -3 })}${rect(66, 1510, 948, 242, C.paper, 'rx="6"')}${label('ONE CONTRIBUTION AT A TIME', 110, 1568, 12)}${text('Choose your assets.', 110, 1632, 40, C.forest, { serif: true })}${text('Make your split.', 110, 1682, 40, C.forest, { serif: true, italic: true })}${symbol(850, 1600, 85)}${label('LOTLINE / ON SOLANA', 540, 1805, 13, C.paper, 'middle')}`, 'Lotline story: A little clarity. A clear next step.');
+function landscape(height) {
+  return svg(1200, height, `${rect(0, 0, 1200, height, C.paper)}${artwork('ivory', 400, 0, 940, height)}${fade('left', C.paper, 'right')}${rect(370, 0, 290, height, 'url(#left)')}${lockup(60, 100, 36)}${label('YOUR NEXT CONTRIBUTION', 64, 216, 11)}${text('Make room', 60, 302, 76, C.forest, { serif: true, spacing: -3 })}${text('for clarity.', 60, 384, 76, C.forest, { serif: true, italic: true, spacing: -3 })}${text('A precise plan for the assets you choose.', 64, 443, 18)}${rule(64, 509, 300)}${label('PLAN / VERIFY / REVIEW', 64, 546, 11)}`, 'Lotline: Make room for clarity.');
+}
+// Header lockups stay above the lower-left profile-photo overlap area.
+const headerX = svg(1500, 500, `${rect(0, 0, 1500, 500, C.deep)}${artwork('forest', 880, -430, 760, 1140)}${fade('left', C.deep, 'right')}${rect(880, 0, 360, 500, 'url(#left)')}${lockup(108, 130, 40, C.paper)}${text('Your next contribution,', 340, 245, 57, C.paper, { serif: true, spacing: -2 })}${text('clearly.', 340, 315, 65, C.paper, { serif: true, italic: true, spacing: -2 })}${label('A SMALL PLAN. A CLEAR NEXT STEP.', 345, 372, 11, '#C1CDBF')}`, 'Lotline X profile header');
+const headerLinkedIn = svg(1584, 396, `${artwork('ivory', 680, 0, 904, 603)}${rect(0, 0, 740, 396, C.paper)}${fade('left', C.paper, 'right')}${rect(700, 0, 260, 396, 'url(#left)')}${lockup(350, 99, 32)}${text('Your next contribution,', 349, 200, 54, C.forest, { serif: true, spacing: -2 })}${text('clearly.', 349, 261, 60, C.forest, { serif: true, italic: true, spacing: -2 })}${label('PRECISE PLANS / ON SOLANA', 354, 319, 10)}`, 'Lotline LinkedIn cover');
+for (const [name, source] of [['social-square.png', square], ['social-story.png', story], ['ad-landscape.png', landscape(628)], ['og-image.png', landscape(630)], ['header-x.png', headerX], ['header-linkedin.png', headerLinkedIn]]) await png(name, source);
+await save('brand-guide.md', `# Lotline brand kit\n\nSculpture collection, September 21, 2026. A contribution planner on Solana.\n\n## Visual direction\n\nWarm ivory, smoked sage glass, deep forest and restrained typography. The sculpture is an atmospheric background, not a new logo. Keep the selected three-branch mark exactly as supplied. No neon green, fake performance charts, investment promises or decorations crossing text.\n\n## Palette\n\n${Object.entries(C).map(([name, value]) => `- ${name}: ${value}`).join('\n')}\n\n## Formats and safe areas\n\n- Profiles: 1024 × 1024 PNG and SVG. Mark only, with generous circular-crop clearance.\n- Phone wallpaper: 1290 × 2796. Quiet upper area for the clock; minimal lower branding.\n- Desktop wallpaper: 2880 × 1800. Artwork to the right, icon space to the left.\n- Social square: 1080 × 1080. Story: 1080 × 1920.\n- Ad: 1200 × 628. Open Graph: 1200 × 630.\n- X header: 1500 × 500. LinkedIn: 1584 × 396. Important type stays out of the lower-left avatar overlap. Platform crops vary; inspect your uploaded preview.\n- Backgrounds: 1920 × 1080 self-contained SVGs with embedded artwork for decks and new layouts.\n\n## Production\n\nThe two original background materials were generated with the built-in image-generation tool. Source PNGs are preserved in art/. Typography and the exact production mark are native vector layouts in scripts/generate-brand-kit.mjs. PNG exports are rasterized from those compositions. The core logo geometry, orientation and colors are unchanged.\n\n## Saving on a phone\n\nUse Open full size, then save through the browser image or share menu. Downloads may go to Files. The ZIP includes all 19 exports, both original artwork files, this guide and the manifest.\n\n## Voice\n\nYour next contribution, clearly. Explain the next action in plain words. Never imply investment performance or that an illustration proves a completed purchase.\n`);
+const metadata = { version: 2, collection: 'Sculpture', updated: '2026-09-21', brand: 'Lotline', palette: C, sourceArt: ['art/ivory-sculpture.png', 'art/forest-sculpture.png'], assets: {} };
+for (const name of files) {
+  const data = await readFile(new URL(name, output));
+  metadata.assets[name] = { bytes: data.length, sha256: createHash('sha256').update(data).digest('hex') };
+  if (name.endsWith('.png')) { const { width, height } = await sharp(data).metadata(); Object.assign(metadata.assets[name], { width, height }); }
+}
 await save('manifest.json', `${JSON.stringify(metadata, null, 2)}\n`);
-await run('zip', ['-q', '-r', new URL('../public/brand-kit/lotline-brand-kit.zip', import.meta.url).pathname, ...files], { cwd: new URL('../public/brand-kit/', import.meta.url).pathname });
-console.log(`Generated ${files.length} Lotline brand-kit files and ZIP.`);
+const archive = new URL('lotline-brand-kit.zip', output);
+await rm(archive, { force: true });
+await run('zip', ['-q', archive.pathname, ...files, ...metadata.sourceArt], { cwd: output.pathname });
+console.log(`Generated ${files.length} brand-kit files and a fresh ZIP.`);

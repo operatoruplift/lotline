@@ -40,6 +40,12 @@ const config: NextConfig = {
   poweredByHeader: false,
   devIndicators: false,
   logging: { incomingRequests: false, fetches: { fullUrl: false } },
+  images: {
+    localPatterns: [
+      { pathname: '**', search: '' },
+      { pathname: '/brand-kit/**', search: '?v=sculpture-2' },
+    ],
+  },
   async headers() {
     return [{ source: '/:path*', headers: [
       { key: 'Referrer-Policy', value: 'no-referrer' },
