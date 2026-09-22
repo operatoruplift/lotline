@@ -15,10 +15,8 @@ afterEach(() => { vi.unstubAllEnvs(); vi.unstubAllGlobals(); vi.useRealTimers();
 it('retains exact mantissas, exponent and original observation times without price equivalence', () => {
   const response = parsePythReferences(payload(), [mapping.mint], fetchedAt, now);
   expect(marketReferenceResponseSchema.safeParse(response).success).toBe(true);
-  expect(response.items[0]).toMatchObject({ state: 'success', comparison: 'cross-feed-context', comparisonRatio: '1', underlying: { unitBasis: 'underlying-share', price: '23456789012', displayPrice: '234.56789012', displayConfidence: '0.01234567', confidenceBps: '0.5263', state: 'fresh', expiresAt: '2026-09-20T19:05:57.000Z' }, token: { unitBasis: 'unverified-token-unit' } });
-  expect(response.items[0].message).toContain('context only');
-  // The ratio is arithmetic between two feeds, never a verified premium or execution price.
-  expect(response.items[0].message).toContain('not verified against an underlying share');
+  expect(response.items[0]).toMatchObject({ state: 'success', comparison: 'not-comparable', underlying: { unitBasis: 'underlying-share', price: '23456789012', displayPrice: '234.56789012', displayConfidence: '0.01234567', confidenceBps: '0.5263', state: 'fresh', expiresAt: '2026-09-20T19:05:57.000Z' }, token: { unitBasis: 'unverified-token-unit' } });
+  expect(response.items[0].message).toContain('no token premium');
 });
 it('renders integers beyond Number precision exactly and handles positive and negative exponents', () => {
   expect(pythDecimal('9223372036854775807', -8)).toBe('92233720368.54775807');
