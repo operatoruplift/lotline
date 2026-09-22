@@ -19,6 +19,8 @@ Lotline splits your next USDC contribution across tokenized stocks to the exact 
 
 Our target user already knows their xStocks and percentages. Each new USDC contribution requires exact amounts, useful unit estimates and a split they can reuse. Lotline completes that task with a saved/exported plan and an independent trade-review handoff. Percentages apply to the contribution, not portfolio targets; the user chooses every allocation.
 
+**Size of the surface, as reported by third parties.** These are public ecosystem figures, not Lotline metrics, and Lotline has no traction of its own to report. Tokenized equity holders on Solana passed 800,000 across six issuing platforms, and xStocks alone reported over $3 billion in cumulative on-chain volume with roughly 57,000 holders and about 93% of tokenized stock volume as of January 2026. Every one of those holders who contributes more than once faces the arithmetic this tool performs, and the catalog carries 832 verified mints rather than the handful a manual process can track.
+
 ## What works
 
 **The part nothing else in this category does.** Every allocation is computed in integer micro-USDC and basis points, so the whole budget is accounted for with no rounding drift: **10.000001 USDC at 50/30/20 becomes 5.000001 / 3.000000 / 2.000000**, and that exact amount survives into the CSV and into the prefilled Jupiter link. Token-2022 Scaled UI Amount conversion uses the official helper against chain time, so a corporate-action multiplier that changes a displayed balance without any transfer is reflected rather than silently absorbed. Raw holdings and quoted output are summed before formatting, never added as rounded strings. A spreadsheet cannot verify a mint, a multiplier, or when a quote expired.
