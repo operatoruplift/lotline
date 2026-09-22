@@ -9,11 +9,11 @@
 - **Team/public name:** [Team to confirm]
 - **Members and roles:** [Names, roles and profile links to confirm]
 - **Submission contact:** [Team to supply directly in the official form]
-- **Repository/release:** [Contribution implementation edbf36a](https://github.com/operatoruplift/lotline/commit/edbf36ad0e44276cca4919ed17cfe197df2c69a3); [current release evidence](contribution-release-20260920.md)
+- **Repository/release:** [operatoruplift/lotline](https://github.com/operatoruplift/lotline) at [1c9eb08](https://github.com/operatoruplift/lotline/commit/1c9eb0801ee679d647714f9c4f1b69578dc52ccc); [current release evidence](contribution-release-20260920.md)
 
 ## Short description
 
-Lotline turns your next USDC contribution into an exact xStocks split, fresh unit estimates, and a plan you can save and review on Jupiter.
+Lotline splits your next USDC contribution across tokenized stocks to the exact micro-unit, reads the Token-2022 multipliers that silently change what a balance displays, and hands you a plan you can save, share and review on Jupiter.
 
 ## The user and problem
 
@@ -21,9 +21,9 @@ Our target user already knows their xStocks and percentages. Each new USDC contr
 
 ## What works
 
-Start without registration or a wallet extension. Choose up to ten reviewed assets, set percentages and enter USDC. Exact integer arithmetic accounts for the whole budget: **10.000001 at 50/30/20 becomes 5.000001 / 3.000000 / 2.000000**.
+**The part nothing else in this category does.** Every allocation is computed in integer micro-USDC and basis points, so the whole budget is accounted for with no rounding drift: **10.000001 USDC at 50/30/20 becomes 5.000001 / 3.000000 / 2.000000**, and that exact amount survives into the CSV and into the prefilled Jupiter link. Token-2022 Scaled UI Amount conversion uses the official helper against chain time, so a corporate-action multiplier that changes a displayed balance without any transfer is reflected rather than silently absorbed. Raw holdings and quoted output are summed before formatting, never added as rounded strings. A spreadsheet cannot verify a mint, a multiplier, or when a quote expired.
 
-Request estimates, inspect **Verify this plan**, copy/export, and return to the device draft with a different budget. Public-wallet holdings are optional. Existing account users can explicitly save/load/delete named plans; signing in never uploads the draft. Share links require review before replacing it.
+Start without registration or a wallet extension. Choose up to ten reviewed assets, set percentages and enter USDC. Request estimates, inspect **Verify this plan**, copy/export, and return to the device draft with a different budget. Public-wallet holdings are optional. Existing account users can explicitly save/load/delete named plans; signing in never uploads the draft. Share links require review before replacing it.
 
 The responsive PWA's Example includes all 832 snapshot assets. Original six practice rates are preserved; extra assets use generic one-unit-per-100-USDC estimates and zero illustrative holdings, never live prices. The design preserves Lotline's identity, product previews, original decorative media and bounded glass refraction beneath native forms.
 

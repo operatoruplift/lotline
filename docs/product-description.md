@@ -6,7 +6,7 @@ No em dashes are used in this file. Keep it that way when editing.
 
 ## Short description
 
-Lotline turns your next USDC contribution into an exact tokenized-stock split on Solana, with verified mints, amount-specific unit estimates, and a plan you can save, share and review on Jupiter.
+Lotline splits your next USDC contribution across tokenized stocks on Solana to the exact micro-unit, reads the Token-2022 multipliers that silently change what a balance displays, and hands you a plan you can save, share and review on Jupiter.
 
 ## Full description
 
@@ -16,7 +16,7 @@ Lotline is a contribution planner for people who already know which tokenized st
 
 Start with no account in the interactive Example, which carries 832 dated asset identities and clearly synthetic practice estimates. In Live mode, Lotline verifies issuer data and mainnet token configuration, optionally reads a public wallet's holdings, and requests fresh, amount-specific Jupiter estimates. Missing data stays unavailable. It never becomes an invented price or balance.
 
-Precision is the product. Budgets carry six decimal places, allocation runs on BigInt micro-units and integer basis points, and leftover micro-units are distributed by largest remainder. Token-2022 Scaled UI Amount conversion uses the official helper and chain time. Estimates expire within 30 seconds, and every copy or CSV export preserves the original quote time alongside an explicit fresh, stale or unavailable state.
+Precision is the product, and it is the part a spreadsheet cannot reproduce. Budgets carry six decimal places, allocation runs on BigInt micro-units and integer basis points, and leftover micro-units are distributed by largest remainder, so the whole budget is accounted for with no rounding drift. Token-2022 Scaled UI Amount conversion uses the official helper against chain time, so a corporate-action multiplier that changes a displayed balance without any transfer is reflected rather than silently absorbed. Raw holdings and quoted output are summed before formatting, never added as rounded strings. Estimates expire within 30 seconds, and every copy or CSV export preserves the original quote time alongside an explicit fresh, stale or unavailable state.
 
 Save a split on your device, share a plan for review, export the calculations, or set a manual contribution reminder as a calendar event. Existing account holders can opt into named cloud plans, which store only the plan name, verified mints, weights and budget under row-level security. Wallet addresses, balances and quotes are never saved and never enter a share link. The installable web app runs across desktop and mobile, and Example planning keeps working offline.
 

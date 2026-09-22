@@ -15,5 +15,9 @@ export async function POST(request: Request) {
     return Response.json(emptyMarketReference([], 'invalid-input', 'Provide one to ten unique verified xStock mints.'), { status: 400, headers: noStore });
   }
   const response = await getMarketReferences(mints);
-  return Response.json(response, { status: httpStatus(response.state), headers: noStore });
+  // An optional reference panel that is deliberately switched off is not a server
+  // fault. Answering 503 logged an error on every page view and reads as an outage
+  // in a reviewer's network tab; the body already states the exact condition.
+  const status = response.state === 'configuration-required' ? 200 : httpStatus(response.state);
+  return Response.json(response, { status, headers: noStore });
 }
