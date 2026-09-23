@@ -21,7 +21,11 @@ This is an inference from the issuer's documented unit semantics, not a claim th
 
 ## Verification and external requirements
 
-Verification results and the deployment identity are recorded after checks complete. Local fixtures are explicitly not authenticated provider delivery.
+- Local: canonical typecheck, production build and changed-file lint passed. Seventy-two targeted unit/server tests passed. The eight existing market-reference browser cases passed; the new 320px benchmark, accessibility and currency-expiry case passed after correcting a mobile-only test selector and keeping accessibility timers running while wall time is fixed.
+- Independent TypeScript/security review approved the calculation, currency adapter, UI and final test changes without findings. [Mobile capture](screens/quote-benchmark-320.png) uses controlled prices (including USDC at $0.98), not live market observations.
+- [CI run 35814722032](https://github.com/operatoruplift/lotline/actions/runs/35814722032) passed lint, typecheck, 512 unit tests, the production build and all 108 browser tests without retries. Two opt-in live tests were skipped. The tested head was `5f78014ecb7852693f3cb4d585d6fd0c8118f5b5`; [PR #4](https://github.com/operatoruplift/lotline/pull/4) merged it into main as `8d60e28`. Fixtures do not establish authenticated provider delivery or settlement.
+- Vercel production `dpl_fVUc85c9VdnJtFeKVHsbw2gPNjPy` is READY at [lotline.dev](https://lotline.dev), with metadata matching merged SHA `8d60e287ee77a5f9ceb8862bfe888c3209bb2f45`. [Deployment identity](benchmark-deployment.json).
+- [Hosted checks](benchmark-hosted.json) returned eight verified PreStocks assets and the new demo copy with preserved video. Pyth returned `configuration-required`, zero equity observations and no USDC price; execution remained disabled with receipt reconciliation available. No transaction was signed or submitted.
 
 Production still needs Sensitive `PYTH_API_KEY` and `JUPITER_API_KEY` variables, the existing restricted access policy, and a reviewed public wallet. A funded supported route and separately authorized user wallet approval are necessary before any real settlement can be demonstrated. No seed phrase or private key belongs in the app or release evidence.
 
