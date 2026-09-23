@@ -1,0 +1,4 @@
+/* Overscanned films and independent wrappers keep text and hit targets stable. */
+@media (prefers-reduced-motion: no-preference) {
+  .root [data-scroll-layer] { transform: translate3d(0, var(--scroll-y, 0px), 0); }
+}

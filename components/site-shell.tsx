@@ -16,12 +16,12 @@ export function SiteHeader({ active, dataMode }: { active?: 'app' | 'how' | 'pre
   </div></header>;
 }
 
-export function SiteFooter() {
-  return <footer className={`site-footer ${styles.footer}`} data-design="heritage-grove">
+export function SiteFooter({ immersive = false }: { immersive?: boolean }) {
+  return <footer className={`site-footer ${styles.footer}`} data-design="heritage-grove" data-scroll-scene={immersive ? true : undefined}>
     <div className={styles.footerCopy}>
       <div><Reveal effect="footer"><Brand /></Reveal><Reveal effect="footer" delay={80}><h2>A clearer<br /><em>next step.</em></h2></Reveal><Reveal effect="footer" delay={160}><p>A little clarity for your next contribution.</p></Reveal></div>
       <div className={styles.footerRight}><Reveal effect="footer" delay={160}><nav aria-label="Footer navigation"><Link href="/how-it-works">How it works</Link><Link href="/demo">Demo</Link><Link href="/brand-kit">Brand kit</Link><Link href="/privacy">Privacy & storage</Link><a href="#install-lotline">Install app</a><a href="https://github.com/operatoruplift/lotline" target="_blank" rel="noopener noreferrer">GitHub <ArrowUpRight size={12} aria-hidden="true" /><span className="sr-only"> (opens in a new tab)</span></a></nav></Reveal><Reveal effect="footer" delay={240}><p>Made for Solana. Planning only.<br />You review every trade.</p></Reveal></div>
     </div>
-    <Reveal className={styles.footerMedia} effect="fade"><DecorativeVideo src="/media/design/footer-landscape.mp4" poster="/media/design/footer-landscape-poster.jpg" label="Footer landscape" /></Reveal>
+    <Reveal className={styles.footerMedia} effect="fade"><div className={immersive ? styles.footerDepth : styles.footerStill} data-scroll-layer={immersive ? "24" : undefined}><DecorativeVideo src="/media/design/footer-landscape.mp4" poster="/media/design/footer-landscape-poster.jpg" label="Footer landscape" /></div></Reveal>
   </footer>;
 }
