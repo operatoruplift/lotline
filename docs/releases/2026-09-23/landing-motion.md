@@ -23,9 +23,11 @@ Completed local checks:
 | Layout, native scrolling and motion-preference browser cases | 5 passed on the development server at `http://127.0.0.1:3140` |
 | Decorative-media browser cases | 5 passed on the same development server |
 | Production regression run at `2cc830a` | 113 browser cases passed; the original no-JavaScript expectation failed consistently, exposing the existing stream dependency |
-| JavaScript-disabled fallback and unavailable client-bundle checks | Corrected behavior and expectations; final production results pending |
+| JavaScript-disabled fallback and unavailable client-bundle checks | Unavailable-client-bundle check passed on the built local server; disabled-JavaScript instruction awaits final CI |
 
-The browser checks cover responsive depth bounds, usable navigation, focus visibility, preference changes, media preparation before entry, playback visibility and poster behavior. Development results are not a production-build verification. Fixture tests and media checks are not live provider or purchase evidence.
+The browser checks cover responsive depth bounds, usable navigation, focus visibility, preference changes, media preparation before entry, playback visibility and poster behavior. A subsequent production build also completed locally, and both native-scroll cases plus the blocked-client-bundle case passed against it (3 cases, no retries). Fixture tests and media checks are not live provider or purchase evidence.
+
+Screenshots from the local production build: [desktop hero](screens/landing-hero-1440.png), [desktop features](screens/landing-features-1440.png), [phone hero](screens/landing-hero-390.png), [phone features](screens/landing-features-390.png).
 
 ## Hosted observations before the motion release
 
