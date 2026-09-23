@@ -41,10 +41,13 @@ test('iPhone viewport explains Safari installation without pretending to install
     // colors rather than a transient opacity blend, with normal motion intact.
     const footerReveal = page.locator('footer:visible [data-reveal="footer"]').filter({ hasText: 'Made for Solana. Planning only.' });
     await expect(footerReveal).toHaveAttribute('data-seen', 'true');
-    await expect.poll(() => footerReveal.evaluate(node => {
-      const animations = node.getAnimations();
-      return animations.length > 0 && animations.every(animation => animation.playState === 'finished');
-    })).toBe(true);
+    // Once the entrance ends the reveal marks itself complete, which drops
+    // data-reveal-enhanced and detaches the CSS animation, so a settled footer
+    // legitimately reports no animations at all. Assert that nothing is still
+    // running rather than that an animation object survives.
+    await expect.poll(() => footerReveal.evaluate(node =>
+      node.getAnimations().every(animation => animation.playState === 'finished'),
+    )).toBe(true);
     await expect(footerReveal).toHaveCSS('opacity', '1');
     expect((await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21aa']).analyze()).violations).toEqual([]);
   } finally { await context.close(); }
