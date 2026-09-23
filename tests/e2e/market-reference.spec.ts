@@ -18,6 +18,8 @@ async function setup(page: Page, withScaling = false) {
   });
   await page.goto('/app');
   await page.getByRole('button', { name: 'Apply illustrative split', exact: true }).click();
+  // Keep the short currency-expiry window independent of runner/render speed.
+  if (withScaling) await page.clock.pauseAt(new Date(Date.now() + 60_000));
   await page.getByRole('button', { name: 'Get estimates', exact: true }).click();
   await expect(page.locator('.results-table td[data-label="Estimated +units"]')).toHaveText(['+1.23', '+1.23', '+1.23']);
 }
