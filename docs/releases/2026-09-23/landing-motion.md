@@ -23,7 +23,7 @@ Completed local checks:
 | Layout, native scrolling and motion-preference browser cases | 5 passed on the development server at `http://127.0.0.1:3140` |
 | Decorative-media browser cases | 5 passed on the same development server |
 | Production regression run at `2cc830a` | 113 browser cases passed; the original no-JavaScript expectation failed consistently, exposing the existing stream dependency |
-| JavaScript-disabled fallback and unavailable client-bundle checks | Unavailable-client-bundle check passed on the built local server; disabled-JavaScript instruction awaits final CI |
+| JavaScript-disabled fallback and unavailable client-bundle checks | Both passed in final production CI and on the public domain; the instruction also passed locally in development |
 
 The browser checks cover responsive depth bounds, usable navigation, focus visibility, preference changes, media preparation before entry, playback visibility and poster behavior. A subsequent production build also completed locally, and both native-scroll cases plus the blocked-client-bundle case passed against it (3 cases, no retries). Fixture tests and media checks are not live provider or purchase evidence.
 
@@ -54,9 +54,8 @@ No wallet was connected, no order requested, no transaction signed or submitted,
 
 ## Motion release identity and final checks
 
-- Production build and JavaScript-disabled test: **pending**.
-- CI run, checked revision and results: **pending**.
-- Production deployment ID, source revision and readiness: **pending**.
-- Hosted checks after deploying the motion changes: **pending**.
-
-Fill these fields only from completed checks; the earlier hosted observations above must retain their timestamp and scope.
+- [PR #5](https://github.com/operatoruplift/lotline/pull/5) merged to `main` as `58b3f42bd883b3c33b59ee4dfa39a0de9c75a31b`.
+- [Final CI run35819328628](https://github.com/operatoruplift/lotline/actions/runs/35819328628) passed lint, typechecking, the production build, **512 unit tests** and **115 browser tests without retries**. Two opt-in live unit tests were skipped. Checked revision `2738b72deed76224cc3af11d07bfc147a95672a1` and the merge have the identical source tree `9181fda9526404335684e14cb4d4764715dd7b12`.
+- Vercel deployment `dpl_CfgVihQbuJMzq5WpoBCSegF1ZQH8` is **READY**, built from that merge and assigned to `lotline.dev`. [Deployment evidence](landing-deployment.json) records the source, aliases checked and CI identity. Subsequent evidence-only commits may redeploy the same application source.
+- All **5 focused browser tests passed on https://lotline.dev**, with no retries: desktop/phone native scrolling and planner navigation, dynamic motion preferences, the disabled-JavaScript instruction, and readable content when client bundles cannot load. Public-site screenshots: [desktop](screens/landing-live-hero-1440.png), [phone](screens/landing-live-hero-390.png).
+- [After-release HTTP evidence](landing-hosted.json), observed at04:52:37UTC, confirms six pages200, current demo copy and eight verified PreStocks assets. Pyth remains configuration-required and in-app purchases remain disabled. No real settlement was performed or claimed.

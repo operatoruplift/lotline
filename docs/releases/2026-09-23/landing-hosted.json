@@ -1,0 +1,94 @@
+{
+  "beganAt": "2026-09-23T04:52:29.890Z",
+  "observedAt": "2026-09-23T04:52:37.125Z",
+  "origin": "https://lotline.dev",
+  "reportedDeployment": {
+    "sourceRevision": "58b3f42",
+    "deploymentId": "dpl_CfgVihQbuJMzq5WpoBCSegF1ZQH8",
+    "identitySource": "Release owner supplied deployment identity; this check probes the canonical URL."
+  },
+  "pages": [
+    {
+      "path": "/",
+      "httpStatus": 200,
+      "title": "Lotline — Your next contribution, clearly.",
+      "hasLandingMotion": true,
+      "hasScrollLayer54": true
+    },
+    {
+      "path": "/app?mode=example",
+      "httpStatus": 200,
+      "title": "Make a plan · Lotline"
+    },
+    {
+      "path": "/pre-ipo",
+      "httpStatus": 200,
+      "title": "Plan a PreStocks contribution · Lotline"
+    },
+    {
+      "path": "/demo",
+      "httpStatus": 200,
+      "title": "See Lotline in action · Lotline",
+      "currentBenchmarkCopy": true,
+      "datedRehearsalDisclaimer": true
+    },
+    {
+      "path": "/brand-kit",
+      "httpStatus": 200,
+      "title": "Brand kit · Lotline"
+    },
+    {
+      "path": "/privacy",
+      "httpStatus": 200,
+      "title": "Privacy &amp; storage · Lotline"
+    }
+  ],
+  "endpoints": [
+    {
+      "path": "/api/prestocks/assets",
+      "method": "GET",
+      "httpStatus": 200,
+      "state": "success",
+      "verifiedAssets": 8,
+      "unavailable": 0,
+      "symbols": [
+        "ANDURIL",
+        "ANTHROPIC",
+        "FIGUREAI",
+        "KALSHI",
+        "NEURALINK",
+        "OPENAI",
+        "POLYMARKET",
+        "SPACEX"
+      ]
+    },
+    {
+      "path": "/api/execution/config",
+      "method": "GET",
+      "httpStatus": 200,
+      "state": "configuration-required",
+      "enabled": false,
+      "reconciliationAvailable": true,
+      "message": "In-app purchases are not available in this release. You can plan a contribution and review it independently on Jupiter."
+    },
+    {
+      "path": "/api/market-reference",
+      "method": "POST",
+      "readOnly": true,
+      "requestedPinnedMints": 3,
+      "httpStatus": 200,
+      "state": "configuration-required",
+      "equityObservations": 0,
+      "tokenObservations": 0,
+      "hasUsdc": false,
+      "message": "Pyth price access is not configured. Your Jupiter estimates remain available."
+    }
+  ],
+  "scope": "Read-only page, catalog and readiness checks. Media availability was checked earlier and was not repeated. No fresh quote, wallet, order or transaction request.",
+  "walletConnected": false,
+  "orderRequested": false,
+  "transactionSigned": false,
+  "transactionSubmitted": false,
+  "environmentRead": false,
+  "environmentChanged": false
+}
