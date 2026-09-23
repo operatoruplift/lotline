@@ -60,3 +60,38 @@ test('decorative players release the old route and use the mobile derivative', a
   await expect.poll(() => page.evaluate(() => { const old = (window as unknown as { retiredVideo:HTMLVideoElement }).retiredVideo; return { paused:old.paused, source:old.getAttribute('src'), connected:old.isConnected }; })).toEqual({ paused:true, source:null, connected:false });
   await page.goto('/'); await expect(page.getByRole('heading',{ name:'Your next contribution, clearly.' })).toBeVisible();
 });
+
+test('the next decorative scene decodes before entry but only plays in the viewport', async ({ page }) => {
+  await page.goto('/');
+  const scene = page.getByRole('main').locator('[data-decorative-video="A little room to think"]');
+  const video = scene.locator('video');
+  await expect(video).not.toHaveAttribute('src');
+  await scene.evaluate(node => window.scrollBy({ top: node.getBoundingClientRect().top - innerHeight - 140, behavior: 'instant' }));
+  await expect(video).toHaveAttribute('src', /\/media\/design\/support\.mp4$/);
+  await expect.poll(() => video.evaluate(node => (node as HTMLVideoElement).readyState)).toBeGreaterThanOrEqual(2);
+  expect(await scene.evaluate(node => node.getBoundingClientRect().top > innerHeight)).toBe(true);
+  expect(await video.evaluate(node => ({ paused: (node as HTMLVideoElement).paused, time: (node as HTMLVideoElement).currentTime }))).toEqual({ paused: true, time: 0 });
+  await scene.scrollIntoViewIfNeeded();
+  await expect.poll(() => video.evaluate(node => (node as HTMLVideoElement).currentTime)).toBeGreaterThan(.1);
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await expect.poll(() => video.evaluate(node => ({ paused: (node as HTMLVideoElement).paused, opacity: Number(getComputedStyle(node).opacity) })) ).toEqual({ paused: true, opacity: 0 });
+});
+
+test('offline and reduced-motion visits do not request decorative films', async ({ page }) => {
+  const films: string[] = [];
+  page.on('request', request => { if (new URL(request.url()).pathname.endsWith('.mp4')) films.push(request.url()); });
+  await page.addInitScript(() => Object.defineProperty(navigator, 'onLine', { configurable: true, get: () => false }));
+  await page.goto('/');
+  const hero = page.getByRole('main').locator('[data-decorative-video="Hero boomerang"]');
+  await expect(page.locator('html')).toHaveAttribute('data-motion', 'running');
+  await expect.poll(() => hero.locator('img').evaluate(node => (node as HTMLImageElement).naturalWidth)).toBeGreaterThan(0);
+  await page.getByRole('contentinfo').scrollIntoViewIfNeeded();
+  await expect(page.locator('video[src]')).toHaveCount(0);
+  expect(films).toEqual([]);
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await page.evaluate(() => { Object.defineProperty(navigator, 'onLine', { configurable: true, get: () => true }); window.dispatchEvent(new Event('online')); });
+  await expect(page.locator('html')).toHaveAttribute('data-motion', 'reduced');
+  await expect(page.locator('video[src]')).toHaveCount(0);
+  expect(films).toEqual([]);
+  await expect.poll(() => page.getByRole('contentinfo').locator('[data-reveal]').evaluateAll(nodes => nodes.every(node => getComputedStyle(node).opacity === '1' && getComputedStyle(node).transform === 'none'))).toBe(true);
+});

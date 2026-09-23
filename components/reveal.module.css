@@ -1,13 +1,14 @@
-.reveal{min-width:0}
+.reveal{min-width:0;--reveal-stagger:var(--reveal-delay,0ms)}
 @media(prefers-reduced-motion:no-preference){
-  :global(html[data-motion="running"]) .reveal[data-seen="false"]{opacity:0;transform:translateY(30px)}
-  .reveal[data-seen="true"].rise{animation:rise .6s var(--reveal-delay,0ms) ease-out both}
-  .reveal[data-seen="true"].blur{animation:blur 1.2s var(--reveal-delay,0ms) ease-out both}
-  .reveal[data-seen="true"].footer{animation:footer .72s var(--reveal-delay,0ms) cubic-bezier(.22,1,.36,1) both}
-  .reveal[data-seen="true"].fade{animation:fade 1.35s var(--reveal-delay,0ms) ease-out both}
+  :global(html[data-motion="running"]) .reveal[data-reveal-enhanced="true"][data-seen="false"]{opacity:0;transform:translateY(18px)}
+  .reveal[data-reveal-enhanced="true"][data-seen="true"].rise{animation:rise .55s var(--reveal-stagger) cubic-bezier(.22,1,.36,1) both}
+  .reveal[data-reveal-enhanced="true"][data-seen="true"].blur{animation:soften .65s var(--reveal-stagger) cubic-bezier(.22,1,.36,1) both}
+  .reveal[data-reveal-enhanced="true"][data-seen="true"].footer{animation:footer .6s var(--reveal-stagger) cubic-bezier(.22,1,.36,1) both}
+  .reveal[data-reveal-enhanced="true"][data-seen="true"].fade{animation:fade .75s var(--reveal-stagger) ease-out both}
 }
+@media(max-width:800px){.reveal{--reveal-stagger:0ms}}
 .reveal:focus-within{opacity:1!important;filter:none!important;transform:none!important;animation:none!important}
-@keyframes rise{from{opacity:0;transform:translateY(30px)}to{opacity:1;transform:translateY(0)}}
-@keyframes blur{from{opacity:0;filter:blur(20px)}to{opacity:1;filter:blur(0)}}
+@keyframes rise{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:translateY(0)}}
+@keyframes soften{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
 @keyframes footer{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
 @keyframes fade{from{opacity:0}to{opacity:1}}

@@ -21,6 +21,7 @@ export function DecorativeVideo({ src, mobileSrc, poster, label, className = '',
   const { motionAllowed } = useMotion();
   const online = useSyncExternalStore(subscribeNetwork, onlineSnapshot, offlineSnapshot);
   const [inView, setInView] = useState(false);
+  const [nearView, setNearView] = useState(false);
   const [sourceReady, setSourceReady] = useState(false);
   const [failed, setFailed] = useState(false);
   const [playing, setPlaying] = useState(false);
@@ -28,19 +29,22 @@ export function DecorativeVideo({ src, mobileSrc, poster, label, className = '',
     const node = container.current;
     if (!node) return;
     const observer = new IntersectionObserver(entries => setInView(entries.some(entry => entry.isIntersecting)), { threshold: 0.01 });
+    const preloadObserver = new IntersectionObserver(entries => setNearView(entries.some(entry => entry.isIntersecting)), { rootMargin: '280px 0px', threshold: 0 });
     observer.observe(node);
-    return () => observer.disconnect();
+    preloadObserver.observe(node);
+    return () => { observer.disconnect(); preloadObserver.disconnect(); };
   }, []);
   useEffect(() => {
-    if (!motionAllowed || !online || !inView || sourceReady || sourceAssigned.current) return;
-    // Assign the source only when the scene is visible and motion is allowed.
+    if (!motionAllowed || !online || !nearView || sourceReady || sourceAssigned.current) return;
+    // Warm the next scene just before entry; playback still requires actual visibility.
     const node = video.current;
     if (!node) return;
     sourceAssigned.current = true;
-    // Pick once for the first visible playback; resizing never downloads both films.
+    // Pick once for the first nearby scene; resizing never downloads both films.
+    node.preload = 'auto';
     node.src = mobileSrc && window.matchMedia('(max-width: 700px)').matches ? mobileSrc : src;
     node.load();
-  }, [motionAllowed, online, inView, sourceReady, src, mobileSrc]);
+  }, [motionAllowed, online, nearView, sourceReady, src, mobileSrc]);
   useEffect(() => {
     const node = video.current;
     if (!node) return;
@@ -54,6 +58,6 @@ export function DecorativeVideo({ src, mobileSrc, poster, label, className = '',
     {/* A real still remains visible when motion is reduced, blocked, or unavailable. */}
     {/* eslint-disable-next-line @next/next/no-img-element */}
     <img className={styles.poster} src={poster} alt="" loading={priority ? 'eager' : 'lazy'} fetchPriority={priority ? 'high' : 'low'} decoding="async" style={{ objectFit: fit }} />
-    <video ref={video} className={styles.video} muted playsInline loop preload="none" aria-hidden="true" tabIndex={-1} style={{ objectFit: fit, opacity: playing && !failed ? 1 : 0 }} onLoadedData={() => setSourceReady(true)} onPlaying={() => setPlaying(true)} onError={() => { setFailed(true); setPlaying(false); }} />
+    <video ref={video} className={styles.video} muted playsInline loop preload="none" aria-hidden="true" tabIndex={-1} style={{ objectFit: fit, opacity: playing && !failed && motionAllowed && online ? 1 : 0 }} onLoadedData={() => setSourceReady(true)} onPlaying={() => setPlaying(true)} onError={() => { setFailed(true); setPlaying(false); }} />
   </div>;
 }
