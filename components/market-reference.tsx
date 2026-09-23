@@ -15,6 +15,7 @@ type Props = {
   planIdentity: string;
   now: number;
   enabled: boolean;
+  onData?: (data: MarketReferenceResponse | null) => void;
 };
 type Result = { key: string; data?: MarketReferenceResponse; error?: string };
 
@@ -33,7 +34,7 @@ function ObservationCard({ observation, label, now }: { observation?: Observatio
 }
 
 /** Oracle observations never replace a quote, renew it, or authorize a purchase. */
-export function MarketReference({ assets, quotes, mode, planIdentity, now, enabled }: Props) {
+export function MarketReference({ assets, quotes, mode, planIdentity, now, enabled, onData }: Props) {
   const [refresh, setRefresh] = useState(0);
   const [result, setResult] = useState<Result | null>(null);
   const successful = quotes?.quotes.filter(quote => quote.state === 'success') ?? [];
@@ -42,7 +43,10 @@ export function MarketReference({ assets, quotes, mode, planIdentity, now, enabl
     ? JSON.stringify([planIdentity, successful.map(quote => [quote.mint, quote.usdcRaw, quote.outRaw, quote.units, quote.fetchedAt]), refresh]) : '';
 
   useEffect(() => {
-    if (!requestKey) return;
+    onData?.(null);
+    if (!requestKey) {
+      return;
+    }
     const controller = new AbortController();
     const mints = JSON.parse(mintKey) as string[];
     void (async () => {
@@ -59,13 +63,13 @@ export function MarketReference({ assets, quotes, mode, planIdentity, now, enabl
         if (new Set(returned).size !== returned.length || returned.some(mint => !mints.includes(mint))
           || (['success', 'partial', 'stale'].includes(data.state) && returned.length !== mints.length)
           || (!response.ok && data.items.some(item => item.underlying || item.token))) throw new Error('Unverified reference response.');
-        if (!controller.signal.aborted) setResult({ key: requestKey, data });
+        if (!controller.signal.aborted) { setResult({ key: requestKey, data }); onData?.(data); }
       } catch {
-        if (!controller.signal.aborted) setResult({ key: requestKey, error: 'Pyth market references could not be verified. Your contribution estimates are still available.' });
+        if (!controller.signal.aborted) { setResult({ key: requestKey, error: 'Pyth market references could not be verified. Your contribution estimates are still available.' }); onData?.(null); }
       }
     })();
     return () => controller.abort();
-  }, [requestKey, mintKey]);
+  }, [requestKey, mintKey, onData]);
 
   if (!requestKey) return null;
   const current = result?.key === requestKey ? result : null;
@@ -78,7 +82,7 @@ export function MarketReference({ assets, quotes, mode, planIdentity, now, enabl
       <div><p className={styles.eyebrow}><Activity size={14} />PYTH MARKET DATA</p><h3 id="market-reference-title">Put the estimate in context.</h3></div>
       <button type="button" className={styles.refresh} disabled={pending} onClick={() => setRefresh(value => value + 1)} aria-label="Refresh market references"><RefreshCw size={15} />Refresh references</button>
     </div>
-    <p className={styles.intro}>See the underlying equity and token reference side by side, with their original publication times. Reference prices are separate from your amount-specific Jupiter estimate.</p>
+    <p className={styles.intro}>See the underlying equity and token reference side by side, with their original publication times. The cross-feed ratio is context only; your amount-specific Jupiter estimate remains the execution estimate.</p>
     {pending ? <p className={styles.status} role="status"><LoaderCircle size={16} className="spinning" />Checking reference freshness…</p> : !hasObservations ? <p className={styles.status} role="status">{current?.error ?? 'Pyth market data is currently unavailable. Your Jupiter estimates remain available; no reference-price check is claimed.'}</p> : <>
       {quoteExpired && <p className={styles.warning} role="status"><Clock3 size={16} />Your contribution estimate expired. Refresh estimates before reviewing these observations together.</p>}
       <div className={styles.assets}>{data!.items.map(item => {
@@ -87,10 +91,10 @@ export function MarketReference({ assets, quotes, mode, planIdentity, now, enabl
         const stale = observations.some(observation => observation.state === 'stale' || !isPythObservationFresh(observation, now));
         return <article key={item.mint} className={styles.asset} data-reference-mint={item.mint}>
           <div className={styles.assetHeading}><h4>{asset?.symbol ?? 'Selected asset'} <span>{asset?.name}</span></h4><span className={stale || !observations.length ? styles.stale : styles.current}>{!observations.length ? 'Reference unavailable' : stale ? 'Reference check stale' : 'Reference data current'}</span></div>
-          {observations.length ? <div className={styles.prices}><ObservationCard observation={item.underlying} label="Underlying equity · per share" now={now} /><ObservationCard observation={item.token} label="Token feed · unit basis unverified" now={now} /></div> : <p className={styles.detail}>{item.message ?? 'No verified reference is available for this selection.'}</p>}
+          {observations.length ? <><div className={styles.prices}><ObservationCard observation={item.underlying} label="Underlying equity · per share" now={now} /><ObservationCard observation={item.token} label="Token feed · unit basis unverified" now={now} /></div>{!stale && item.comparison === 'cross-feed-context' && item.comparisonRatio && <p className={styles.comparison} data-reference-comparison>Feed-price ratio: approximately {item.comparisonRatio}× (token USD feed ÷ equity USD feed, rounded down to eight decimal places). The feed units are not verified as equivalent, so this is context only.</p>}</> : <p className={styles.detail}>{item.message ?? 'No verified reference is available for this selection.'}</p>}
         </article>;
       })}</div>
-      <p className={styles.note}>The token feed’s unit basis has not been verified against scaled token units. No premium, discount, fair value, or execution-price comparison is calculated. Refreshing references never refreshes an older quote.</p>
+      <p className={styles.note}>Mapped assets require fresh equity and token feeds for purchase review. Equity feeds can stop updating outside market hours. The ratio does not establish a premium, fair value, or execution price. Refreshing references never refreshes an older quote.</p>
     </>}
     <a className={styles.source} href="https://docs.pyth.network/price-feeds" target="_blank" rel="noopener noreferrer">About Pyth price data <ExternalLink size={12} /></a>
   </section>;

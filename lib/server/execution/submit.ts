@@ -62,10 +62,11 @@ export async function validateSignedTransaction(order: Pick<ExecutionOrder, 'tra
   return { encoded, signature: Buffer.from(signature).toString('base64'), chainSignature, signedTransactionHash: createHash('sha256').update(signedBytes).digest('hex') };
 }
 
-export async function executeOnJupiter(signedTransaction: string, requestId: string, expectedSignature: string, lastValidBlockHeight?: string): Promise<{ status: 'Success' | 'Failed'; signature?: string; code?: number; error?: string; inputAmountResult?: string; outputAmountResult?: string }> {
+export async function executeOnJupiter(signedTransaction: string, requestId: string, expectedSignature: string, lastValidBlockHeight?: string, beforeDispatch?: () => void): Promise<{ status: 'Success' | 'Failed'; signature?: string; code?: number; error?: string; inputAmountResult?: string; outputAmountResult?: string }> {
   const apiKey = process.env.JUPITER_API_KEY?.trim();
   if (!apiKey) throw new ServiceError('configuration-required', 'Executable orders need a server-side Jupiter API key.');
   await reserveProviderSlot('jupiter');
+  beforeDispatch?.();
   const payload = await fetchJson('https://api.jup.ag/swap/v2/execute', { method: 'POST', headers: { 'content-type': 'application/json', 'x-api-key': apiKey }, body: JSON.stringify({ signedTransaction, requestId, ...(lastValidBlockHeight ? { lastValidBlockHeight } : {}) }) });
   const parsed = executeResponseSchema.safeParse(payload);
   if (!parsed.success) throw new ServiceError('unavailable', 'Jupiter returned an unsupported execution response.');

@@ -1,16 +1,12 @@
 import 'server-only';
 import { z } from 'zod';
 import { XSTOCK_REGISTRY } from '../domain/assets';
-import { MARKET_REFERENCE_MAX_MINTS, PYTH_MAX_AGE_SECONDS, isPythObservationFresh, pythConfidenceBps, pythDecimal, type MarketReferenceItem, type MarketReferenceResponse, type PythObservation } from '../domain/market-reference';
+import { MARKET_REFERENCE_MAX_MINTS, PYTH_FEED_MAPPINGS, PYTH_MAX_AGE_SECONDS, isPythObservationFresh, pythConfidenceBps, pythDecimal, pythRatio, type MarketReferenceItem, type MarketReferenceResponse, type PythObservation } from '../domain/market-reference';
 import { addressSchema, BoundedCache, ServiceError, SpacedQueue } from './common';
 
 // Verified against official Hermes metadata; see the dated public discovery evidence.
 // No symbol guessing, user-provided feed IDs, or cross-chain token-price equivalence.
-export const PYTH_FEEDS = [
-  { mint: 'XsbEhLAtcf6HdfpFZ5xEMdqW8nfAvcsP5bdudRLJzJp', symbol: 'AAPL', underlying: '49f6b65cb1de6b10eaf75e7c03ca029c306d0357e91b5311b175084a5ad55688', token: '978e6cc68a119ce066aa830017318563a9ed04ec3a0a6439010fc11296a58675' },
-  { mint: 'XspzcW1PRtgf6Wj92HCiZdjzKCyFekVD8P5Ueh3dRMX', symbol: 'MSFT', underlying: 'd0ca23c1cc005e004ccf1db5bf76aeb6a49218f43dac3d4b275e92de12ded4d1', token: 'bb723a70af731ab56b9a650eb7e8ac22b7bc07ea77f8670bd1fa9a37bf6df3f5' },
-  { mint: 'Xsc9qvGR1efVDFGLrVsmkzv3qi45LTBjeUKSPmx9qEh', symbol: 'NVDA', underlying: 'b1073854ed24cbc755dc527418f52b7d271f6cc967bbf8d8129112b18860a593', token: '4244d07890e4610f46bbde67de8f43a4bf8b569eebe904f136b469f148503b7f' },
-] as const;
+export const PYTH_FEEDS = PYTH_FEED_MAPPINGS;
 const HERMES = 'https://pyth.dourolabs.app/hermes/v2/updates/price/latest';
 const MAX_BYTES = 256 * 1024;
 const MAX_PENDING = 4;
@@ -20,7 +16,7 @@ const pending = new Map<string, Promise<MarketReferenceResponse>>();
 const knownMints = new Set(XSTOCK_REGISTRY.map(asset => asset.mint));
 let starts: number[] = [];
 let cooldownUntil = 0;
-const caveat = 'Separate USD references. The token feed unit basis is unverified; no token premium or Jupiter execution-price comparison is calculated.';
+const caveat = 'Separate USD references. The cross-feed ratio is context only; the token feed unit basis is not verified against an underlying share.';
 
 export const marketReferenceRequestSchema = z.object({
   mints: z.array(addressSchema).min(1).max(MARKET_REFERENCE_MAX_MINTS).refine(mints => new Set(mints).size === mints.length),
@@ -69,7 +65,9 @@ export function parsePythReferences(payload: unknown, mints: string[], fetchedAt
     if (!mapping) return { mint, state: 'unavailable', comparison: 'not-comparable', message: 'No verified Pyth feed mapping is available for this asset.' };
     const underlying = observation(mapping.underlying, `Equity.US.${mapping.symbol}/USD`, 'underlying');
     const token = observation(mapping.token, `Crypto.${mapping.symbol}X/USD`, 'token');
-    return { mint, state: itemState(underlying, token), comparison: 'not-comparable', ...(underlying ? { underlying } : {}), ...(token ? { token } : {}), message: underlying || token ? caveat : 'Pyth did not return these price feeds.' };
+    const state = itemState(underlying, token);
+    const comparable = Boolean(underlying && token && state === 'success');
+    return { mint, state, comparison: comparable ? 'cross-feed-context' : 'not-comparable', ...(comparable ? { comparisonRatio: pythRatio(token!, underlying!) } : {}), ...(underlying ? { underlying } : {}), ...(token ? { token } : {}), message: underlying || token ? caveat : 'Pyth did not return these price feeds.' };
   });
   const expiries = items.flatMap(item => [item.underlying, item.token].filter(value => value !== undefined).map(value => Date.parse(value.expiresAt)));
   return { source: 'pyth', state: summarize(items), fetchedAt, expiresAt: expiries.length ? new Date(Math.min(...expiries)).toISOString() : fetchedAt, items, message: caveat };
@@ -81,7 +79,13 @@ function current(response: MarketReferenceResponse): MarketReferenceResponse {
     const refresh = (value: PythObservation | undefined): PythObservation | undefined => value && { ...value, state: isPythObservationFresh(value) ? 'fresh' : 'stale' };
     const underlying = refresh(item.underlying);
     const token = refresh(item.token);
-    return { ...item, ...(underlying ? { underlying } : {}), ...(token ? { token } : {}), state: itemState(underlying, token) };
+    const state = itemState(underlying, token);
+    const refreshed: MarketReferenceItem = { ...item, ...(underlying ? { underlying } : {}), ...(token ? { token } : {}), state };
+    if (state !== 'success') {
+      refreshed.comparison = 'not-comparable';
+      delete refreshed.comparisonRatio;
+    }
+    return refreshed;
   });
   return { ...response, items, state: summarize(items) };
 }

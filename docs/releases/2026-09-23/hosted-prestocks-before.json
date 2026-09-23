@@ -1,0 +1,145 @@
+{
+  "evidenceKind": "summary-of-observed-read-only-responses",
+  "note": "These selected fields were transcribed from actual tool responses. Full HTTP response bodies and headers were not saved as artifacts. Observations precede the September 23 application changes and do not prove settlement.",
+  "origin": "https://lotline.dev",
+  "observedDateUtc": "2026-09-23",
+  "deployment": {
+    "id": "dpl_3yBUujCggvJesCVXzMJNJqnEXnPr",
+    "url": "https://lotline-8jmc9dt61-operatoruplift.vercel.app",
+    "target": "production",
+    "status": "READY",
+    "createdAt": "2026-09-22T08:57:01.826Z",
+    "sourceCommit": null,
+    "sourceCommitNote": "The Vercel inspect response did not expose source commit metadata.",
+    "aliases": [
+      "https://lotline.dev",
+      "https://lotlineonsolana.vercel.app",
+      "https://lotlinesolana.vercel.app",
+      "https://lotline-operatoruplift.vercel.app",
+      "https://lotline-git-main-operatoruplift.vercel.app"
+    ]
+  },
+  "catalog": {
+    "endpoint": "/api/prestocks/assets",
+    "httpStatus": 200,
+    "state": "success",
+    "verifiedAt": "2026-09-23T02:35:16.144Z",
+    "assetCount": 8,
+    "unavailableCount": 0,
+    "symbols": ["ANDURIL", "ANTHROPIC", "FIGUREAI", "KALSHI", "NEURALINK", "OPENAI", "POLYMARKET", "SPACEX"],
+    "allIssuerIds": "prestocks",
+    "allDecimals": 9,
+    "allTokenPrograms": "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb",
+    "allIssuerHaltStates": null,
+    "issuerHaltNote": "The issuer does not publish a halt flag. Null is unknown, not an assertion that trading is enabled."
+  },
+  "quotes": {
+    "endpoint": "/api/prestocks/quotes",
+    "method": "POST",
+    "requestBatches": [["OPENAI", "SPACEX"], ["ANDURIL", "ANTHROPIC", "FIGUREAI"], ["KALSHI", "NEURALINK", "POLYMARKET"]],
+    "allBatchHttpStatuses": 200,
+    "allBatchStates": "success",
+    "usdcRawPerAsset": "10000000",
+    "usdcAmountPerAsset": "10.000000",
+    "successCount": 8,
+    "observations": [
+      {
+        "symbol": "OPENAI",
+        "mint": "PreweJYECqtQwBtpxHL171nL2K6umo692gTm7Q3rpgF",
+        "state": "success",
+        "outRaw": "4973925",
+        "units": "0.007391923",
+        "fetchedAt": "2026-09-23T02:35:44.210Z",
+        "expiresAt": "2026-09-23T02:36:14.210Z",
+        "source": "Jupiter · metis",
+        "unitContext": { "source": "clock-sysvar", "kind": "scaled", "mintSlot": 449569161, "clockSlot": 449569161, "observedAt": "2026-09-23T02:35:44.407Z", "unixTimestamp": "1790130943", "multiplier": 1.4861347 }
+      },
+      {
+        "symbol": "SPACEX",
+        "mint": "PreANxuXjsy2pvisWWMNB6YaJNzr7681wJJr2rHsfTh",
+        "state": "success",
+        "outRaw": "17159396",
+        "units": "0.08579698",
+        "fetchedAt": "2026-09-23T02:35:46.310Z",
+        "expiresAt": "2026-09-23T02:36:16.310Z",
+        "source": "Jupiter · metis",
+        "unitContext": { "source": "clock-sysvar", "kind": "scaled", "mintSlot": 449569169, "clockSlot": 449569169, "observedAt": "2026-09-23T02:35:46.510Z", "unixTimestamp": "1790130945", "multiplier": 5 }
+      },
+      {
+        "symbol": "ANDURIL",
+        "mint": "PresTj4Yc2bAR197Er7wz4UUKSfqt6FryBEdAriBoQB",
+        "state": "success",
+        "outRaw": "64325370",
+        "units": "0.06432537",
+        "fetchedAt": "2026-09-23T02:36:33.167Z",
+        "expiresAt": "2026-09-23T02:37:03.167Z",
+        "source": "Jupiter · metis",
+        "unitContext": { "source": "clock-sysvar", "kind": "scaled", "mintSlot": 449569346, "clockSlot": 449569346, "observedAt": "2026-09-23T02:36:33.655Z", "unixTimestamp": "1790130992", "multiplier": 1 }
+      },
+      {
+        "symbol": "ANTHROPIC",
+        "mint": "Pren1FvFX6J3E4kXhJuCiAD5aDmGEb7qJRncwA8Lkhw",
+        "state": "success",
+        "outRaw": "9546595",
+        "units": "0.009546595",
+        "fetchedAt": "2026-09-23T02:36:35.266Z",
+        "expiresAt": "2026-09-23T02:37:05.266Z",
+        "source": "Jupiter · metis",
+        "unitContext": { "source": "clock-sysvar", "kind": "scaled", "mintSlot": 449569353, "clockSlot": 449569353, "observedAt": "2026-09-23T02:36:35.707Z", "unixTimestamp": "1790130994", "multiplier": 1 }
+      },
+      {
+        "symbol": "FIGUREAI",
+        "mint": "PreZad18qfPtbxNpMtMuAuX2zVpvkEU8DnJx56faCWd",
+        "state": "success",
+        "outRaw": "54761594",
+        "units": "0.054761594",
+        "fetchedAt": "2026-09-23T02:36:37.367Z",
+        "expiresAt": "2026-09-23T02:37:07.367Z",
+        "source": "Jupiter · metis",
+        "unitContext": { "source": "clock-sysvar", "kind": "scaled", "mintSlot": 449569361, "clockSlot": 449569361, "observedAt": "2026-09-23T02:36:37.819Z", "unixTimestamp": "1790130996", "multiplier": 1 }
+      },
+      {
+        "symbol": "KALSHI",
+        "mint": "PreLWGkkeqG1s4HEfFZSy9moCrJ7btsHuUtfcCeoRua",
+        "state": "success",
+        "outRaw": "11237612",
+        "units": "0.011237612",
+        "fetchedAt": "2026-09-23T02:37:06.849Z",
+        "expiresAt": "2026-09-23T02:37:36.849Z",
+        "source": "Jupiter · metis",
+        "unitContext": { "source": "clock-sysvar", "kind": "scaled", "mintSlot": 449569473, "clockSlot": 449569473, "observedAt": "2026-09-23T02:37:07.277Z", "unixTimestamp": "1790131026", "multiplier": 1 }
+      },
+      {
+        "symbol": "NEURALINK",
+        "mint": "PrekqLJvJ3qVdXmBGDiexvwUTF4rLFDa6HWS4HJbw9S",
+        "state": "success",
+        "outRaw": "22084580",
+        "units": "0.02208458",
+        "fetchedAt": "2026-09-23T02:37:08.970Z",
+        "expiresAt": "2026-09-23T02:37:38.970Z",
+        "source": "Jupiter · dflow",
+        "unitContext": { "source": "clock-sysvar", "kind": "scaled", "mintSlot": 449569481, "clockSlot": 449569481, "observedAt": "2026-09-23T02:37:09.366Z", "unixTimestamp": "1790131028", "multiplier": 1 }
+      },
+      {
+        "symbol": "POLYMARKET",
+        "mint": "Pre8AREmFPtoJFT8mQSXQLh56cwJmM7CFDRuoGBZiUP",
+        "state": "success",
+        "outRaw": "69106338",
+        "units": "0.069106338",
+        "fetchedAt": "2026-09-23T02:37:11.072Z",
+        "expiresAt": "2026-09-23T02:37:41.072Z",
+        "source": "Jupiter · metis",
+        "unitContext": { "source": "clock-sysvar", "kind": "scaled", "mintSlot": 449569488, "clockSlot": 449569488, "observedAt": "2026-09-23T02:37:11.475Z", "unixTimestamp": "1790131030", "multiplier": 1 }
+      }
+    ]
+  },
+  "otherCapabilityObservations": {
+    "pyth": { "endpoint": "/api/market-reference", "httpStatus": 200, "state": "configuration-required", "fetchedAt": "2026-09-23T02:35:15.559Z", "message": "Pyth price access is not configured. Your Jupiter estimates remain available." },
+    "execution": { "endpoint": "/api/execution/config", "httpStatus": 200, "state": "configuration-required", "enabled": false, "reconciliationAvailable": true, "chain": "solana:mainnet", "validatorVersion": "jupiter-route-v2-raydium-clmm-v1" },
+    "productionEnvironmentNamesAbsent": ["PYTH_API_KEY", "JUPITER_API_KEY", "LOTLINE_EXECUTION_ACCESS_POLICY", "LOTLINE_EXECUTION_ALLOWED_WALLETS"],
+    "environmentObservationMethod": "Authenticated Vercel production environment listing; only name presence was assessed, no secret values were retrieved."
+  },
+  "transactionsSigned": 0,
+  "transactionsSubmitted": 0,
+  "fundsMoved": false
+}

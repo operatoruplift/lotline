@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, expect, it, vi } from 'vitest';
-import { isPythObservationFresh, marketReferenceResponseSchema, pythConfidenceBps, pythDecimal } from '../lib/domain/market-reference';
+import { PYTH_MAPPED_MINTS, isPythObservationFresh, marketReferenceResponseSchema, pythConfidenceBps, pythDecimal, pythRatio, pythReferencesReady } from '../lib/domain/market-reference';
 import { PYTH_FEEDS, parsePythReferences } from '../lib/server/pyth';
 
 const now = Date.parse('2026-09-20T19:05:00.000Z');
@@ -15,8 +15,10 @@ afterEach(() => { vi.unstubAllEnvs(); vi.unstubAllGlobals(); vi.useRealTimers();
 it('retains exact mantissas, exponent and original observation times without price equivalence', () => {
   const response = parsePythReferences(payload(), [mapping.mint], fetchedAt, now);
   expect(marketReferenceResponseSchema.safeParse(response).success).toBe(true);
-  expect(response.items[0]).toMatchObject({ state: 'success', comparison: 'not-comparable', underlying: { unitBasis: 'underlying-share', price: '23456789012', displayPrice: '234.56789012', displayConfidence: '0.01234567', confidenceBps: '0.5263', state: 'fresh', expiresAt: '2026-09-20T19:05:57.000Z' }, token: { unitBasis: 'unverified-token-unit' } });
-  expect(response.items[0].message).toContain('no token premium');
+  expect(response.items[0]).toMatchObject({ state: 'success', comparison: 'cross-feed-context', comparisonRatio: '1', underlying: { unitBasis: 'underlying-share', price: '23456789012', displayPrice: '234.56789012', displayConfidence: '0.01234567', confidenceBps: '0.5263', state: 'fresh', expiresAt: '2026-09-20T19:05:57.000Z' }, token: { unitBasis: 'unverified-token-unit' } });
+  expect(response.items[0].message).toContain('context only');
+  // The ratio is arithmetic between two feeds, never a verified premium or execution price.
+  expect(response.items[0].message).toContain('not verified against an underlying share');
 });
 it('renders integers beyond Number precision exactly and handles positive and negative exponents', () => {
   expect(pythDecimal('9223372036854775807', -8)).toBe('92233720368.54775807');
@@ -25,6 +27,23 @@ it('renders integers beyond Number precision exactly and handles positive and ne
   expect(pythDecimal('42', 3)).toBe('42000');
   expect(pythDecimal('0', -8)).toBe('0');
   expect(pythConfidenceBps('1000000000000000000', '100000000000000')).toBe('1');
+});
+it('computes asymmetric feed ratios with integer arithmetic and rounds down at eight decimal places', () => {
+  expect(pythRatio({ price: '3', exponent: -1 }, { price: '2', exponent: 0 })).toBe('0.15');
+  expect(pythRatio({ price: '2', exponent: 0 }, { price: '3', exponent: -1 })).toBe('6.66666666');
+  expect(pythRatio({ price: '9007199254740993', exponent: 0 }, { price: '3', exponent: 0 })).toBe('3002399751580331');
+  expect(pythRatio({ price: '1', exponent: -12 }, { price: '1', exponent: 12 })).toBe('0');
+  expect(pythRatio({ price: '9223372036854775807', exponent: 12 }, { price: '1', exponent: -12 })).toBe('9223372036854775807000000000000000000000000');
+});
+it.each([
+  { price: '0', exponent: 0 }, { price: '-1', exponent: 0 }, { price: 'garbage', exponent: 0 },
+  { price: '1e8', exponent: 0 }, { price: '9223372036854775808', exponent: 0 },
+  { price: '1', exponent: 13 }, { price: '1', exponent: -13 }, { price: '1', exponent: 0.5 },
+  { price: '1', exponent: Number.NaN }, { price: '1', exponent: Number.POSITIVE_INFINITY },
+])('rejects invalid ratio inputs before arithmetic %j', observation => {
+  const valid = { price: '1', exponent: 0 };
+  expect(() => pythRatio(observation, valid)).toThrow('Invalid Pyth ratio.');
+  expect(() => pythRatio(valid, observation)).toThrow('Invalid Pyth ratio.');
 });
 it('treats exact sixty-second expiry as stale, preserves weekend observations, and never extends freshness', () => {
   const data = payload(); data.parsed[0] = price(mapping.underlying, { publish_time: now / 1000 - 172800 });
@@ -58,6 +77,48 @@ it('rejects forged display amounts and metadata in the browser schema without th
   response.items[0].token!.price = 'garbage';
   expect(marketReferenceResponseSchema.safeParse(response).success).toBe(false);
 });
+it('validates ratio arithmetic and excludes comparison values from unavailable or stale references', () => {
+  const response = parsePythReferences(payload(), [mapping.mint], fetchedAt, now);
+  response.items[0].comparisonRatio = '1.00000001';
+  expect(marketReferenceResponseSchema.safeParse(response).success).toBe(false);
+  response.items[0].comparisonRatio = '1';
+  response.items[0].comparison = 'not-comparable';
+  expect(marketReferenceResponseSchema.safeParse(response).success).toBe(false);
+  response.items[0].comparison = 'cross-feed-context';
+  response.items[0].state = 'stale';
+  expect(marketReferenceResponseSchema.safeParse(response).success).toBe(false);
+  response.items[0].state = 'success';
+  response.items[0].token!.exponent = 1000000;
+  expect(marketReferenceResponseSchema.safeParse(response).success).toBe(false);
+  response.items[0].token!.price = 'garbage';
+  expect(marketReferenceResponseSchema.safeParse(response).success).toBe(false);
+});
+it('requires every requested mapped mint to have both pinned fresh feeds while ignoring unmapped mints', () => {
+  const unmapped = 'XsDoVfqeBukxuZHWhdvWHBhgEHjGNst4MLodqsJHzoB';
+  const response = parsePythReferences(payload(), [mapping.mint, unmapped], fetchedAt, now);
+  expect(PYTH_MAPPED_MINTS).toEqual(PYTH_FEEDS.map(feed => feed.mint));
+  expect(response.state).toBe('partial');
+  expect(pythReferencesReady(null, [unmapped], now)).toBe(true);
+  expect(pythReferencesReady(null, [mapping.mint], now)).toBe(false);
+  expect(pythReferencesReady(response, [mapping.mint, unmapped], now)).toBe(true);
+  expect(pythReferencesReady(response, [mapping.mint, PYTH_FEEDS[1].mint], now)).toBe(false);
+  expect(pythReferencesReady(response, [mapping.mint], Date.parse(response.expiresAt))).toBe(false);
+  expect(pythReferencesReady(response, [mapping.mint], Number.NaN)).toBe(false);
+  response.items[0].token!.feedId = PYTH_FEEDS[1].token;
+  expect(pythReferencesReady(response, [mapping.mint], now)).toBe(false);
+});
+it('fails readiness for a missing feed, duplicate mint, forged ratio, or invalid nested arithmetic', () => {
+  const response = parsePythReferences({ parsed: [price(mapping.underlying)] }, [mapping.mint], fetchedAt, now);
+  expect(pythReferencesReady(response, [mapping.mint], now)).toBe(false);
+  const full = parsePythReferences(payload(), [mapping.mint], fetchedAt, now);
+  full.items.push(full.items[0]);
+  expect(pythReferencesReady(full, [mapping.mint], now)).toBe(false);
+  full.items.pop();
+  full.items[0].comparisonRatio = '500';
+  expect(pythReferencesReady(full, [mapping.mint], now)).toBe(false);
+  full.items[0].token!.price = 'garbage';
+  expect(pythReferencesReady(full, [mapping.mint], now)).toBe(false);
+});
 it('does not call an upstream without a server key and does not invent fallback observations', async () => {
   vi.stubEnv('PYTH_API_KEY', ''); const fetcher = vi.fn(); vi.stubGlobal('fetch', fetcher);
   const { getMarketReferences } = await import('../lib/server/pyth');
@@ -84,6 +145,26 @@ it('reclassifies cached observations when they expire without changing their tim
   const first = await getMarketReferences([mapping.mint]); vi.setSystemTime(now + 3000);
   const cached = await getMarketReferences([mapping.mint]); expect(first.state).toBe('success'); expect(cached.state).toBe('stale');
   expect(cached.expiresAt).toBe(first.expiresAt); expect(cached.fetchedAt).toBe(first.fetchedAt);
+  expect(first.items[0].comparison).toBe('cross-feed-context');
+  expect(cached.items[0].comparison).toBe('not-comparable');
+  expect(cached.items[0].comparisonRatio).toBeUndefined();
+  expect(marketReferenceResponseSchema.safeParse(cached).success).toBe(true);
+});
+it('clears cached comparisons as soon as either observation expires', async () => {
+  const fetcher = vi.fn(async () => Response.json({ parsed: [price(mapping.underlying, { publish_time: now / 1000 - 58 }), price(mapping.token)] }));
+  vi.stubGlobal('fetch', fetcher);
+  const { getMarketReferences } = await import('../lib/server/pyth');
+  const first = await getMarketReferences([mapping.mint]);
+  vi.setSystemTime(now + 2000);
+  const cached = await getMarketReferences([mapping.mint]);
+  expect(fetcher).toHaveBeenCalledTimes(1);
+  expect(cached.state).toBe('partial');
+  expect(cached.items[0].comparison).toBe('not-comparable');
+  expect(cached.items[0].comparisonRatio).toBeUndefined();
+  expect(cached.items[0].underlying?.publishedAt).toBe(first.items[0].underlying?.publishedAt);
+  expect(cached.items[0].token?.state).toBe('fresh');
+  expect(pythReferencesReady(cached, [mapping.mint])).toBe(false);
+  expect(marketReferenceResponseSchema.safeParse(cached).success).toBe(true);
 });
 it.each([401, 403, 429, 503])('sanitizes upstream HTTP %s and retains access failure on cache hits', async status => {
   vi.stubGlobal('fetch', vi.fn(async () => new Response('test-server-only-key private provider detail', { status })));

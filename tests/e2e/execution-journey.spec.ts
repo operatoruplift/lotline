@@ -4,6 +4,7 @@ import type { BrowserContext, Page } from '@playwright/test';
 import { EXAMPLE_ASSETS } from '../../lib/demo/example';
 import { BASKET_STORAGE_KEY } from '../../lib/domain/storage';
 import type { ContributionIntent, ExecutionState } from '../../lib/domain/execution';
+import { pythReferences } from '../fixtures/pyth';
 
 test.use({ serviceWorkers: 'block', video: process.env.LOTLINE_RECORD_EXECUTION === '1' ? { mode: 'on', size: { width: 1440, height: 1000 } } : 'off' });
 
@@ -22,6 +23,7 @@ async function fixture(context: BrowserContext, count = 1) {
     orders: [] as string[], executions: [] as string[], reconciliations: [] as string[],
     paused: false, unknownLeg: -1, failedLeg: -1, lostResponse: false, expireOnSubmit: false, orderLifetime: 30_000,
     cloudWrites: [] as string[], schedules: [] as Record<string, unknown>[],
+    referenceAccess: true, referenceAge: 0,
   };
   await context.addInitScript(({ basket, key, walletAddress }) => {
     if (!localStorage.getItem(key)) localStorage.setItem(key, JSON.stringify(basket));
@@ -48,9 +50,15 @@ async function fixture(context: BrowserContext, count = 1) {
   }, { basket, key: BASKET_STORAGE_KEY, walletAddress });
   await context.route('**/api/assets', route => route.fulfill({ json: { state: 'success', assets, unavailable: [] } }));
   await context.route('**/api/auth/session', route => route.fulfill({ json: { state: 'signed-in', user: { id: 'test-owner' } } }));
-  await context.route('**/api/quotes', route => {
+  await context.route('**/api/quotes', async route => {
     const { items } = route.request().postDataJSON() as { items: { mint: string; usdcRaw: string }[] };
-    return route.fulfill({ json: { state: 'success', quotes: items.map(item => ({ ...item, state: 'success', outRaw: '123000000', units: '1.23', fetchedAt: new Date().toISOString(), expiresAt: new Date(Date.now() + 30000).toISOString(), source: 'Controlled Jupiter fixture' })) } });
+    const now = await route.request().frame().page().evaluate(() => Date.now());
+    return route.fulfill({ json: { state: 'success', quotes: items.map(item => ({ ...item, state: 'success', outRaw: '123000000', units: '1.23', fetchedAt: new Date(now).toISOString(), expiresAt: new Date(now + 30000).toISOString(), source: 'Controlled Jupiter fixture' })) } });
+  });
+  await context.route('**/api/market-reference', async route => {
+    const now = await route.request().frame().page().evaluate(() => Date.now());
+    if (!state.referenceAccess) return route.fulfill({ status: 503, json: { source: 'pyth', state: 'configuration-required', fetchedAt: new Date(now).toISOString(), expiresAt: new Date(now).toISOString(), items: [] } });
+    return route.fulfill({ json: pythReferences(route.request().postDataJSON().mints, now, '20000', state.referenceAge) });
   });
   await context.route('**/api/execution/**', async route => {
     const path = new URL(route.request().url()).pathname;
@@ -63,11 +71,12 @@ async function fixture(context: BrowserContext, count = 1) {
     if (path === '/api/execution/runs/fixture-run') return route.fulfill({ json: { state: 'success', run: { id: 'fixture-run', intent: state.intent }, legs: state.legs, attempts: state.attempts } });
     const orderMatch = path.match(/\/legs\/(leg-\d+)\/order$/);
     if (orderMatch) {
+      const now = await route.request().frame().page().evaluate(() => Date.now());
       const leg = state.legs.find(leg => leg.id === orderMatch[1])!;
       state.orders.push(leg.id); leg.state = 'review-required';
       const id = `00000000-0000-4000-8000-${String(state.attempts.length + 1).padStart(12, '0')}`;
       state.attempts.push({ id, leg_id: leg.id, state: 'review-required' });
-      return route.fulfill({ json: { state: 'success', transaction: 'AQIDBA==', attempt: { id, requestId: id, state: 'review-required', messageHash: 'a'.repeat(64), inputRaw: leg.input_raw, outputRaw: '123000000', minimumOutputRaw: '122000000', router: 'metis', expiresAt: new Date(Date.now() + state.orderLifetime).toISOString(), prioritizationFeeLamports: '5000', signatureFeeLamports: '5000', rentFeeLamports: '2000000', totalSolCostLamports: '2010000', feeBps: 0, feeMint: state.intent!.inputMint } } });
+      return route.fulfill({ json: { state: 'success', transaction: 'AQIDBA==', attempt: { id, requestId: id, state: 'review-required', messageHash: 'a'.repeat(64), inputRaw: leg.input_raw, outputRaw: '123000000', minimumOutputRaw: '122000000', router: 'metis', expiresAt: new Date(now + state.orderLifetime).toISOString(), prioritizationFeeLamports: '5000', signatureFeeLamports: '5000', rentFeeLamports: '2000000', totalSolCostLamports: '2010000', feeBps: 0, feeMint: state.intent!.inputMint } } });
     }
     const executeMatch = path.match(/\/legs\/(leg-\d+)\/execute$/);
     if (executeMatch) {
@@ -111,6 +120,88 @@ async function openReview(page: Page) {
   await expect(page.getByRole('button', { name: 'Sign this purchase', exact: true })).toBeEnabled();
 }
 async function signatures(page: Page) { return page.evaluate(() => Number(sessionStorage.getItem('lotline:test-sign-count') ?? 0)); }
+
+for (const availability of ['missing', 'stale'] as const) {
+  test(`${availability} Pyth references block purchase review until fresh observations arrive`, async ({ page, context }) => {
+    const state = await fixture(context);
+    state.referenceAccess = availability !== 'missing';
+    state.referenceAge = availability === 'stale' ? 61 : 0;
+    await page.goto('/app');
+    await page.getByRole('button', { name: 'Get estimates', exact: true }).click();
+    await page.getByRole('button', { name: 'Controlled test wallet', exact: true }).click();
+    const referencePanel = page.locator('[data-market-reference]');
+    if (availability === 'missing') await expect(referencePanel.getByText(/Pyth market data is currently unavailable/)).toBeVisible();
+    else await expect(referencePanel.getByText('Stale reference', { exact: true })).toHaveCount(2);
+    await expect(page.locator('[data-pyth-review-gate]')).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Review purchase', exact: true })).toBeDisabled();
+    expect(state.orders).toEqual([]);
+    expect(state.executions).toEqual([]);
+    expect(state.intent).toBeNull();
+    state.referenceAccess = true;
+    state.referenceAge = 0;
+    await page.getByRole('button', { name: 'Refresh market references', exact: true }).click();
+    await expect(page.getByRole('button', { name: 'Review purchase', exact: true })).toBeEnabled();
+    await page.getByRole('button', { name: 'Review purchase', exact: true }).click();
+    await expect(page.getByRole('button', { name: 'Sign this purchase', exact: true })).toBeEnabled();
+    expect(state.orders).toEqual(['leg-0']);
+    expect(await signatures(page)).toBe(0);
+  });
+}
+
+test('a restored unsigned run cannot resume until mapped references are fetched again', async ({ page, context }) => {
+  const state = await fixture(context);
+  await openReview(page);
+  await page.reload();
+  await page.getByRole('button', { name: 'Controlled test wallet', exact: true }).click();
+  await expect(page.getByRole('button', { name: 'Resume remaining', exact: true })).toBeDisabled();
+  await expect(page.locator('[data-pyth-review-gate]')).toBeVisible();
+  expect(state.orders).toEqual(['leg-0']);
+  expect(state.executions).toEqual([]);
+  await page.getByRole('button', { name: 'Get estimates', exact: true }).click();
+  await expect(page.getByRole('button', { name: 'Resume remaining', exact: true })).toBeEnabled();
+  await page.getByRole('button', { name: 'Resume remaining', exact: true }).click();
+  await expect(page.getByRole('button', { name: 'Sign this purchase', exact: true })).toBeEnabled();
+  expect(state.orders).toEqual(['leg-0', 'leg-0']);
+  expect(await signatures(page)).toBe(0);
+});
+
+test('Pyth expiry while wallet approval is pending prevents any execute request', async ({ page, context }) => {
+  await page.clock.install({ time: new Date() });
+  const state = await fixture(context);
+  state.referenceAge = 50;
+  state.orderLifetime = 300_000;
+  await openReview(page);
+  await page.evaluate(() => { window.lotlineTestWallet.hold = true; });
+  await page.getByRole('button', { name: 'Sign this purchase', exact: true }).click();
+  await expect.poll(() => signatures(page)).toBe(1);
+  await page.clock.fastForward(11_000);
+  await expect(page.locator('[data-pyth-review-gate]')).toBeVisible();
+  await page.evaluate(() => window.lotlineTestWallet.release?.());
+  await expect(page.getByText(/The signed bytes were not submitted/)).toBeVisible();
+  expect(state.executions).toEqual([]);
+  expect(state.orders).toEqual(['leg-0']);
+  expect(await page.evaluate(() => localStorage.getItem('lotline:pending-execution:fixture-run'))).toBeNull();
+});
+
+test('fresh Pyth data cannot make an expired contribution quote reviewable', async ({ page, context }) => {
+  await page.clock.install({ time: new Date() });
+  const state = await fixture(context);
+  state.referenceAge = 61;
+  await page.goto('/app');
+  await page.getByRole('button', { name: 'Get estimates', exact: true }).click();
+  await page.getByRole('button', { name: 'Controlled test wallet', exact: true }).click();
+  await expect(page.locator('[data-market-reference]').getByText('Stale reference', { exact: true })).toHaveCount(2);
+  await page.clock.fastForward(31_000);
+  state.referenceAge = 0;
+  await page.getByRole('button', { name: 'Refresh market references', exact: true }).click();
+  await expect(page.locator('[data-market-reference]').getByText('Fresh reference', { exact: true })).toHaveCount(2);
+  await expect(page.locator('[data-pyth-review-gate]')).toHaveCount(0);
+  await expect(page.getByRole('button', { name: 'Review purchase', exact: true })).toBeDisabled();
+  expect(state.orders).toEqual([]);
+  expect(state.intent).toBeNull();
+  await page.getByRole('button', { name: 'Refresh estimates', exact: true }).click();
+  await expect(page.getByRole('button', { name: 'Review purchase', exact: true })).toBeEnabled();
+});
 
 test('one leg reviews exact units, signs with Wallet Standard and restores the confirmed receipt', async ({ page, context }) => {
   const state = await fixture(context);
@@ -186,6 +277,7 @@ test('a second tab cannot prompt while the first wallet approval is pending', as
   await second.goto('/app');
   await second.evaluate(() => sessionStorage.setItem('lotline:last-execution-run', 'fixture-run'));
   await second.reload();
+  await second.getByRole('button', { name: 'Get estimates', exact: true }).click();
   await second.getByRole('button', { name: 'Controlled test wallet', exact: true }).click();
   await second.getByRole('button', { name: 'Resume remaining', exact: true }).click();
   await page.evaluate(() => { window.lotlineTestWallet.hold = true; });
@@ -235,6 +327,7 @@ test.describe('controlled execution walkthrough — fixtures only', () => {
     state.unknownLeg = -1;
     await page.getByRole('button', { name: 'Check original receipt', exact: true }).click();
     await expect(page.getByText(/3 of 4 legs confirmed/)).toBeVisible();
+    await page.getByRole('button', { name: 'Get estimates', exact: true }).click();
     await page.getByRole('button', { name: 'Controlled test wallet', exact: true }).click();
     await page.getByRole('button', { name: 'Resume remaining', exact: true }).click();
     await page.getByRole('button', { name: 'Sign this purchase', exact: true }).click();
