@@ -18,15 +18,15 @@ async function setup(page: Page, withScaling = false) {
   });
   await page.goto('/app');
   await page.getByRole('button', { name: 'Apply illustrative split', exact: true }).click();
-  // Keep the short currency-expiry window independent of runner/render speed.
-  if (withScaling) await page.clock.pauseAt(new Date(Date.now() + 60_000));
   await page.getByRole('button', { name: 'Get estimates', exact: true }).click();
   await expect(page.locator('.results-table td[data-label="Estimated +units"]')).toHaveText(['+1.23', '+1.23', '+1.23']);
 }
 
 test('a planning benchmark uses USDC conversion and disappears when that observation expires', async ({ page }) => {
   await page.setViewportSize({ width: 320, height: 1000 });
-  await page.clock.install({ time: new Date() });
+  // Freeze wall time without pausing the timers used by accessibility scanning.
+  const testTime = Date.now();
+  await page.clock.setFixedTime(new Date(testTime));
   await page.route('**/api/market-reference', async route => {
     const now = await page.evaluate(() => Date.now());
     const data = references(route.request().postDataJSON().mints, now);
@@ -42,10 +42,12 @@ test('a planning benchmark uses USDC conversion and disappears when that observa
   const scan = await new AxeBuilder({ page }).include('[data-market-reference]').withTags(['wcag2a', 'wcag2aa', 'wcag21aa']).analyze();
   expect(scan.violations.map(item => item.id)).toEqual([]);
   if (process.env.LOTLINE_CAPTURE_BENCHMARK === '1') {
+    await page.getByRole('button', { name: 'Dismiss notification', exact: true }).click();
+    await panel(page).getByRole('button', { name: 'Refresh market references' }).focus();
     await mkdir('docs/releases/2026-09-23/screens', { recursive: true });
     await panel(page).screenshot({ path: 'docs/releases/2026-09-23/screens/quote-benchmark-320.png' });
   }
-  await page.clock.fastForward(3_000);
+  await page.clock.setFixedTime(new Date(testTime + 3_000));
   await expect(panel(page).locator('[data-quote-benchmark]')).toHaveCount(0);
   await expect(panel(page).locator('[data-currency-reference]')).toContainText('Stale reference');
   await expect(panel(page).locator('[data-benchmark-unavailable]').first()).toContainText('Fresh equity and USDC/USD references');
