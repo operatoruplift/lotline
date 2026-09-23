@@ -37,10 +37,18 @@ test('reduced motion loads posters without video sources; autoplay rejection kee
   await expect(poster).toHaveCount(1);
   await expect.poll(() => poster.evaluate(img => (img as HTMLImageElement).naturalWidth)).toBeGreaterThan(0);
   await page.emulateMedia({ reducedMotion:'no-preference' });
-  await page.addInitScript(() => { HTMLMediaElement.prototype.play = () => Promise.reject(new DOMException('Autoplay blocked','NotAllowedError')); });
+  await page.addInitScript(() => {
+    HTMLMediaElement.prototype.play = function () {
+      if (this.src.endsWith('/media/design/hero-boomerang.mp4')) this.dataset.playAttempts = String(Number(this.dataset.playAttempts ?? 0) + 1);
+      return Promise.reject(new DOMException('Autoplay blocked','NotAllowedError'));
+    };
+  });
   await page.reload();
   await expect(main.locator('[data-decorative-video="Hero boomerang"]')).toHaveAttribute('data-playback','fallback');
   await expect(poster).toBeVisible();
+  await page.getByRole('contentinfo').scrollIntoViewIfNeeded();
+  await poster.scrollIntoViewIfNeeded();
+  await expect(main.locator('[data-decorative-video="Hero boomerang"] video')).toHaveAttribute('data-play-attempts', '1');
   await main.getByRole('link', { name:'Make a plan',exact:true }).click();
   await expect(page.getByLabel('USDC budget')).toBeVisible();
 });
@@ -94,4 +102,80 @@ test('offline and reduced-motion visits do not request decorative films', async 
   await expect(page.locator('video[src]')).toHaveCount(0);
   expect(films).toEqual([]);
   await expect.poll(() => page.getByRole('contentinfo').locator('[data-reveal]').evaluateAll(nodes => nodes.every(node => getComputedStyle(node).opacity === '1' && getComputedStyle(node).transform === 'none'))).toBe(true);
+});
+
+test('a revealed card stays readable after focus leaves and motion preferences change', async ({ page }) => {
+  await page.goto('/');
+  const link = page.getByRole('link', { name: 'Explore the catalog' });
+  const reveal = link.locator('xpath=ancestor::*[@data-reveal][1]');
+  await link.scrollIntoViewIfNeeded();
+  await expect(reveal).toHaveAttribute('data-seen', 'true');
+  await expect.poll(() => reveal.evaluate(node => getComputedStyle(node).opacity)).toBe('1');
+  await link.focus();
+  await link.evaluate(node => (node as HTMLElement).blur());
+  expect(await reveal.evaluate(node => ({ opacity: getComputedStyle(node).opacity, activeAnimations: node.getAnimations().filter(animation => animation.playState === 'running').length }))).toEqual({ opacity: '1', activeAnimations: 0 });
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await expect(page.locator('html')).toHaveAttribute('data-motion', 'reduced');
+  await page.emulateMedia({ reducedMotion: 'no-preference' });
+  await expect(page.locator('html')).toHaveAttribute('data-motion', 'running');
+  expect(await reveal.evaluate(node => getComputedStyle(node).opacity)).toBe('1');
+
+  // Reading a card with motion reduced also counts as seeing it.
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  const footerReveal = page.getByRole('contentinfo').locator('[data-reveal]').first();
+  await footerReveal.scrollIntoViewIfNeeded();
+  await expect(footerReveal).toHaveAttribute('data-seen', 'true');
+  await page.emulateMedia({ reducedMotion: 'no-preference' });
+  await expect(page.locator('html')).toHaveAttribute('data-motion', 'running');
+  expect(await footerReveal.evaluate(node => ({ opacity: getComputedStyle(node).opacity, activeAnimations: node.getAnimations().filter(animation => animation.playState === 'running').length }))).toEqual({ opacity: '1', activeAnimations: 0 });
+});
+
+for (const recovery of ['reconnect', 'reentry']) {
+  test(`a transient decorative film failure recovers after ${recovery}`, async ({ page, context }) => {
+    let attempts = 0;
+    await page.route('**/media/design/hero-boomerang.mp4', route => ++attempts === 1 ? route.abort('internetdisconnected') : route.continue());
+    await page.goto('/');
+    const hero = page.getByRole('main').locator('[data-decorative-video="Hero boomerang"]');
+    await expect(hero).toHaveAttribute('data-playback', 'fallback');
+    if (recovery === 'reconnect') {
+      await context.setOffline(true);
+      await expect.poll(() => page.evaluate(() => navigator.onLine)).toBe(false);
+      await context.setOffline(false);
+    } else {
+      await page.getByRole('contentinfo').scrollIntoViewIfNeeded();
+      await hero.scrollIntoViewIfNeeded();
+    }
+    await expect.poll(() => hero.locator('video').evaluate(node => (node as HTMLVideoElement).currentTime)).toBeGreaterThan(.1);
+    await expect(hero).toHaveAttribute('data-playback', 'playing');
+  });
+}
+
+test('decorative recovery respects reduced motion and stops after one retry', async ({ page, context }) => {
+  let attempts = 0;
+  await page.route('**/media/design/hero-boomerang.mp4', route => { attempts++; return route.abort('internetdisconnected'); });
+  await page.goto('/');
+  const hero = page.getByRole('main').locator('[data-decorative-video="Hero boomerang"]');
+  await expect(hero).toHaveAttribute('data-playback', 'fallback');
+  expect(attempts).toBe(1);
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await expect(page.locator('html')).toHaveAttribute('data-motion', 'reduced');
+  await context.setOffline(true);
+  await expect.poll(() => page.evaluate(() => navigator.onLine)).toBe(false);
+  await context.setOffline(false);
+  await page.getByRole('contentinfo').scrollIntoViewIfNeeded();
+  await hero.scrollIntoViewIfNeeded();
+  expect(attempts).toBe(1);
+  await page.emulateMedia({ reducedMotion: 'no-preference' });
+  await expect(page.locator('html')).toHaveAttribute('data-motion', 'running');
+  await page.getByRole('contentinfo').scrollIntoViewIfNeeded();
+  await hero.scrollIntoViewIfNeeded();
+  await expect.poll(() => attempts).toBe(2);
+  await expect(hero).toHaveAttribute('data-playback', 'fallback');
+  await context.setOffline(true);
+  await expect.poll(() => page.evaluate(() => navigator.onLine)).toBe(false);
+  await context.setOffline(false);
+  await page.getByRole('contentinfo').scrollIntoViewIfNeeded();
+  await hero.scrollIntoViewIfNeeded();
+  expect(attempts).toBe(2);
+  await expect(hero).toHaveAttribute('data-playback', 'fallback');
 });
