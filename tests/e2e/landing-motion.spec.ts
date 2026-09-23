@@ -7,6 +7,7 @@ for (const width of [390, 1440]) {
     const landing = page.locator('[data-landing-motion]');
     const layer = landing.locator('[data-scroll-layer="54"]');
     await expect.poll(() => layer.evaluate(node => node.style.getPropertyValue('--scroll-y'))).not.toBe('');
+    await expect.poll(() => page.getByRole('main').getByRole('link', { name: 'Make a plan', exact: true }).evaluate(node => Number(getComputedStyle(node.parentElement!).opacity))).toBe(1);
     await page.screenshot({ path: test.info().outputPath(`landing-hero-${width}.png`) });
     const before = await layer.evaluate(node => getComputedStyle(node).transform);
     await page.mouse.wheel(0, 320);
@@ -44,11 +45,24 @@ test('changing motion preference resets scroll depth without hiding content', as
   await expect.poll(() => layer.evaluate(node => node.style.getPropertyValue('--scroll-y'))).not.toBe('');
 });
 
-test('the landing page remains readable and navigable before JavaScript', async ({ browser, baseURL }) => {
-  test.skip(process.env.E2E_PRODUCTION !== 'true', 'Next development streaming and CSS require JavaScript; exercise the built page in production CI.');
+test('JavaScript-disabled browsers receive a clear instruction instead of an endless loader', async ({ browser, baseURL }) => {
   const context = await browser.newContext({ javaScriptEnabled: false, reducedMotion: 'no-preference' });
   const page = await context.newPage();
   try {
+    await page.goto(baseURL!);
+    await expect(page.getByRole('heading', { name: 'JavaScript is turned off.' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Opening Lotline…' })).toBeHidden();
+    await expect(page.getByRole('link', { name: 'Reload Lotline' })).toHaveAttribute('href', '/');
+  } finally { await context.close(); }
+});
+
+test('server content and links remain usable when client bundles cannot load', async ({ browser, baseURL }) => {
+  test.skip(process.env.E2E_PRODUCTION !== 'true', 'Next development CSS requires client bundles; verify progressive enhancement on the production output.');
+  const context = await browser.newContext({ reducedMotion: 'no-preference' });
+  const page = await context.newPage();
+  try {
+    // Permit Next's inline stream swap, but deny hydration and animation bundles.
+    await page.route('**/_next/static/**/*.js*', route => route.abort());
     await page.goto(baseURL!);
     await expect(page.getByRole('heading', { name: 'Your next contribution, clearly.' })).toBeVisible();
     await page.getByRole('link', { name: 'Explore the catalog' }).scrollIntoViewIfNeeded();

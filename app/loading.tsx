@@ -1,5 +1,11 @@
 import { BrandMark } from '@/components/brand-mark';
 
 export default function Loading() {
-  return <main id="main" className="route-state" aria-busy="true"><div role="status"><BrandMark className="route-loader" /><h1>Opening Lotline…</h1><p>Your next contribution, clearly.</p></div></main>;
+  return <main id="main" className="route-state">
+    <div className="route-loading" role="status" aria-busy="true"><BrandMark className="route-loader" /><h1>Opening Lotline…</h1><p>Your next contribution, clearly.</p></div>
+    <noscript>
+      <style>{'.route-loading{display:none}'}</style>
+      <div><h1>JavaScript is turned off.</h1><p>Enable JavaScript in your browser, then reload to open Lotline.</p><a className="button secondary" href="/">Reload Lotline</a></div>
+    </noscript>
+  </main>;
 }
