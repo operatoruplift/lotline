@@ -45,6 +45,7 @@ test('changing motion preference resets scroll depth without hiding content', as
 });
 
 test('the landing page remains readable and navigable before JavaScript', async ({ browser, baseURL }) => {
+  test.skip(process.env.E2E_PRODUCTION !== 'true', 'Next development streaming and CSS require JavaScript; exercise the built page in production CI.');
   const context = await browser.newContext({ javaScriptEnabled: false, reducedMotion: 'no-preference' });
   const page = await context.newPage();
   try {
