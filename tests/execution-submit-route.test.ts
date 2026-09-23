@@ -1,5 +1,6 @@
 import { beforeEach, expect, it, vi } from 'vitest';
-const mocks = vi.hoisted(() => ({ get: vi.fn(), transition: vi.fn(), submitted: vi.fn(), execute: vi.fn(), validate: vi.fn(), proof: vi.fn(), wallet: vi.fn() }));
+const mocks = vi.hoisted(() => ({ get: vi.fn(), transition: vi.fn(), submitted: vi.fn(), execute: vi.fn(), validate: vi.fn(), proof: vi.fn(), wallet: vi.fn(), references: vi.fn() }));
+vi.mock('@/lib/server/execution/market-reference', async importOriginal => ({ ...await importOriginal<object>(), requirePythReview: mocks.references }));
 vi.mock('@/lib/server/execution/proof-policy', () => ({ requireSemanticProof: mocks.proof }));
 vi.mock('@/lib/server/execution/config', () => ({ requireExecutionWallet: mocks.wallet }));
 vi.mock('@/lib/server/execution/repository', () => ({ getAttemptByRequestId: mocks.get, transitionAttempt: mocks.transition, recordSubmitted: mocks.submitted }));
@@ -10,6 +11,7 @@ vi.mock('@/lib/server/execution/http', () => ({
   json: (body: unknown, status = 200) => Response.json(body, { status }), failure: () => Response.json({ state: 'unavailable' }, { status: 503 }),
 }));
 import { POST } from '../app/api/execution/runs/[runId]/legs/[legId]/execute/route';
+import { ReviewExpiredBeforeDispatch } from '../lib/server/execution/market-reference';
 
 const messageHash = 'a'.repeat(64);
 const request = () => new Request('https://lotline.test/api/execution/runs/run/legs/leg/execute', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ requestId: 'request', signedTransaction: 'c2lnbmVk', messageHash }) });
@@ -52,4 +54,19 @@ it('enforces restricted participant access on direct submission requests', async
   expect((await POST(request(), context)).status).toBe(503);
   expect(mocks.execute).not.toHaveBeenCalled();
   expect(mocks.transition).not.toHaveBeenCalled();
+});
+it('blocks direct submission before any signing transition when Pyth references are unavailable', async () => {
+  mocks.references.mockRejectedValue(new Error('stale references'));
+  expect((await POST(request(), context)).status).toBe(503);
+  expect(mocks.validate).not.toHaveBeenCalled();
+  expect(mocks.execute).not.toHaveBeenCalled();
+  expect(mocks.transition).not.toHaveBeenCalled();
+});
+it('records known local non-transmission while preserving the original signed receipt lock', async () => {
+  mocks.execute.mockRejectedValue(new ReviewExpiredBeforeDispatch());
+  const response = await POST(request(), context);
+  expect(response.status).toBe(409);
+  expect(await response.json()).toMatchObject({ state: 'unknown', signature: 'original-signature' });
+  expect(mocks.transition.mock.calls.at(-1)?.[3]).toMatchObject({ lotlineTransmitted: false });
+  expect(mocks.submitted).not.toHaveBeenCalled();
 });

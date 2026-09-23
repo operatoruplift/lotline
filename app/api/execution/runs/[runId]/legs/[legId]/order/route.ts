@@ -8,6 +8,7 @@ import { ensureExecutionEnabled, enforceExecutionRateLimit, failure, json, requi
 import { orderRequestSchema } from '@/lib/server/execution/schemas';
 import { requireSemanticProof } from '@/lib/server/execution/proof-policy';
 import { requireExecutionWallet } from '@/lib/server/execution/config';
+import { requirePythReview, requireCurrentReview } from '@/lib/server/execution/market-reference';
 
 export const dynamic = 'force-dynamic';
 export const maxDuration = 30;
@@ -29,6 +30,7 @@ export async function POST(request: Request, context: { params: Promise<{ runId:
     requireExecutionWallet(intent.wallet);
     if (createHash('sha256').update(canonicalIntent(intent)).digest('hex') !== snapshot.run.intent_hash || intent.policyVersion !== snapshot.run.policy_version) return json({ state: 'invalid-input', message: 'The execution intent changed after review. Start a new contribution review.' }, 400);
     if (intent.wallet !== snapshot.run.wallet || intent.legs.find(item => item.mint === leg.mint)?.maximumInputRaw !== leg.input_raw || parsed.data.mint !== leg.mint) return json({ state: 'invalid-input', message: 'The order request does not match the reviewed contribution.' }, 400);
+    const referenceExpiry = await requirePythReview(leg.mint);
     const activeAttempt = snapshot.attempts.find(item => item.leg_id === leg.id && ['review-required', 'awaiting-wallet', 'signed', 'submitted', 'confirming', 'unknown'].includes(item.state));
     let expiredActiveAttempt = false;
     if (activeAttempt) {
@@ -43,6 +45,7 @@ export async function POST(request: Request, context: { params: Promise<{ runId:
         }
         if (!expiredActiveAttempt) {
         if ((activeAttempt.state === 'review-required' || activeAttempt.state === 'awaiting-wallet') && typeof activeAttempt.evidence?.transaction === 'string') {
+          requireCurrentReview(referenceExpiry, activeAttempt.provider_expires_at);
           const evidence = activeAttempt.evidence;
           return json({ state: 'success', attempt: { id: activeAttempt.id, requestId: activeAttempt.provider_request_id, state: activeAttempt.state, messageHash: activeAttempt.transaction_message_hash, inputRaw: typeof evidence.inAmount === 'string' ? evidence.inAmount : leg.input_raw, outputRaw: typeof evidence.outAmount === 'string' ? evidence.outAmount : activeAttempt.minimum_output_raw, minimumOutputRaw: activeAttempt.minimum_output_raw, expiresAt: activeAttempt.provider_expires_at, router: typeof evidence.router === 'string' ? evidence.router : 'validated route', prioritizationFeeLamports: evidence.prioritizationFeeLamports, signatureFeeLamports: evidence.signatureFeeLamports, rentFeeLamports: evidence.rentFeeLamports, totalSolCostLamports: evidence.totalSolCostLamports, feeBps: evidence.feeBps, feeMint: evidence.feeMint, platformFee: evidence.platformFee, semanticProof: evidence.semanticProof }, transaction: evidence.transaction });
         }
@@ -59,8 +62,10 @@ export async function POST(request: Request, context: { params: Promise<{ runId:
     const issuer = await getIssuerAsset(asset.symbol, { fresh: true });
     if (asset.halted || issuer.halted || issuer.mint !== asset.mint) return json({ state: 'invalid-input', message: 'This issuer is currently unavailable or changed. Refresh before continuing.' }, 400);
     const order = await createExecutionOrder(intent, asset, ready.config.limits);
+    requireCurrentReview(referenceExpiry, order.expiresAt);
     requireSemanticProof(order, leg.input_raw, order.minimumOutputRaw);
     const attempt = await createAttempt(owner, runId, legId, order);
+    requireCurrentReview(referenceExpiry, order.expiresAt);
     return json({ state: 'success', attempt: { id: attempt.id, requestId: attempt.provider_request_id, state: attempt.state, messageHash: attempt.transaction_message_hash, inputRaw: order.inAmount, outputRaw: order.outAmount, minimumOutputRaw: order.minimumOutputRaw, router: order.router, expiresAt: order.expiresAt, prioritizationFeeLamports: order.prioritizationFeeLamports, signatureFeeLamports: order.signatureFeeLamports, rentFeeLamports: order.rentFeeLamports, totalSolCostLamports: order.totalSolCostLamports, feeBps: order.feeBps, feeMint: order.feeMint, platformFee: order.platformFee, semanticProof: order.semanticProof }, transaction: order.transaction });
   } catch (error) { return failure(error); }
 }

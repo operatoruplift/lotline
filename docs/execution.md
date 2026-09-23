@@ -1,4 +1,4 @@
-> Current contribution implementation and release status: [September 20 contribution release](contribution-release-20260920.md). Earlier dated observations below remain historical.
+> Current Pyth review and settlement prerequisites: [September 23 release](releases/2026-09-23/release.md). The [September 20 contribution release](contribution-release-20260920.md) records the semantic validator. Earlier dated observations below remain historical.
 
 # Lotline execution readiness
 

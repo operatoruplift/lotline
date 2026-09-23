@@ -5,6 +5,7 @@ import { ensureExecutionEnabled, enforceExecutionRateLimit, failure, json, requi
 import { executeRequestSchema } from '@/lib/server/execution/schemas';
 import { requireSemanticProof } from '@/lib/server/execution/proof-policy';
 import { requireExecutionWallet } from '@/lib/server/execution/config';
+import { requirePythReview, requireCurrentReview, ReviewExpiredBeforeDispatch } from '@/lib/server/execution/market-reference';
 
 export const dynamic = 'force-dynamic';
 export const maxDuration = 30;
@@ -30,6 +31,7 @@ export async function POST(request: Request, context: { params: Promise<{ runId:
     if (found.attempt.state !== 'review-required' && found.attempt.state !== 'awaiting-wallet') return json({ state: 'invalid-input', message: 'This order is no longer awaiting a wallet signature.' }, 409);
     requireExecutionWallet(found.run.wallet);
     requireSemanticProof(found.attempt.evidence, found.leg.input_raw, found.attempt.minimum_output_raw);
+    const referenceExpiry = await requirePythReview(found.leg.mint);
     const unsigned = found.attempt.evidence?.transaction;
     if (typeof unsigned !== 'string') throw new ServiceError('unavailable', 'The reviewed transaction is unavailable. Request a fresh order.');
     await transitionAttempt(owner, found.attempt.id, 'awaiting-wallet', { reason: 'The user chose to sign the reviewed order.' });
@@ -37,8 +39,15 @@ export async function POST(request: Request, context: { params: Promise<{ runId:
     await transitionAttempt(owner, found.attempt.id, 'signed', { reason: 'The wallet signature passed exact message and Ed25519 checks.', expectedSignature: signed.chainSignature, signedTransactionHash: signed.signedTransactionHash }, signed.chainSignature);
     let response: Awaited<ReturnType<typeof executeOnJupiter>>;
     try {
-      response = await executeOnJupiter(signed.encoded, found.attempt.provider_request_id, signed.chainSignature, found.attempt.original_last_valid_block_height ?? undefined);
+      response = await executeOnJupiter(signed.encoded, found.attempt.provider_request_id, signed.chainSignature, found.attempt.original_last_valid_block_height ?? undefined, () => requireCurrentReview(referenceExpiry, found.attempt.provider_expires_at));
     } catch (error) {
+      if (error instanceof ReviewExpiredBeforeDispatch) {
+        // Signed bytes may still be broadcast by the wallet; preserve the original
+        // signature and reconciliation lock even though this server sent nothing.
+        const message = 'The order or Pyth references expired before transmission. Lotline did not send the signed transaction. Check the original receipt before another approval.';
+        await transitionAttempt(owner, found.attempt.id, 'unknown', { reason: message, lotlineTransmitted: false });
+        return json({ state: 'unknown', signature: signed.chainSignature, message }, 409);
+      }
       await transitionAttempt(owner, found.attempt.id, 'unknown', { reason: 'The provider response was inconclusive. Reconcile this attempt before any retry.', error: error instanceof Error ? error.message : 'provider-unavailable' });
       throw error;
     }
