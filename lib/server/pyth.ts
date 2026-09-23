@@ -1,7 +1,7 @@
 import 'server-only';
 import { z } from 'zod';
 import { XSTOCK_REGISTRY } from '../domain/assets';
-import { MARKET_REFERENCE_MAX_MINTS, PYTH_FEED_MAPPINGS, PYTH_MAX_AGE_SECONDS, isPythObservationFresh, pythConfidenceBps, pythDecimal, pythRatio, type MarketReferenceItem, type MarketReferenceResponse, type PythObservation } from '../domain/market-reference';
+import { MARKET_REFERENCE_MAX_MINTS, PYTH_FEED_MAPPINGS, PYTH_MAX_AGE_SECONDS, PYTH_USDC_FEED_ID, isPythObservationFresh, pythConfidenceBps, pythDecimal, pythRatio, type MarketReferenceItem, type MarketReferenceResponse, type PythObservation } from '../domain/market-reference';
 import { addressSchema, BoundedCache, ServiceError, SpacedQueue } from './common';
 
 // Verified against official Hermes metadata; see the dated public discovery evidence.
@@ -48,6 +48,7 @@ function itemState(underlying?: PythObservation, token?: PythObservation): Marke
 export function parsePythReferences(payload: unknown, mints: string[], fetchedAt: string, now = Date.now()): MarketReferenceResponse {
   const expected = PYTH_FEEDS.filter(feed => mints.includes(feed.mint));
   const ids = new Set<string>(expected.flatMap(feed => [feed.underlying, feed.token]));
+  if (expected.length) ids.add(PYTH_USDC_FEED_ID);
   const parsed = upstreamSchema.safeParse(payload);
   if (!Number.isFinite(Date.parse(fetchedAt)) || !parsed.success || new Set(parsed.data.parsed.map(feed => feed.id)).size !== parsed.data.parsed.length
     || parsed.data.parsed.some(feed => !ids.has(feed.id) || feed.price.publish_time > Math.floor(now / 1000))) {
@@ -58,7 +59,7 @@ export function parsePythReferences(payload: unknown, mints: string[], fetchedAt
     const value = observations.get(id);
     if (!value) return;
     const expiresAt = new Date((value.publish_time + PYTH_MAX_AGE_SECONDS) * 1000).toISOString();
-    return { feedId: id, symbol, kind, quoteCurrency: 'USD', unitBasis: kind === 'underlying' ? 'underlying-share' : 'unverified-token-unit', price: value.price, confidence: value.conf, exponent: value.expo, publishTime: value.publish_time, publishedAt: new Date(value.publish_time * 1000).toISOString(), fetchedAt, expiresAt, state: now < Date.parse(expiresAt) ? 'fresh' : 'stale', displayPrice: pythDecimal(value.price, value.expo), displayConfidence: pythDecimal(value.conf, value.expo), confidenceBps: pythConfidenceBps(value.price, value.conf) };
+    return { feedId: id, symbol, kind, quoteCurrency: 'USD', unitBasis: kind === 'underlying' ? 'underlying-share' : kind === 'currency' ? 'usdc-unit' : 'unverified-token-unit', price: value.price, confidence: value.conf, exponent: value.expo, publishTime: value.publish_time, publishedAt: new Date(value.publish_time * 1000).toISOString(), fetchedAt, expiresAt, state: now < Date.parse(expiresAt) ? 'fresh' : 'stale', displayPrice: pythDecimal(value.price, value.expo), displayConfidence: pythDecimal(value.conf, value.expo), confidenceBps: pythConfidenceBps(value.price, value.conf) };
   };
   const items: MarketReferenceItem[] = mints.map(mint => {
     const mapping = expected.find(feed => feed.mint === mint);
@@ -69,14 +70,16 @@ export function parsePythReferences(payload: unknown, mints: string[], fetchedAt
     const comparable = Boolean(underlying && token && state === 'success');
     return { mint, state, comparison: comparable ? 'cross-feed-context' : 'not-comparable', ...(comparable ? { comparisonRatio: pythRatio(token!, underlying!) } : {}), ...(underlying ? { underlying } : {}), ...(token ? { token } : {}), message: underlying || token ? caveat : 'Pyth did not return these price feeds.' };
   });
-  const expiries = items.flatMap(item => [item.underlying, item.token].filter(value => value !== undefined).map(value => Date.parse(value.expiresAt)));
-  return { source: 'pyth', state: summarize(items), fetchedAt, expiresAt: expiries.length ? new Date(Math.min(...expiries)).toISOString() : fetchedAt, items, message: caveat };
+  const usdc = observation(PYTH_USDC_FEED_ID, 'Crypto.USDC/USD', 'currency');
+  const expiries = [...items.flatMap(item => [item.underlying, item.token]), usdc].filter(value => value !== undefined).map(value => Date.parse(value.expiresAt));
+  return { source: 'pyth', state: summarize(items), fetchedAt, expiresAt: expiries.length ? new Date(Math.min(...expiries)).toISOString() : fetchedAt, items, ...(usdc ? { usdc } : {}), message: caveat };
 }
 
 function current(response: MarketReferenceResponse): MarketReferenceResponse {
-  if (!response.items.some(item => item.underlying || item.token)) return response;
+  if (!response.usdc && !response.items.some(item => item.underlying || item.token)) return response;
+  const refresh = (value: PythObservation | undefined): PythObservation | undefined => value && { ...value, state: isPythObservationFresh(value) ? 'fresh' : 'stale' };
+  const usdc = refresh(response.usdc);
   const items = response.items.map(item => {
-    const refresh = (value: PythObservation | undefined): PythObservation | undefined => value && { ...value, state: isPythObservationFresh(value) ? 'fresh' : 'stale' };
     const underlying = refresh(item.underlying);
     const token = refresh(item.token);
     const state = itemState(underlying, token);
@@ -87,7 +90,7 @@ function current(response: MarketReferenceResponse): MarketReferenceResponse {
     }
     return refreshed;
   });
-  return { ...response, items, state: summarize(items) };
+  return { ...response, items, ...(usdc ? { usdc } : {}), state: summarize(items) };
 }
 
 async function readBoundedJson(response: Response, signal: AbortSignal): Promise<unknown> {
@@ -122,6 +125,7 @@ async function fetchReferences(mints: string[], apiKey: string): Promise<MarketR
     starts.push(now);
     const url = new URL(HERMES);
     for (const feed of PYTH_FEEDS.filter(feed => mints.includes(feed.mint))) for (const id of [feed.underlying, feed.token]) url.searchParams.append('ids[]', id);
+    url.searchParams.append('ids[]', PYTH_USDC_FEED_ID);
     url.searchParams.set('parsed', 'true');
     const fetchedAt = new Date().toISOString();
     const controller = new AbortController();

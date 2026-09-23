@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { Activity, Clock3, ExternalLink, LoaderCircle, RefreshCw } from 'lucide-react';
 import type { Asset, Mode, QuotesResponse } from '@/lib/domain/types';
 import { isPythObservationFresh, marketReferenceResponseSchema, type MarketReferenceResponse } from '@/lib/domain/market-reference';
+import { quoteBenchmark } from '@/lib/domain/quote-benchmark';
 import { utcTime } from './verification-receipt';
 import styles from './market-reference.module.css';
 
@@ -62,7 +63,7 @@ export function MarketReference({ assets, quotes, mode, planIdentity, now, enabl
         const returned = data.items.map(item => item.mint);
         if (new Set(returned).size !== returned.length || returned.some(mint => !mints.includes(mint))
           || (['success', 'partial', 'stale'].includes(data.state) && returned.length !== mints.length)
-          || (!response.ok && data.items.some(item => item.underlying || item.token))) throw new Error('Unverified reference response.');
+          || (!response.ok && (data.usdc || data.items.some(item => item.underlying || item.token)))) throw new Error('Unverified reference response.');
         if (!controller.signal.aborted) { setResult({ key: requestKey, data }); onData?.(data); }
       } catch {
         if (!controller.signal.aborted) { setResult({ key: requestKey, error: 'Pyth market references could not be verified. Your contribution estimates are still available.' }); onData?.(null); }
@@ -82,20 +83,30 @@ export function MarketReference({ assets, quotes, mode, planIdentity, now, enabl
       <div><p className={styles.eyebrow}><Activity size={14} />PYTH MARKET DATA</p><h3 id="market-reference-title">Put the estimate in context.</h3></div>
       <button type="button" className={styles.refresh} disabled={pending} onClick={() => setRefresh(value => value + 1)} aria-label="Refresh market references"><RefreshCw size={15} />Refresh references</button>
     </div>
-    <p className={styles.intro}>See the underlying equity and token reference side by side, with their original publication times. The cross-feed ratio is context only; your amount-specific Jupiter estimate remains the execution estimate.</p>
+    <p className={styles.intro}>Compare your planning estimate with the underlying equity reference using verified scaled units and a separate USDC/USD price. Your later purchase order still needs its own review.</p>
     {pending ? <p className={styles.status} role="status"><LoaderCircle size={16} className="spinning" />Checking reference freshness…</p> : !hasObservations ? <p className={styles.status} role="status">{current?.error ?? 'Pyth market data is currently unavailable. Your Jupiter estimates remain available; no reference-price check is claimed.'}</p> : <>
       {quoteExpired && <p className={styles.warning} role="status"><Clock3 size={16} />Your contribution estimate expired. Refresh estimates before reviewing these observations together.</p>}
+      {data?.usdc && <div className={styles.currency} data-currency-reference><ObservationCard observation={data.usdc} label="USDC conversion · USD per USDC" now={now} /></div>}
       <div className={styles.assets}>{data!.items.map(item => {
         const asset = assets.find(candidate => candidate.mint === item.mint);
         const observations = [item.underlying, item.token].filter((value): value is Observation => Boolean(value));
         const stale = observations.some(observation => observation.state === 'stale' || !isPythObservationFresh(observation, now));
+        const benchmark = quoteBenchmark(successful.find(quote => quote.mint === item.mint), data, now);
         return <article key={item.mint} className={styles.asset} data-reference-mint={item.mint}>
           <div className={styles.assetHeading}><h4>{asset?.symbol ?? 'Selected asset'} <span>{asset?.name}</span></h4><span className={stale || !observations.length ? styles.stale : styles.current}>{!observations.length ? 'Reference unavailable' : stale ? 'Reference check stale' : 'Reference data current'}</span></div>
           {observations.length ? <><div className={styles.prices}><ObservationCard observation={item.underlying} label="Underlying equity · per share" now={now} /><ObservationCard observation={item.token} label="Token feed · unit basis unverified" now={now} /></div>{!stale && item.comparison === 'cross-feed-context' && item.comparisonRatio && <p className={styles.comparison} data-reference-comparison>Feed-price ratio: approximately {item.comparisonRatio}× (token USD feed ÷ equity USD feed, rounded down to eight decimal places). The feed units are not verified as equivalent, so this is context only.</p>}</> : <p className={styles.detail}>{item.message ?? 'No verified reference is available for this selection.'}</p>}
+          {benchmark.state === 'available' ? <div className={styles.benchmark} data-quote-benchmark>
+            <h5>Planning estimate vs equity reference</h5>
+            <p><strong>≈ ${benchmark.usdPerShare}</strong> USD per share-equivalent</p>
+            <p>Difference from the underlying reference: <strong>{!benchmark.differencePercent.startsWith('-') && benchmark.differencePercent !== '0' ? '+' : ''}{benchmark.differencePercent}%</strong></p>
+            <p>USDC/USD {benchmark.usdcUsd} × your USDC input ÷ the quote’s scaled output. Uses the quote’s mint and chain-time snapshot; displayed values are truncated.</p>
+            <p>This compares a planning estimate, not the later purchase order, a guaranteed fill or fair value. Separate network fees are excluded. Reported oracle confidence is shown above.</p>
+          </div> : <p className={styles.detail} data-benchmark-unavailable>{benchmark.message}</p>}
         </article>;
       })}</div>
-      <p className={styles.note}>Mapped assets require fresh equity and token feeds for purchase review. Equity feeds can stop updating outside market hours. The ratio does not establish a premium, fair value, or execution price. Refreshing references never refreshes an older quote.</p>
+      <p className={styles.note}>Mapped assets require fresh equity and token feeds for purchase review. Equity feeds can stop updating outside market hours. The planning benchmark additionally needs fresh USDC/USD and scaling data. Refreshing references never refreshes an older quote.</p>
     </>}
     <a className={styles.source} href="https://docs.pyth.network/price-feeds" target="_blank" rel="noopener noreferrer">About Pyth price data <ExternalLink size={12} /></a>
+    <a className={styles.source} href="https://docs.xstocks.fi/developers/multipliers" target="_blank" rel="noopener noreferrer">How scaled units represent share exposure <ExternalLink size={12} /></a>
   </section>;
 }

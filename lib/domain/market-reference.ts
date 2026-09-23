@@ -2,6 +2,7 @@ import * as z from 'zod/mini';
 
 export const PYTH_MAX_AGE_SECONDS = 60;
 export const MARKET_REFERENCE_MAX_MINTS = 10;
+export const PYTH_USDC_FEED_ID = 'eaa020c61cc479712813461ce153894a96a6c00b21ed0cfc2798d1f9a9e9c94a';
 
 // Pinned to official Hermes metadata. A token feed does not establish share equivalence.
 export const PYTH_FEED_MAPPINGS = [
@@ -60,9 +61,9 @@ const mint = z.string().check(z.regex(/^[1-9A-HJ-NP-Za-km-z]{32,44}$/));
 export const pythObservationSchema = z.strictObject({
   feedId: z.string().check(z.regex(/^[a-f0-9]{64}$/)),
   symbol: z.string().check(z.minLength(1), z.maxLength(80)),
-  kind: z.enum(['underlying', 'token']),
+  kind: z.enum(['underlying', 'token', 'currency']),
   quoteCurrency: z.literal('USD'),
-  unitBasis: z.enum(['underlying-share', 'unverified-token-unit']),
+  unitBasis: z.enum(['underlying-share', 'unverified-token-unit', 'usdc-unit']),
   price: positiveInteger,
   confidence: unsignedInteger,
   exponent: z.number().check(z.int(), z.minimum(-12), z.maximum(12)),
@@ -83,7 +84,8 @@ export const pythObservationSchema = z.strictObject({
     || value.displayPrice !== pythDecimal(value.price, value.exponent)
     || value.displayConfidence !== pythDecimal(value.confidence, value.exponent)
     || value.confidenceBps !== pythConfidenceBps(value.price, value.confidence)
-    || value.unitBasis !== (value.kind === 'underlying' ? 'underlying-share' : 'unverified-token-unit')) {
+    || value.unitBasis !== (value.kind === 'underlying' ? 'underlying-share' : value.kind === 'currency' ? 'usdc-unit' : 'unverified-token-unit')
+    || (value.kind === 'currency' && (value.feedId !== PYTH_USDC_FEED_ID || value.symbol !== 'Crypto.USDC/USD'))) {
     context.addIssue({ code: 'custom', message: 'Inconsistent Pyth observation.' });
   }
 }));
@@ -96,7 +98,7 @@ const itemSchema = z.strictObject({
   comparisonRatio: z.optional(ratioDecimal),
   message: z.optional(text),
 }).check(z.superRefine((value, context) => {
-  if (value.underlying?.kind === 'token' || value.token?.kind === 'underlying'
+  if ((value.underlying !== undefined && value.underlying.kind !== 'underlying') || (value.token !== undefined && value.token.kind !== 'token')
     || (['success', 'partial', 'stale'].includes(value.state) !== Boolean(value.underlying || value.token))
     || (value.state === 'success' && (value.underlying?.state !== 'fresh' || value.token?.state !== 'fresh'))
     || (value.comparison === 'cross-feed-context' && (value.state !== 'success' || !value.comparisonRatio || !value.underlying || !value.token))
@@ -114,8 +116,9 @@ const itemSchema = z.strictObject({
 export const marketReferenceResponseSchema = z.strictObject({
   source: z.literal('pyth'), state, fetchedAt: timestamp, expiresAt: timestamp,
   items: z.array(itemSchema).check(z.maxLength(MARKET_REFERENCE_MAX_MINTS)),
+  usdc: z.optional(pythObservationSchema),
   message: z.optional(text),
-}).check(z.refine(value => new Set(value.items.map(item => item.mint)).size === value.items.length));
+}).check(z.refine(value => new Set(value.items.map(item => item.mint)).size === value.items.length && (value.usdc === undefined || value.usdc.kind === 'currency')));
 
 export type PythObservation = z.infer<typeof pythObservationSchema>;
 export type MarketReferenceResponse = z.infer<typeof marketReferenceResponseSchema>;

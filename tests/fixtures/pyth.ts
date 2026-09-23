@@ -6,7 +6,7 @@ export function pythReferences(mints: string[], now: number, price = '20000', ag
   const fetchedAt = new Date(now).toISOString();
   const expiresAt = new Date((publishTime + 60) * 1000).toISOString();
   const observationState = age >= 60 ? 'stale' : 'fresh';
-  const observation = (mapping: typeof PYTH_FEED_MAPPINGS[number], kind: PythObservation['kind']): PythObservation => ({
+  const observation = (mapping: typeof PYTH_FEED_MAPPINGS[number], kind: Exclude<PythObservation['kind'], 'currency'>): PythObservation => ({
     feedId: mapping[kind], symbol: kind === 'token' ? `Crypto.${mapping.symbol}X/USD` : `Equity.US.${mapping.symbol}/USD`,
     kind, quoteCurrency: 'USD', unitBasis: kind === 'token' ? 'unverified-token-unit' : 'underlying-share',
     price, confidence: '10', exponent: -2, publishTime, publishedAt: new Date(publishTime * 1000).toISOString(), fetchedAt, expiresAt, state: observationState,
