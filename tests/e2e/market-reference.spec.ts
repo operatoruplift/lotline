@@ -49,7 +49,7 @@ test('a planning benchmark uses USDC conversion and disappears when that observa
   await expect(panel(page).locator('[data-quote-benchmark]')).toHaveCount(0);
   await expect(panel(page).locator('[data-currency-reference]')).toContainText('Stale reference');
   await expect(panel(page).locator('[data-benchmark-unavailable]').first()).toContainText('Fresh equity and USDC/USD references');
-  await expect(page.getByRole('cell', { name: '+1.23', exact: true })).toHaveCount(3);
+  await expect(page.locator('.results-table td[data-label="Estimated +units"]')).toHaveText(['+1.23', '+1.23', '+1.23']);
 });
 
 test('Live references show confidence and original feed times while estimates retain their own amounts', async ({ page }) => {
