@@ -1,5 +1,13 @@
 import { z } from 'zod';
 import type { DataFailureReason, Holding, HoldingsResponse, ProjectionResponse, Quote, QuotesResponse } from '../domain/types';
+
+// Zod compiles validators with `new Function` and probes for it with a bare
+// `Function("")`. Our script-src withholds 'unsafe-eval', so in the browser that
+// probe is refused, Zod falls back to interpreted validation, and Chrome records a
+// CSP violation for a capability we never intended to use. Declaring jitless up
+// front reaches the same interpreted path without the refused call. The server has
+// no such policy, so it keeps the compiled path.
+if (typeof window !== 'undefined') z.config({ jitless: true });
 import { API_BATCH_SIZE } from '../domain/limits';
 import { USDC_MINT } from '../demo/example';
 import type { PlannerApiPrefix } from '../domain/planner-universe';
