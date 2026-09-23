@@ -14,6 +14,8 @@ Canonical production URL: https://lotline.dev. This release preserves the separa
 
 The token feed's unit basis is not verified against Solana scaled display units or an underlying share. A ratio between the two USD feed numbers therefore provides feed context, not a token premium/discount, fair value, or oracle-equivalent Jupiter execution price. USDC/USD parity is not assumed. Completing a verified execution-price comparison requires authoritative token-feed unit provenance and a consistent input-currency conversion.
 
+The [issuer oracle API](https://api.xstocks.fi/api/v2/public/oracles/AAPLx?managedBy=Pyth&pageSize=200) confirms the pinned AAPLx Pyth feed for Solana, but supplies no quantity-basis field. The [issuer multiplier guide](https://docs.xstocks.fi/developers/multipliers) defines scaled token exposure without establishing the Pyth token-feed publisher normalization. Neither source resolves that comparison gap.
+
 Freshness is strictly less than 60 seconds from publication. Requiring both token and equity feeds means mapped purchases can be blocked outside equity-feed publication hours. The app says this explicitly; closed-market observations are not relabeled fresh. Jupiter estimates keep their separate maximum 30-second lifetime.
 
 ## Production prerequisites
@@ -26,4 +28,10 @@ Pyth access requirements: [official getting-started guide](https://docs.pyth.net
 
 ## Verification and deployment
 
-Verification results and the resulting deployment are recorded after the final checks below. Browser fixtures are explicitly synthetic and do not establish authenticated provider access or real settlement.
+- Local: ESLint, canonical typecheck and the final production build passed. The initial full unit run passed 488 tests with two opt-in live tests skipped; the later complete CI run includes the additional server-boundary tests. All 16 targeted production-build browser checks passed locally, including 320px accessibility/overflow, PreStocks drafts/export/share, restored reviews, pending-wallet expiry, stale quote isolation and ratio expiry.
+- [CI run 35811766064](https://github.com/operatoruplift/lotline/actions/runs/35811766064): lint, typecheck, 490 unit tests and the production build passed; two opt-in live tests skipped. Browser results were 106 first-pass successes and one success after retry. The latter test edited a plan before its order request finished; its expectation needed an established review. A subsequent test-only change explicitly waits for the sign button before editing and passed three consecutive local runs without retries. No production safety check was weakened.
+- Independent code/TypeScript/security review found no remaining issues after the server dispatch-time expiry check was added. Fixtures do not establish authenticated Pyth price delivery or settlement.
+- [PR #3](https://github.com/operatoruplift/lotline/pull/3) merged as `5db31c0dc51dc3f37c5a44514ee28e2716f4d82f`. Vercel production `dpl_7HTUwf6GtWQoYebQS7RNgKa2SPtf` is READY at https://lotline.dev and its metadata matches that exact source SHA. See [deployment identity](production-deployment.json).
+- [Hosted checks](hosted-after.json): eight verified PreStocks assets, Pyth `configuration-required` with zero observations, execution disabled and reconciliation available. The [390px demo-page check](hosted-demo-check.json) found current release copy, no horizontal overflow and no page errors. [Screenshot](screens/hosted-demo-390.png). Existing videos remain dated and described as controlled rehearsals; no new live-settlement recording is claimed.
+
+No wallet connected, transaction signed or funds moved in this release. Provider credentials, reviewed participant access, oracle unit-basis provenance and a separately authorized real purchase remain outstanding.

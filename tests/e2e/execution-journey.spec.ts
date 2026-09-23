@@ -240,6 +240,9 @@ test('wallet rejection, unsigned expiry and changed plan never submit stale byte
   await page.getByRole('button', { name: 'Update review', exact: true }).click();
   state.orderLifetime = 30000;
   await page.getByRole('button', { name: 'Resume remaining', exact: true }).click();
+  // This case edits an established review. Editing while its request is still
+  // pending correctly rejects the response and has no "Update review" button.
+  await expect(page.getByRole('button', { name: 'Sign this purchase', exact: true })).toBeEnabled();
   await page.getByLabel('USDC budget').fill('200');
   await expect(page.getByRole('button', { name: 'Sign this purchase', exact: true })).toHaveCount(0);
   await expect(page.getByRole('button', { name: 'Update review', exact: true })).toBeVisible();

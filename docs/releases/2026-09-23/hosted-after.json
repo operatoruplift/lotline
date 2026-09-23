@@ -1,0 +1,74 @@
+{
+  "observedAt": "2026-09-23T02:58:38.606Z",
+  "readOnly": true,
+  "transactionsSigned": 0,
+  "transactionsSubmitted": 0,
+  "checks": [
+    {
+      "name": "catalog",
+      "url": "https://lotline.dev/api/prestocks/assets",
+      "status": 200,
+      "state": "success",
+      "assets": [
+        {
+          "symbol": "ANDURIL",
+          "mint": "PresTj4Yc2bAR197Er7wz4UUKSfqt6FryBEdAriBoQB",
+          "verifiedAt": "2026-09-23T02:58:36.824Z"
+        },
+        {
+          "symbol": "ANTHROPIC",
+          "mint": "Pren1FvFX6J3E4kXhJuCiAD5aDmGEb7qJRncwA8Lkhw",
+          "verifiedAt": "2026-09-23T02:58:36.824Z"
+        },
+        {
+          "symbol": "FIGUREAI",
+          "mint": "PreZad18qfPtbxNpMtMuAuX2zVpvkEU8DnJx56faCWd",
+          "verifiedAt": "2026-09-23T02:58:36.824Z"
+        },
+        {
+          "symbol": "KALSHI",
+          "mint": "PreLWGkkeqG1s4HEfFZSy9moCrJ7btsHuUtfcCeoRua",
+          "verifiedAt": "2026-09-23T02:58:36.824Z"
+        },
+        {
+          "symbol": "NEURALINK",
+          "mint": "PrekqLJvJ3qVdXmBGDiexvwUTF4rLFDa6HWS4HJbw9S",
+          "verifiedAt": "2026-09-23T02:58:36.824Z"
+        },
+        {
+          "symbol": "OPENAI",
+          "mint": "PreweJYECqtQwBtpxHL171nL2K6umo692gTm7Q3rpgF",
+          "verifiedAt": "2026-09-23T02:58:36.824Z"
+        },
+        {
+          "symbol": "POLYMARKET",
+          "mint": "Pre8AREmFPtoJFT8mQSXQLh56cwJmM7CFDRuoGBZiUP",
+          "verifiedAt": "2026-09-23T02:58:36.824Z"
+        },
+        {
+          "symbol": "SPACEX",
+          "mint": "PreANxuXjsy2pvisWWMNB6YaJNzr7681wJJr2rHsfTh",
+          "verifiedAt": "2026-09-23T02:58:36.824Z"
+        }
+      ],
+      "unavailable": 0
+    },
+    {
+      "name": "execution",
+      "url": "https://lotline.dev/api/execution/config",
+      "status": 200,
+      "state": "configuration-required",
+      "enabled": false,
+      "reconciliationAvailable": true,
+      "message": "In-app purchases are not available in this release. You can plan a contribution and review it independently on Jupiter."
+    },
+    {
+      "name": "pyth",
+      "url": "https://lotline.dev/api/market-reference",
+      "status": 200,
+      "state": "configuration-required",
+      "observations": 0,
+      "message": "Pyth price access is not configured. Your Jupiter estimates remain available."
+    }
+  ]
+}
