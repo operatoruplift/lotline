@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, expect, it, vi } from 'vitest';
-import { PYTH_MAPPED_MINTS, isPythObservationFresh, marketReferenceResponseSchema, pythConfidenceBps, pythDecimal, pythRatio, pythReferencesReady } from '../lib/domain/market-reference';
+import { PYTH_MAPPED_MINTS, PYTH_USDC_FEED_ID, isPythObservationFresh, marketReferenceResponseSchema, pythConfidenceBps, pythDecimal, pythRatio, pythReferencesReady } from '../lib/domain/market-reference';
 import { PYTH_FEEDS, parsePythReferences } from '../lib/server/pyth';
 
 const now = Date.parse('2026-09-20T19:05:00.000Z');
@@ -9,6 +9,7 @@ function price(id: string, changes = {}) {
   return { id, price: { price: '23456789012', conf: '1234567', expo: -8, publish_time: now / 1000 - 3, ...changes } };
 }
 const payload = () => ({ parsed: [price(mapping.underlying), price(mapping.token)] });
+const currencyPrice = (changes = {}) => price(PYTH_USDC_FEED_ID, { price: '99990000', conf: '1000', ...changes });
 beforeEach(() => { vi.resetModules(); vi.useFakeTimers(); vi.setSystemTime(now); vi.stubEnv('PYTH_API_KEY', 'test-server-only-key'); });
 afterEach(() => { vi.unstubAllEnvs(); vi.unstubAllGlobals(); vi.useRealTimers(); });
 
@@ -27,6 +28,26 @@ it('renders integers beyond Number precision exactly and handles positive and ne
   expect(pythDecimal('42', 3)).toBe('42000');
   expect(pythDecimal('0', -8)).toBe('0');
   expect(pythConfidenceBps('1000000000000000000', '100000000000000')).toBe('1');
+});
+it('retains the pinned USDC/USD currency observation without assuming dollar parity', () => {
+  const response = parsePythReferences({ parsed: [...payload().parsed, currencyPrice()] }, [mapping.mint], fetchedAt, now);
+  expect(response.usdc).toMatchObject({ feedId: PYTH_USDC_FEED_ID, symbol: 'Crypto.USDC/USD', kind: 'currency', unitBasis: 'usdc-unit', quoteCurrency: 'USD', displayPrice: '0.9999', state: 'fresh', expiresAt: '2026-09-20T19:05:57.000Z' });
+  expect(marketReferenceResponseSchema.safeParse(response).success).toBe(true);
+  expect(isPythObservationFresh(response.usdc!, Date.parse(response.usdc!.expiresAt))).toBe(false);
+  const withoutCurrency = parsePythReferences(payload(), [mapping.mint], fetchedAt, now);
+  expect(withoutCurrency.usdc).toBeUndefined();
+  expect(pythReferencesReady(withoutCurrency, [mapping.mint], now)).toBe(true);
+});
+it('rejects altered currency identities, currency slots and negative currency prices', () => {
+  const response = parsePythReferences({ parsed: [...payload().parsed, currencyPrice()] }, [mapping.mint], fetchedAt, now);
+  for (const changes of [{ feedId: mapping.token }, { symbol: 'Crypto.USDT/USD' }, { kind: 'underlying', unitBasis: 'underlying-share' }, { unitBasis: 'unverified-token-unit' }, { price: '-1' }]) {
+    expect(marketReferenceResponseSchema.safeParse({ ...response, usdc: { ...response.usdc, ...changes } }).success).toBe(false);
+  }
+  expect(marketReferenceResponseSchema.safeParse({ ...response, items: [{ ...response.items[0], token: response.usdc }] }).success).toBe(false);
+  expect(marketReferenceResponseSchema.safeParse({ ...response, items: [{ ...response.items[0], underlying: response.usdc }] }).success).toBe(false);
+  expect(() => parsePythReferences({ parsed: [...payload().parsed, currencyPrice({ price: '-1' })] }, [mapping.mint], fetchedAt, now)).toThrow('unverified price response');
+  expect(() => parsePythReferences({ parsed: [...payload().parsed, { ...currencyPrice(), id: 'a'.repeat(64) }] }, [mapping.mint], fetchedAt, now)).toThrow('unverified price response');
+  expect(() => parsePythReferences({ parsed: [currencyPrice()] }, [], fetchedAt, now)).toThrow('unverified price response');
 });
 it('computes asymmetric feed ratios with integer arithmetic and rounds down at eight decimal places', () => {
   expect(pythRatio({ price: '3', exponent: -1 }, { price: '2', exponent: 0 })).toBe('0.15');
@@ -133,11 +154,39 @@ it('requests only pinned IDs with a server authorization header, bounded timeout
   expect(first).toEqual(simultaneous); expect(fetcher).toHaveBeenCalledTimes(1);
   const [url, init] = fetcher.mock.calls[0] as unknown as [URL, RequestInit];
   expect(url.origin + url.pathname).toBe('https://pyth.dourolabs.app/hermes/v2/updates/price/latest');
-  expect(url.searchParams.getAll('ids[]')).toEqual([mapping.underlying, mapping.token]);
+  expect(url.searchParams.getAll('ids[]')).toEqual([mapping.underlying, mapping.token, PYTH_USDC_FEED_ID]);
   expect(init).toMatchObject({ headers: { Authorization: 'Bearer test-server-only-key' }, cache: 'no-store', redirect: 'error' });
   expect(JSON.stringify(first)).not.toContain('test-server-only-key');
   vi.setSystemTime(now + 4000);
   const cached = await getMarketReferences([mapping.mint]); expect(cached.fetchedAt).toBe(first.fetchedAt); expect(fetcher).toHaveBeenCalledTimes(1);
+});
+it('requests one currency feed for several mapped assets and keeps missing currency optional', async () => {
+  const fetcher = vi.fn(async () => Response.json(payload())); vi.stubGlobal('fetch', fetcher);
+  const { getMarketReferences } = await import('../lib/server/pyth');
+  const response = await getMarketReferences(PYTH_FEEDS.map(feed => feed.mint));
+  const [url] = fetcher.mock.calls[0] as unknown as [URL, RequestInit];
+  const ids = url.searchParams.getAll('ids[]');
+  expect(ids).toHaveLength(PYTH_FEEDS.length * 2 + 1);
+  expect(ids.filter(id => id === PYTH_USDC_FEED_ID)).toHaveLength(1);
+  expect(response.usdc).toBeUndefined();
+  expect(response.items[0].state).toBe('success');
+});
+it('ages cached currency from publication without changing the existing equity/token purchase gate', async () => {
+  const fetcher = vi.fn(async () => Response.json({ parsed: [...payload().parsed, currencyPrice({ publish_time: now / 1000 - 58 })] }));
+  vi.stubGlobal('fetch', fetcher);
+  const { getMarketReferences } = await import('../lib/server/pyth');
+  const first = await getMarketReferences([mapping.mint]);
+  vi.setSystemTime(now + 2000);
+  const cached = await getMarketReferences([mapping.mint]);
+  expect(fetcher).toHaveBeenCalledTimes(1);
+  expect(first.usdc?.state).toBe('fresh');
+  expect(cached.usdc?.state).toBe('stale');
+  expect(cached.usdc?.publishedAt).toBe(first.usdc?.publishedAt);
+  expect(cached.usdc?.expiresAt).toBe(first.usdc?.expiresAt);
+  expect(cached.usdc?.fetchedAt).toBe(first.usdc?.fetchedAt);
+  expect(isPythObservationFresh(cached.usdc!, now + 2000)).toBe(false);
+  expect(pythReferencesReady(cached, [mapping.mint], now + 2000)).toBe(true);
+  expect(marketReferenceResponseSchema.safeParse(cached).success).toBe(true);
 });
 it('reclassifies cached observations when they expire without changing their timestamps', async () => {
   vi.stubGlobal('fetch', vi.fn(async () => Response.json({ parsed: [price(mapping.underlying, { publish_time: now / 1000 - 58 }), price(mapping.token, { publish_time: now / 1000 - 58 })] })));

@@ -1,6 +1,6 @@
 # Lotline product descriptions
 
-Last updated September 21, 2026. See [current sponsor evidence](sponsor-release-20260921.md) for deployment and access status.
+Last updated September 23, 2026. See [current sponsor evidence](releases/2026-09-23/quote-benchmark.md) for implementation and access status.
 
 No em dashes are used in this file. Keep it that way when editing.
 
@@ -22,10 +22,10 @@ Save a split on your device, share a plan for review, export the calculations, o
 
 A separate PreStocks planner brings the same arithmetic to eight verified pre-IPO token identities, with its own device draft, no cloud saves and no in-app purchases. Unsupported wallet-account extensions stay explicitly unavailable.
 
-For AAPLx, MSFTx and NVDAx, an optional Pyth panel can show underlying-equity and token USD observations with their original publication times and confidence intervals. Live delivery requires a configured Pyth API key. The token feed's unit basis is unverified, so Lotline does not calculate a premium, a discount or an oracle-equivalent execution price. Reference data never replaces a Jupiter estimate.
+For AAPLx, MSFTx and NVDAx, Pyth references carry original publication times and confidence intervals. A planning benchmark converts the quoted USDC input with a separate USDC/USD observation, divides it by verified scaled share exposure and compares that cost with the underlying equity reference. The comparison expires with its quote, prices or conversion snapshot. It describes an approximate planning estimate, not the later executable order, fair value or an all-in cost. The separate token-feed ratio remains context only because its unit basis is unverified. Fresh equity and token references are required for mapped purchase review and checked again before dispatch. Production still needs its Pyth API key, so authenticated live prices remain unverified; references never replace or extend a Jupiter estimate.
 
 The contribution engine implements explicit Wallet Standard approval, a narrow validated Jupiter and Raydium route, durable attempt history, exact-message receipt checks, and recovery after an uncertain result. A real unsigned mainnet order has passed validation and simulation. **Public in-app purchases remain gated on production access configuration, and real purchase settlement has not been verified.** The independent Jupiter handoff opens the official swap page with your mint and exact USDC amount prefilled, so a trade is reviewed and approved outside Lotline. Each future in-app purchase requires its own fresh review and wallet approval, and reminders never invest automatically.
 
-Lotline never takes custody, never signs without explicit approval, and cannot confirm that a purchase happened. It makes your chosen contribution understandable and repeatable. It does not choose investments, promise returns, or turn tokenized exposure into shareholder rights.
+Lotline never takes custody or signs without explicit approval. Current release evidence does not claim a real purchase. It makes your chosen contribution understandable and repeatable. It does not choose investments, promise returns, or turn tokenized exposure into shareholder rights.
 
-[Website](https://lotlineonsolana.vercel.app) · [App](https://lotlineonsolana.vercel.app/app) · [Demo](https://lotlineonsolana.vercel.app/demo) · [Brand kit](https://lotlineonsolana.vercel.app/brand-kit) · [Source](https://github.com/operatoruplift/lotline)
+[Website](https://lotline.dev) · [App](https://lotline.dev/app) · [Demo](https://lotline.dev/demo) · [Brand kit](https://lotline.dev/brand-kit) · [Source](https://github.com/operatoruplift/lotline)

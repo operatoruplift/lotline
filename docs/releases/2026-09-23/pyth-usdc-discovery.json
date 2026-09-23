@@ -1,0 +1,21 @@
+{
+  "observedAt": "2026-09-23T03:13:49.381Z",
+  "source": "https://hermes.pyth.network/v2/price_feeds?query=USDC&asset_type=crypto",
+  "feed": {
+    "id": "eaa020c61cc479712813461ce153894a96a6c00b21ed0cfc2798d1f9a9e9c94a",
+    "market_hours": {
+      "is_open": true,
+      "next_open": null,
+      "next_close": null
+    },
+    "attributes": {
+      "asset_type": "Crypto",
+      "description": "USD COIN / US DOLLAR",
+      "display_symbol": "USDCUSD",
+      "quote_currency": "USD",
+      "schedule": "America/New_York;O,O,O,O,O,O,O;",
+      "symbol": "Crypto.USDC/USD",
+      "min_channel": "real_time"
+    }
+  }
+}

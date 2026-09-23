@@ -25,12 +25,16 @@
 .price small { font-size: .65rem; color: #66755f; font-weight: 400; }
 .detail { display: block; color: #596854; font-size: .66rem; line-height: 1.6; }
 .comparison { margin: .9rem 0 0; padding: .65rem .75rem; border-left: 3px solid #8fae8d; background: #f4f8f0; color: #49624b; font-size: .68rem; line-height: 1.6; overflow-wrap: anywhere; }
+.currency { margin-bottom: 1rem; padding: .9rem; border: 1px solid #dce4d8; border-radius: 12px; background: #fff; }
+.benchmark { margin-top: .9rem; padding: .8rem; border: 1px solid #b8cbb2; border-radius: 10px; background: #f4f8f0; font-size: .72rem; line-height: 1.65; overflow-wrap: anywhere; }
+.benchmark h5 { margin: 0; font-size: .8rem; }
+.benchmark p { margin: .5rem 0 0; }
 .feed { margin-top: .25rem; color: #52664f; font-size: .65rem; }
 .feed summary { cursor: pointer; min-height: 44px; display: flex; align-items: center; text-decoration: underline; text-underline-offset: 3px; }
 .feed p { margin: .3rem 0; overflow-wrap: anywhere; }
 .feed code { display: block; overflow-wrap: anywhere; font-size: .62rem; }
 .note { margin-bottom: .6rem; }
-.source { display: inline-flex; align-items: center; gap: .3rem; min-height: 44px; color: #356047; font-size: .68rem; text-underline-offset: 3px; }
+.source { display: inline-flex; align-items: center; gap: .3rem; min-height: 44px; margin-right: 1rem; color: #356047; font-size: .68rem; text-underline-offset: 3px; }
 @media (max-width: 600px) {
   .panel { padding: 1rem; }
   .heading { flex-direction: column; gap: .7rem; }

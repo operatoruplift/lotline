@@ -2,6 +2,8 @@
 
 Canonical production URL: https://lotline.dev. This release preserves the separate PreStocks planner, original films, brand, authentication and exact allocation calculations.
 
+The subsequent [planning-benchmark follow-up](quote-benchmark.md) uses documented scaled share exposure and a separate USDC/USD feed, avoiding the token-feed unit ambiguity described below. This file retains the earlier freshness release's deployment evidence.
+
 ## Implemented
 
 - PreStocks discovery and planning cover eight pinned issuer identities. A fresh production check on September 23 obtained eight successful catalog verifications and eight successful 10-USDC read-only estimates, with mint/Clock observations and scaled-unit conversion. See [recorded observation summaries](hosted-prestocks-before.json). These calls did not purchase anything.

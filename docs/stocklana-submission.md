@@ -1,6 +1,6 @@
 # Lotline — Stocklana submission draft
 
-**Last updated:** September 21, 2026. **Status:** draft, not submitted. The redesigned application, expanded Example, manual reminders and current demo package are deployed at [lotlineonsolana.vercel.app](https://lotline.dev). The current contribution release records exact deployment and evidence separately. Team/contact details still need to be supplied before submission. [Official requirements check](stocklana-check.md)
+**Last updated:** September 23, 2026. **Status:** draft, not submitted. The application is available at [lotline.dev](https://lotline.dev). [Current implementation and verification](releases/2026-09-23/quote-benchmark.md) separates local checks from production access and settlement limits. Team/contact details still need to be supplied before submission. [Official requirements check](stocklana-check.md)
 
 ## Project and team
 
@@ -9,7 +9,7 @@
 - **Team/public name:** [Team to confirm]
 - **Members and roles:** [Names, roles and profile links to confirm]
 - **Submission contact:** [Team to supply directly in the official form]
-- **Repository/release:** [operatoruplift/lotline](https://github.com/operatoruplift/lotline) at [1c9eb08](https://github.com/operatoruplift/lotline/commit/1c9eb0801ee679d647714f9c4f1b69578dc52ccc); [current release evidence](contribution-release-20260920.md)
+- **Repository/release:** [operatoruplift/lotline](https://github.com/operatoruplift/lotline); [September 23 production evidence](releases/2026-09-23/release.md) and [benchmark follow-up](releases/2026-09-23/quote-benchmark.md).
 
 ## Short description
 
@@ -63,14 +63,16 @@ The custom design follows L1 Kova, L4 Veloce, L5 Heritage Grove and L6 Liquid Gl
 
 ## Current completion evidence
 
-See the [September 20 contribution release](contribution-release-20260920.md) for the deployed source reference, CI, hosted browser/provider checks and outstanding execution requirements. The [September 19 finish report](finish-report-20260919.md) preserves detailed local implementation evidence. Team names/contact remain owner-supplied fields; no submission has been sent.
+See the [September 23 release](releases/2026-09-23/release.md) and [benchmark follow-up](releases/2026-09-23/quote-benchmark.md) for implementation, hosted checks and remaining production prerequisites. The September 20 contribution release and [September 19 finish report](finish-report-20260919.md) preserve earlier evidence. Team names/contact remain owner-supplied fields; no submission has been sent.
 
 Current first-use and technical evidence recordings are on the demo page, labeled controlled rehearsal. [Current short/full description](lotline-description.md).
 
-## September 21 sponsor scope
+## September 23 sponsor scope
 
 The separate [PreStocks planner](https://lotline.dev/pre-ipo) uses eight issuer identities checked against mainnet, exact contribution arithmetic, read-only Jupiter estimates, isolated local drafts, universe-tagged share links and exports. The current transfer-fee extensions are outside the purchase validator; unsupported nonzero wallet account formats remain unavailable. No PreStocks purchase is claimed.
 
-The xStocks review now includes a Pyth reference adapter for AAPLx/MSFTx/NVDAx equity and token feeds. Feed identity discovery is verified; current prices require a server API key and authenticated live delivery remains unverified. The token feed unit basis remains unverified, so there is no premium/discount calculation.
+On September 23, production returned eight verified PreStocks assets and eight successful 10-USDC read-only estimates. Those observations demonstrate discovery and estimation, not purchase settlement.
 
-PreStocks is the additional sponsor target. Tessera, Clawpump and Meteora DBC are not implemented or claimed. The official PreStocks bounty excludes non-PreStocks pre-IPO token integrations. Pyth is a conditional integration pending price access, not a completed sponsor proof. [Current evidence](sponsor-release-20260921.md).
+The xStocks review implements pinned Pyth equity and token references for AAPLx, MSFTx and NVDAx. A planning benchmark compares USDC input converted to USD against the quote's scaled share exposure and the underlying equity reference, with original price times and confidence. It expires with its inputs and does not represent the later executable order or an all-in cost. The token-feed ratio remains context only. Fresh mapped equity/token observations are checked throughout purchase review and before dispatch. Production lacks the Pyth API key, so authenticated live delivery and a live benchmark remain unverified.
+
+PreStocks and Pyth are the additional sponsor targets. Tessera, Clawpump and Meteora DBC are not implemented or claimed. The official PreStocks bounty excludes non-PreStocks pre-IPO token integrations. Real settlement still awaits provider credentials, reviewed participant access and separate wallet authorization. [Current implementation and evidence](releases/2026-09-23/quote-benchmark.md).
