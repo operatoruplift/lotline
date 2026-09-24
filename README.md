@@ -151,3 +151,7 @@ Lotline application code is [MIT licensed](LICENSE). It uses Next.js/React, Type
 ## September 19 local continuation
 
 The [finish report](docs/finish-report-20260919.md) records additional wallet, recovery, receipt and manual-reminder fixes against `b843014`. That historical checkpoint is superseded by the September 20 release: the migrations and narrow semantic validator are implemented and checked. Public purchases remain disabled pending authenticated execution access and reviewed participants; production offers read-only planning and the official Jupiter handoff.
+
+## Seeker, Android and PWA
+
+Lotline installs as a PWA and ships an Android WebView shell (`android/`) for the Solana Seeker and dApp Store, with Solana Mobile Wallet Adapter support where the app connects a wallet. Build, test and publishing steps: [docs/seeker-and-pwa.md](docs/seeker-and-pwa.md).

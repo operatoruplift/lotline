@@ -1,0 +1,9 @@
+{
+  "packageId": "dev.lotline.app",
+  "host": "lotline.dev",
+  "name": "Lotline",
+  "launcherName": "Lotline",
+  "startUrl": "/app",
+  "fallbackType": "webview",
+  "generatorApp": "webshell-cli"
+}

@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from 'next';
 import { PwaSupport } from '@/components/pwa';
+import { MobileWalletSupport } from '@/components/mobile-wallet';
 import { MotionProvider } from '@/components/motion-provider';
 import './globals.css';
 
@@ -30,5 +31,5 @@ export const metadata: Metadata = {
 export const viewport: Viewport = { themeColor: '#174D3C', width: 'device-width', initialScale: 1, viewportFit: 'cover' };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
-  return <html lang="en" data-scroll-behavior="smooth"><body><MotionProvider><a className="skip-link" href="#main">Skip to content</a>{children}<PwaSupport /></MotionProvider></body></html>;
+  return <html lang="en" data-scroll-behavior="smooth"><body><MotionProvider><a className="skip-link" href="#main">Skip to content</a>{children}<PwaSupport /><MobileWalletSupport /></MotionProvider></body></html>;
 }
