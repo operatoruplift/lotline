@@ -6,9 +6,9 @@
 
 - **Project:** Lotline
 - **Tagline:** Your next contribution, clearly.
-- **Team/public name:** [Team to confirm]
-- **Members and roles:** [Names, roles and profile links to confirm]
-- **Submission contact:** [Team to supply directly in the official form]
+- **Team/public name:** Matt Sim
+- **Members and roles:** Matt Sim ([@rvaclassic](https://github.com/rvaclassic)), solo founder and developer. Sole author of the design, contribution arithmetic, provider adapters and verification evidence.
+- **Submission contact:** Supplied directly in the official form; not published in this repository.
 - **Repository/release:** [operatoruplift/lotline](https://github.com/operatoruplift/lotline); [September 23 production evidence](releases/2026-09-23/release.md) and [benchmark follow-up](releases/2026-09-23/quote-benchmark.md).
 
 ## Short description

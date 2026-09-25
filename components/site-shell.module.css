@@ -10,5 +10,3 @@
 .footer .footerCopy p{color:#354B3C}
 
 @media(max-width:380px){.headerInner nav{gap:8px}.header :global(.header-cta){padding-inline:8px;gap:5px}.header :global(.network-badge){padding-left:6px;font-size:8px}}
-
-.footerMedia>div.footerDepth{position:absolute;inset:-32px 0;height:auto}.footerDepth>div,.footerStill>div{height:100%}

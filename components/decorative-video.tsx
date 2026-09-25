@@ -18,21 +18,48 @@ export function DecorativeVideo({ src, mobileSrc, poster, label, className = '',
   const container = useRef<HTMLDivElement>(null);
   const video = useRef<HTMLVideoElement>(null);
   const sourceAssigned = useRef(false);
+  const recoveryUsed = useRef(false);
+  const recoverMedia = useRef<() => void>(() => {});
   const { motionAllowed } = useMotion();
   const online = useSyncExternalStore(subscribeNetwork, onlineSnapshot, offlineSnapshot);
   const [inView, setInView] = useState(false);
   const [nearView, setNearView] = useState(false);
   const [sourceReady, setSourceReady] = useState(false);
-  const [failed, setFailed] = useState(false);
+  const [failure, setFailure] = useState<'media' | 'playback' | null>(null);
+  const failed = failure !== null;
   const [playing, setPlaying] = useState(false);
+  useEffect(() => {
+    recoverMedia.current = () => {
+      const node = video.current;
+      const scene = container.current;
+      if (!node || !scene || failure !== 'media' || recoveryUsed.current || !motionAllowed || !navigator.onLine || document.visibilityState === 'hidden' || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+      const bounds = scene.getBoundingClientRect();
+      if (bounds.bottom < -280 || bounds.top > innerHeight + 280) return;
+      // One retry after a real reconnect or viewport reentry, never a retry loop.
+      recoveryUsed.current = true;
+      setFailure(null);
+      setSourceReady(false);
+      setPlaying(false);
+      node.load();
+    };
+    return () => { recoverMedia.current = () => {}; };
+  }, [failure, motionAllowed]);
   useEffect(() => {
     const node = container.current;
     if (!node) return;
-    const observer = new IntersectionObserver(entries => setInView(entries.some(entry => entry.isIntersecting)), { threshold: 0.01 });
+    let wasVisible = false;
+    const observer = new IntersectionObserver(entries => {
+      const visible = entries.some(entry => entry.isIntersecting);
+      setInView(visible);
+      if (visible && !wasVisible) recoverMedia.current();
+      wasVisible = visible;
+    }, { threshold: 0.01 });
     const preloadObserver = new IntersectionObserver(entries => setNearView(entries.some(entry => entry.isIntersecting)), { rootMargin: '280px 0px', threshold: 0 });
     observer.observe(node);
     preloadObserver.observe(node);
-    return () => { observer.disconnect(); preloadObserver.disconnect(); };
+    const recoverOnline = () => recoverMedia.current();
+    window.addEventListener('online', recoverOnline);
+    return () => { observer.disconnect(); preloadObserver.disconnect(); window.removeEventListener('online', recoverOnline); };
   }, []);
   useEffect(() => {
     if (!motionAllowed || !online || !nearView || sourceReady || sourceAssigned.current) return;
@@ -48,7 +75,7 @@ export function DecorativeVideo({ src, mobileSrc, poster, label, className = '',
   useEffect(() => {
     const node = video.current;
     if (!node) return;
-    return controlPlayback(node, shouldPlayDecorativeVideo({ allowed: motionAllowed && online, inView, sourceReady, failed }), () => { setFailed(true); setPlaying(false); });
+    return controlPlayback(node, shouldPlayDecorativeVideo({ allowed: motionAllowed && online, inView, sourceReady, failed }), () => { setFailure('playback'); setPlaying(false); });
   }, [motionAllowed, online, inView, sourceReady, failed]);
   useEffect(() => {
     const node = video.current;
@@ -58,6 +85,6 @@ export function DecorativeVideo({ src, mobileSrc, poster, label, className = '',
     {/* A real still remains visible when motion is reduced, blocked, or unavailable. */}
     {/* eslint-disable-next-line @next/next/no-img-element */}
     <img className={styles.poster} src={poster} alt="" loading={priority ? 'eager' : 'lazy'} fetchPriority={priority ? 'high' : 'low'} decoding="async" style={{ objectFit: fit }} />
-    <video ref={video} className={styles.video} muted playsInline loop preload="none" aria-hidden="true" tabIndex={-1} style={{ objectFit: fit, opacity: playing && !failed && motionAllowed && online ? 1 : 0 }} onLoadedData={() => setSourceReady(true)} onPlaying={() => setPlaying(true)} onError={() => { setFailed(true); setPlaying(false); }} />
+    <video ref={video} className={styles.video} muted playsInline loop preload="none" aria-hidden="true" tabIndex={-1} style={{ objectFit: fit, opacity: playing && !failed && motionAllowed && online ? 1 : 0 }} onLoadedData={() => setSourceReady(true)} onPlaying={() => setPlaying(true)} onError={() => { setFailure('media'); setPlaying(false); }} />
   </div>;
 }
