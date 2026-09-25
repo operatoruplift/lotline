@@ -1,5 +1,7 @@
 # Lotline
 
+> **In 20 seconds.** Lotline plans a USDC contribution across issuer-verified xStocks and pre-IPO PreStocks with exact splits, read-only Jupiter estimates and Pyth references, and can execute the plan on-chain when the operator turns execution on. Try it without a wallet: [lotline.dev/app?mode=example](https://lotline.dev/app?mode=example). Built by Matt ([RVAClassic](https://x.com/operatoruplift), Operator Uplift) for the Solana Foundation **Stocklana** sprint and the Solana Mobile **CLOCK IN** hackathon, September 2026. Real today: exact math, mainnet mint verification, installable PWA, Seeker Android shell, Mobile Wallet Adapter. Not yet: public email signup (SMTP pending) and execution, which stays server-gated until reconciliation checks pass. Everything below is verification detail; nothing claims traction or audits that have not happened.
+
 **Your next contribution, clearly.** Choose up to 10 issuer-verified Solana xStocks, set your contribution percentages, enter a USDC budget, and request estimated units. Keep the split for next time, or copy/export the plan for independent review on Jupiter. A public-wallet balance read is optional.
 
 [Live website](https://lotline.dev) · [Try the example](https://lotline.dev/app?mode=example) · [Demo](https://lotline.dev/demo) · [Public source](https://github.com/operatoruplift/lotline)
@@ -151,3 +153,7 @@ Lotline application code is [MIT licensed](LICENSE). It uses Next.js/React, Type
 ## September 19 local continuation
 
 The [finish report](docs/finish-report-20260919.md) records additional wallet, recovery, receipt and manual-reminder fixes against `b843014`. That historical checkpoint is superseded by the September 20 release: the migrations and narrow semantic validator are implemented and checked. Public purchases remain disabled pending authenticated execution access and reviewed participants; production offers read-only planning and the official Jupiter handoff.
+
+## Seeker, Android and PWA
+
+Lotline installs as a PWA and ships an Android WebView shell (`android/`) for the Solana Seeker and dApp Store, with Solana Mobile Wallet Adapter support where the app connects a wallet. Build, test and publishing steps: [docs/seeker-and-pwa.md](docs/seeker-and-pwa.md).
