@@ -36,6 +36,37 @@ describe('issuer and narrow inputs', () => {
     const { getCatalog } = await import('../lib/server/catalog');
     expect((await getCatalog()).state).toBe('configuration-required');
   });
+  it('separates a switched-off optional feature from a service that cannot answer', async () => {
+    const { httpStatus, optionalHttpStatus } = await import('../lib/server/requests');
+    // Required planning data that has no server configuration cannot be served at all.
+    expect(httpStatus('configuration-required')).toBe(503);
+    // An optional panel that is switched off still answers the question it was asked.
+    expect(optionalHttpStatus('configuration-required')).toBe(200);
+    for (const status of [httpStatus, optionalHttpStatus]) {
+      expect(status('success')).toBe(200);
+      expect(status('partial')).toBe(200);
+      expect(status('stale')).toBe(200);
+      expect(status('unavailable')).toBe(503);
+      expect(status('invalid-input')).toBe(400);
+    }
+  });
+  it('answers a switched-off DBC context panel with 200 and keeps a caller mistake at 400', async () => {
+    vi.stubEnv('SOLANA_RPC_URL', '');
+    vi.stubEnv('NEXT_PUBLIC_SUPABASE_URL', ''); vi.stubEnv('SUPABASE_SECRET_KEY', '');
+    const { POST } = await import('../app/api/dbc/quotes/route');
+    const post = (body: unknown) => new Request('https://lotline.test/api/dbc/quotes', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) });
+    // Read-only curve context with no server RPC is a complete determination about a
+    // supported request, stated in full by the body, so it is not a server fault.
+    const off = await POST(post({ items: [{ mint: AAPL }] }));
+    expect(off.status).toBe(200); expect(off.headers.get('cache-control')).toBe('no-store');
+    const body = await off.json();
+    expect(body.state).toBe('configuration-required');
+    expect(body.items).toHaveLength(1);
+    // The thrown path uses the same mapping and still separates a caller's mistake.
+    const invalid = await POST(post({ items: [] }));
+    expect(invalid.status).toBe(400);
+    expect((await invalid.json()).state).toBe('invalid-input');
+  });
   it('bounds raw amounts, membership shape, duplicate mints, count and total budget', async () => {
     const { quotesRequestSchema, unitsRequestSchema, parseMints } = await import('../lib/server/requests');
     expect(quotesRequestSchema.safeParse({ items: [{ mint: AAPL, usdcRaw: '10000000' }] }).success).toBe(true);

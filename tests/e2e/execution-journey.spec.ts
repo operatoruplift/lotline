@@ -57,7 +57,7 @@ async function fixture(context: BrowserContext, count = 1) {
   });
   await context.route('**/api/market-reference', async route => {
     const now = await route.request().frame().page().evaluate(() => Date.now());
-    if (!state.referenceAccess) return route.fulfill({ status: 503, json: { source: 'pyth', state: 'configuration-required', fetchedAt: new Date(now).toISOString(), expiresAt: new Date(now).toISOString(), items: [] } });
+    if (!state.referenceAccess) return route.fulfill({ status: 200, json: { source: 'pyth', state: 'configuration-required', fetchedAt: new Date(now).toISOString(), expiresAt: new Date(now).toISOString(), items: [] } });
     return route.fulfill({ json: pythReferences(route.request().postDataJSON().mints, now, '20000', state.referenceAge) });
   });
   await context.route('**/api/execution/**', async route => {
@@ -130,7 +130,7 @@ for (const availability of ['missing', 'stale'] as const) {
     await page.getByRole('button', { name: 'Get estimates', exact: true }).click();
     await page.getByRole('button', { name: 'Controlled test wallet', exact: true }).click();
     const referencePanel = page.locator('[data-market-reference]');
-    if (availability === 'missing') await expect(referencePanel.getByText(/Pyth market data is currently unavailable/)).toBeVisible();
+    if (availability === 'missing') await expect(referencePanel.getByText(/no reference price is claimed for it/)).toBeVisible();
     else await expect(referencePanel.getByText('Stale reference', { exact: true })).toHaveCount(2);
     await expect(page.locator('[data-pyth-review-gate]')).toBeVisible();
     await expect(page.getByRole('button', { name: 'Review purchase', exact: true })).toBeDisabled();

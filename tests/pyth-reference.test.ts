@@ -256,6 +256,33 @@ it('bounds callers to catalog mints, preserves unmapped assets, and validates ro
     expect(response.status).toBe(400); expect(response.headers.get('cache-control')).toBe('no-store');
   }
 });
+it('answers an unmapped selection with 200 while a real upstream failure keeps its 5xx', async () => {
+  const unmapped = 'XsDoVfqeBukxuZHWhdvWHBhgEHjGNst4MLodqsJHzoB';
+  const route = (mints: string[]) => new Request('http://localhost/api/market-reference', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ mints }) });
+  const fetcher = vi.fn(async () => Response.json(payload())); vi.stubGlobal('fetch', fetcher);
+  const { POST } = await import('../app/api/market-reference/route');
+  // No pinned feed for the selection is a complete determination, reached without
+  // asking Pyth anything, so it is not a server fault.
+  const determined = await POST(route([unmapped]));
+  expect(determined.status).toBe(200);
+  expect(determined.headers.get('cache-control')).toBe('no-store');
+  expect(fetcher).not.toHaveBeenCalled();
+  const body = await determined.json();
+  expect(body.state).toBe('unavailable');
+  expect(body.items).toHaveLength(1);
+  expect(body.items[0]).toMatchObject({ mint: unmapped, comparison: 'not-comparable' });
+  expect(marketReferenceResponseSchema.safeParse(body).success).toBe(true);
+  // A mapped asset whose upstream read fails is a genuine failure.
+  vi.resetModules();
+  vi.stubGlobal('fetch', vi.fn(async () => new Response('gateway', { status: 502 })));
+  const failing = await import('../app/api/market-reference/route');
+  const failed = await failing.POST(route([mapping.mint]));
+  expect(failed.status).toBe(503);
+  expect((await failed.json()).state).toBe('unavailable');
+  // A selection outside the verified catalog is still a client error.
+  const rejected = await failing.POST(route(['11111111111111111111111111111111']));
+  expect(rejected.status).toBe(400);
+});
 it('sends a keyless request only to an explicit https mirror and omits the authorization header', async () => {
   vi.stubEnv('PYTH_API_KEY', ''); vi.stubEnv('PYTH_HERMES_URL', 'https://mirror.example/hermes/');
   const fetcher = vi.fn(async () => new Response('unauthorized', { status: 401 })); vi.stubGlobal('fetch', fetcher);

@@ -33,6 +33,8 @@ import onboarding from './planner-onboarding.module.css';
 
 type Notice = { text: string; error?: boolean };
 const EMPTY_BASKET: Basket = { version: 1, budget: '1000', items: [] };
+/** A completed-action notice reports what just happened; the panels below it own the current state. */
+const NOTICE_VISIBLE_MS = 8_000;
 const copyBasket = (basket: Basket): Basket => ({ ...basket, items: basket.items.map((item) => ({ ...item })) });
 const assetClass = (symbol: string) => ({ AAPLx: 'apple', MSFTx: 'microsoft', NVDAx: 'nvidia', TSLAx: 'tesla', SPYx: 'spy', QQQx: 'qqq' })[symbol] ?? 'apple';
 const quoteReasonLabels: Record<NonNullable<Quote['reasonCode']>, string> = {
@@ -195,6 +197,18 @@ export function Planner({ initialMode: requestedMode, cloudEnabled = true, unive
     });
     return () => { cancelled = true; };
   }, [initialMode, persistBasket, config.storageKey]);
+
+  // A notice describes one completed action, so it clears itself rather than keep
+  // asserting a result the page has since moved past - an estimate that has aged
+  // out, for instance - or sit over the text underneath it. The results panel, the
+  // freshness line and the reference panel remain the current status. A failure
+  // notice is often the only account of what went wrong, so it stays until the
+  // reader dismisses it or the next action replaces it.
+  useEffect(() => {
+    if (!notice || notice.error) return;
+    const timer = window.setTimeout(() => setNotice(null), NOTICE_VISIBLE_MS);
+    return () => window.clearTimeout(timer);
+  }, [notice]);
 
   useEffect(() => {
     const update = () => { setOnline(navigator.onLine); setNow(Date.now()); };

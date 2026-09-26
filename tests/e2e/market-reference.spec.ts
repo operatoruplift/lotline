@@ -42,7 +42,9 @@ test('a planning benchmark uses USDC conversion and disappears when that observa
   const scan = await new AxeBuilder({ page }).include('[data-market-reference]').withTags(['wcag2a', 'wcag2aa', 'wcag21aa']).analyze();
   expect(scan.violations.map(item => item.id)).toEqual([]);
   if (process.env.LOTLINE_CAPTURE_BENCHMARK === '1') {
-    await page.getByRole('button', { name: 'Dismiss notification', exact: true }).click();
+    // The estimate notice clears itself, so the screenshot waits it out instead of
+    // clicking a control that may already be gone.
+    await expect(page.locator('.toast.visible')).toHaveCount(0, { timeout: 20_000 });
     await panel(page).getByRole('button', { name: 'Refresh market references' }).focus();
     await mkdir('docs/releases/2026-09-23/screens', { recursive: true });
     await panel(page).screenshot({ path: 'docs/releases/2026-09-23/screens/quote-benchmark-320.png' });
@@ -89,10 +91,12 @@ test('a displayed ratio disappears at the original feed expiry without a refresh
   expect(reads).toBe(1);
 });
 
-test('missing Pyth access leaves Jupiter estimates and export usable without invented prices', async ({ page }) => {
-  await page.route('**/api/market-reference', route => route.fulfill({ status: 503, json: { source: 'pyth', state: 'configuration-required', fetchedAt: new Date().toISOString(), expiresAt: new Date().toISOString(), items: [] } }));
+test('a reference panel with nothing verified claims nothing and leaves estimates and export usable', async ({ page }) => {
+  // The route answers 200 for a deliberate off state: the body is a determination.
+  await page.route('**/api/market-reference', route => route.fulfill({ status: 200, json: { source: 'pyth', state: 'configuration-required', fetchedAt: new Date().toISOString(), expiresAt: new Date().toISOString(), items: [] } }));
   await setup(page);
-  await expect(panel(page).getByText(/Pyth market data is currently unavailable/)).toBeVisible();
+  await expect(panel(page).getByText(/no reference price is claimed for it/)).toBeVisible();
+  await expect(panel(page).locator('[data-reference-mint]')).toHaveCount(0);
   await expect(panel(page).getByText('Fresh reference', { exact: true })).toHaveCount(0);
   await expect(page.getByRole('button', { name: 'Download CSV', exact: true })).toBeEnabled();
   await expect(page.getByRole('cell', { name: '+1.23', exact: true })).toHaveCount(3);
@@ -112,6 +116,49 @@ test('refreshing a stale oracle observation cannot renew a thirty-second quote',
   await expect(panel(page).getByText('Fresh reference', { exact: true })).toHaveCount(6);
   await expect(panel(page).getByText(/Your contribution estimate expired/)).toBeVisible();
   expect(reads).toBe(2);
+});
+
+test('the panel re-reads its own references inside the sixty-second observation window', async ({ page }) => {
+  await page.clock.install({ time: new Date() });
+  let reads = 0;
+  await page.route('**/api/market-reference', async route => {
+    const now = await page.evaluate(() => Date.now());
+    await route.fulfill({ json: references(route.request().postDataJSON().mints, now, '20000', ++reads === 1 ? 61 : 0) });
+  });
+  await setup(page);
+  await expect(panel(page).getByText('Stale reference', { exact: true })).toHaveCount(6);
+  // No click: the panel re-reads before an observation has been stale for long.
+  await page.clock.fastForward(56_000);
+  await expect(panel(page).getByText('Fresh reference', { exact: true })).toHaveCount(6);
+  expect(reads).toBe(2);
+  // A refreshed reference still cannot renew the thirty-second contribution estimate.
+  await expect(panel(page).getByText(/Your contribution estimate expired/)).toBeVisible();
+});
+
+test('a tab nobody is looking at reads nothing and re-reads once it is looked at again', async ({ page }) => {
+  await page.clock.install({ time: new Date() });
+  let reads = 0;
+  await page.route('**/api/market-reference', async route => {
+    const now = await page.evaluate(() => Date.now());
+    await route.fulfill({ json: references(route.request().postDataJSON().mints, now, '20000', ++reads === 1 ? 61 : 0) });
+  });
+  await setup(page);
+  await expect(panel(page).getByText('Stale reference', { exact: true })).toHaveCount(6);
+  await page.evaluate(() => {
+    Object.defineProperty(document, 'visibilityState', { configurable: true, value: 'hidden' });
+    document.dispatchEvent(new Event('visibilitychange'));
+  });
+  await page.clock.fastForward(180_000);
+  // Nothing is read for a panel nobody can see, however long the tab sits there.
+  expect(reads).toBe(1);
+  await page.evaluate(() => {
+    Reflect.deleteProperty(document, 'visibilityState');
+    document.dispatchEvent(new Event('visibilitychange'));
+  });
+  await expect(panel(page).getByText('Fresh reference', { exact: true })).toHaveCount(6);
+  expect(reads).toBe(2);
+  // The returning reader still gets the truth about their own contribution estimate.
+  await expect(panel(page).getByText(/Your contribution estimate expired/)).toBeVisible();
 });
 
 test('an old reference response cannot appear over a newly edited contribution', async ({ page }) => {

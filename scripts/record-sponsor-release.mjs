@@ -52,7 +52,9 @@ try {
     }
     if (path === '/api/market-reference') {
       oracleRequests += 1; const fetchedAt = new Date().toISOString();
-      return route.fulfill({ status: 503, json: { source: 'pyth', state: 'configuration-required', fetchedAt, expiresAt: fetchedAt, items: [], message: 'Pyth credentials are not configured in this controlled rehearsal.' } });
+      // The route answers a deliberate off state with 200: the body is a complete
+      // determination about a supported request, so the film's network tab is honest.
+      return route.fulfill({ status: 200, json: { source: 'pyth', state: 'configuration-required', fetchedAt, expiresAt: fetchedAt, items: [], message: 'This controlled rehearsal serves no Pyth reading. Jupiter estimates remain available.' } });
     }
     unexpectedRequests.push({ path, method: request.method() });
     return route.abort('blockedbyclient');
@@ -104,9 +106,9 @@ try {
   await page.goto(`${baseURL}/app`);
   await expect(page.locator('main.route-state')).toHaveCount(0);
   await page.getByRole('button', { name: 'Get estimates', exact: true }).click();
-  await expect(page.locator('[data-market-reference]')).toContainText('Pyth market data is currently unavailable.');
+  await expect(page.locator('[data-market-reference]')).toContainText('no reference price is claimed for it');
   await page.locator('[data-market-reference]').scrollIntoViewIfNeeded();
-  await scene('xStocks estimates show the Pyth reference status. This unavailable fixture makes no live price comparison claim.');
+  await scene('xStocks estimates show the Pyth reference status. This controlled fixture serves no oracle reading, so no live price comparison is claimed.');
   expect(oracleRequests).toBe(1); expect(unexpectedRequests).toEqual([]);
   const rawVideo = await page.video().path();
   await context.close();
@@ -120,7 +122,7 @@ try {
   expect(durationSeconds).toBeGreaterThanOrEqual(25); expect(durationSeconds).toBeLessThanOrEqual(45);
   expect(probe.streams.every(stream => stream.codec_type === 'video')).toBe(true);
   const stamp = seconds => `00:${String(Math.floor(seconds / 60)).padStart(2, '0')}:${String(seconds % 60).padStart(2, '0')}.000`;
-  const transcript = `${banner}. Silent application recording captured from the local production build on September 21, 2026. Cuts omit navigation delays between six observed application states.\n\n${scenes.map(item => item.text).join('\n\n')}\n\nPreStocks catalog and quote responses are controlled fixtures using pinned issuer identities. Pyth unavailability is explicitly simulated; no live oracle observation or token-price comparison is claimed. No wallet connected, transaction signed, or funds moved. The five earlier films remain unchanged.\n`;
+  const transcript = `${banner}. Silent application recording captured from the local production build on September 21, 2026. Cuts omit navigation delays between six observed application states.\n\n${scenes.map(item => item.text).join('\n\n')}\n\nPreStocks catalog and quote responses are controlled fixtures using pinned issuer identities. The Pyth reference response is a controlled fixture carrying no oracle reading; no live oracle observation or token-price comparison is claimed. No wallet connected, transaction signed, or funds moved. The five earlier films remain unchanged.\n`;
   await writeFile(`${output}/sponsor-planning.transcript.txt`, transcript);
   await writeFile(`${output}/sponsor-planning.en.vtt`, `WEBVTT\n\n${scenes.map((item, index) => `${index + 1}\n${stamp(index * 5)} --> ${stamp((index + 1) * 5)}\n${item.text}`).join('\n\n')}\n`);
   const bytes = await readFile(mp4);

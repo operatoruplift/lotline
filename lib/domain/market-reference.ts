@@ -14,6 +14,13 @@ export const PYTH_FEED_MAPPINGS = [
   { mint: 'Xsc9qvGR1efVDFGLrVsmkzv3qi45LTBjeUKSPmx9qEh', symbol: 'NVDA', underlying: 'b1073854ed24cbc755dc527418f52b7d271f6cc967bbf8d8129112b18860a593', token: '4244d07890e4610f46bbde67de8f43a4bf8b569eebe904f136b469f148503b7f' },
 ] as const;
 export const PYTH_MAPPED_MINTS: readonly string[] = PYTH_FEED_MAPPINGS.map(mapping => mapping.mint);
+/**
+ * No requested asset carries a pinned Pyth feed, so "there is nothing to compare
+ * against" is the complete answer to the request rather than a provider failure.
+ */
+export function isUnmappedPythSelection(mints: readonly string[]): boolean {
+  return !mints.some(mint => PYTH_MAPPED_MINTS.includes(mint));
+}
 
 /** Exact base-ten rendering of Pyth's integer × 10^exponent representation. */
 export function pythDecimal(integer: string, exponent: number): string {
