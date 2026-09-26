@@ -3,6 +3,9 @@ import * as z from 'zod/mini';
 export const PYTH_MAX_AGE_SECONDS = 60;
 export const MARKET_REFERENCE_MAX_MINTS = 10;
 export const PYTH_USDC_FEED_ID = 'eaa020c61cc479712813461ce153894a96a6c00b21ed0cfc2798d1f9a9e9c94a';
+/** Where an observation was read: the Hermes HTTP service, or a Pyth receiver account on Solana mainnet. */
+export const PYTH_PROVENANCES = ['hermes', 'solana-receiver'] as const;
+export type PythProvenance = typeof PYTH_PROVENANCES[number];
 
 // Pinned to official Hermes metadata. A token feed does not establish share equivalence.
 export const PYTH_FEED_MAPPINGS = [
@@ -75,6 +78,7 @@ export const pythObservationSchema = z.strictObject({
   displayPrice: decimal,
   displayConfidence: decimal,
   confidenceBps: decimal,
+  provenance: z.enum(PYTH_PROVENANCES),
 }).check(z.superRefine((value, context) => {
   if (!/^[1-9][0-9]{0,18}$/.test(value.price) || !/^(0|[1-9][0-9]{0,19})$/.test(value.confidence)
     || !Number.isInteger(value.exponent) || Math.abs(value.exponent) > 12 || !Number.isSafeInteger(value.publishTime) || value.publishTime < 1 || value.publishTime > 4_102_444_800) return;
@@ -123,6 +127,25 @@ export const marketReferenceResponseSchema = z.strictObject({
 export type PythObservation = z.infer<typeof pythObservationSchema>;
 export type MarketReferenceResponse = z.infer<typeof marketReferenceResponseSchema>;
 export type MarketReferenceItem = MarketReferenceResponse['items'][number];
+export type PythObservationInput = Pick<PythObservation, 'feedId' | 'symbol' | 'kind' | 'price' | 'confidence' | 'exponent' | 'publishTime' | 'fetchedAt' | 'provenance'>;
+
+/**
+ * One builder for every source, so a Hermes read and an on-chain read carry the
+ * same shape, the same 60-second lifetime from the original publish time, and the
+ * same display arithmetic. The caller validates the integers before calling.
+ */
+export function buildPythObservation(input: PythObservationInput, now = Date.now()): PythObservation {
+  const expiresAt = new Date((input.publishTime + PYTH_MAX_AGE_SECONDS) * 1000).toISOString();
+  return {
+    feedId: input.feedId, symbol: input.symbol, kind: input.kind, quoteCurrency: 'USD',
+    unitBasis: input.kind === 'underlying' ? 'underlying-share' : input.kind === 'currency' ? 'usdc-unit' : 'unverified-token-unit',
+    price: input.price, confidence: input.confidence, exponent: input.exponent, publishTime: input.publishTime,
+    publishedAt: new Date(input.publishTime * 1000).toISOString(), fetchedAt: input.fetchedAt, expiresAt,
+    state: now < Date.parse(expiresAt) ? 'fresh' : 'stale',
+    displayPrice: pythDecimal(input.price, input.exponent), displayConfidence: pythDecimal(input.confidence, input.exponent),
+    confidenceBps: pythConfidenceBps(input.price, input.confidence), provenance: input.provenance,
+  };
+}
 
 /** Reading or rendering a response never extends its original publish-time lifetime. */
 export function isPythObservationFresh(observation: PythObservation, now = Date.now()): boolean {

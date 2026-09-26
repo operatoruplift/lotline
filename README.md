@@ -1,6 +1,6 @@
 # Lotline
 
-> **In 20 seconds.** Lotline plans a USDC contribution across issuer-verified xStocks and pre-IPO PreStocks with exact splits, read-only Jupiter estimates and Pyth references, and can execute the plan on-chain when the operator turns execution on. Try it without a wallet: [lotline.dev/app?mode=example](https://lotline.dev/app?mode=example). Built by Matt ([RVAClassic](https://x.com/operatoruplift), Operator Uplift) for the Solana Foundation **Stocklana** sprint and the Solana Mobile **CLOCK IN** hackathon, September 2026. Real today: exact math, mainnet mint verification, installable PWA, Seeker Android shell, Mobile Wallet Adapter. Not yet: public email signup (SMTP pending) and execution, which stays server-gated until reconciliation checks pass. Everything below is verification detail; nothing claims traction or audits that have not happened.
+> **In 20 seconds.** Lotline plans a USDC contribution across issuer-verified xStocks and pre-IPO PreStocks with exact splits, read-only Jupiter estimates and Pyth references, and can execute the plan on-chain when the operator turns execution on. Try it without a wallet: [lotline.dev/app?mode=example](https://lotline.dev/app?mode=example). Built by Matt ([RVAClassic](https://x.com/operatoruplift), Operator Uplift) for the Solana Foundation **Stocklana** sprint and the Solana Mobile **CLOCK IN** hackathon, September 2026. Real today: exact math, mainnet mint verification, installable PWA, Seeker Android shell, Mobile Wallet Adapter, and live reads from PreStocks, Pyth and Meteora. Lotline is a calculation and routing layer: it plans the contribution and hands you an exact, prefilled Jupiter link to review and approve in your own wallet. Everything below is verification detail; nothing claims traction or audits that have not happened.
 
 **Your next contribution, clearly.** Choose up to 10 issuer-verified Solana xStocks, set your contribution percentages, enter a USDC budget, and request estimated units. Keep the split for next time, or copy/export the plan for independent review on Jupiter. A public-wallet balance read is optional.
 
@@ -10,7 +10,7 @@
 
 Lotline serves someone who already knows their chosen assets and split and wants to repeat a contribution accurately. Percentages apply to the new contribution, not target weights for an existing portfolio. Planning and Example mode are read-only. A staged Wallet Standard/Jupiter execution path is present but remains paused until its server readiness gates, durable journal, and reconciliation checks are deliberately enabled. Guest planning needs no registration or wallet extension. Existing Supabase users can explicitly save named plans across devices; public signup and recovery remain gated until SMTP delivery is verified.
 
-**September 20 contribution update:** first-use planning, typed provider errors, observed token scaling, semantic Jupiter/Raydium transaction validation, immutable ALT receipts and current demonstration footage are implemented. All seven Supabase migrations are applied and checked. A real unsigned mainnet order passed the validator and simulation; no trade was signed or broadcast. Public purchases remain disabled pending a server Jupiter key and reviewed restricted-launch participants. See the [current contribution release](docs/contribution-release-20260920.md) for exact local/hosted/CI evidence, supported-route limits and deployment revision. The original design, films, brand kit and ten-asset exact math are preserved. No competition entry has been submitted.
+**September 20 contribution update:** first-use planning, typed provider errors, observed token scaling, semantic Jupiter/Raydium transaction validation, immutable ALT receipts and current demonstration footage are implemented. All seven Supabase migrations are applied and checked. A real unsigned mainnet order passed the validator and simulation; no trade was signed or broadcast. Purchases happen in your own wallet on Jupiter, which is the boundary this release is built around. See the [current contribution release](docs/contribution-release-20260920.md) for exact local/hosted/CI evidence, supported-route limits and deployment revision. The original design, films, brand kit and ten-asset exact math are preserved. No competition entry has been submitted.
 
 ## Run locally
 
@@ -34,14 +34,15 @@ SUPABASE_SECRET_KEY='' LOTLINE_SHARED_LIMITS=false VERCEL=0 npm run dev -- --por
 | --- | --- | --- |
 | `SOLANA_RPC_URL` | Server only | Required for live mint validation, wallet balances, and scaled units. The example supplies public mainnet RPC; a dedicated provider is preferable for shared use. |
 | `JUPITER_API_KEY` | Server only | Optional while documented keyless access remains supported. |
-| `PYTH_API_KEY` | Server only | Required by the official current-price Hermes endpoint. Enables independent equity/token USD references for the three pinned mappings; missing access leaves estimates available. |
+| `PYTH_API_KEY` | Server only | Hermes has required a key on every host since 2026-08-26. With it, equity/token USD references for the three pinned mappings come from `https://hermes.pyth.network` and USDC/USD is cross-checked on-chain; without it, USDC/USD is read keyless from Pyth's receiver account on Solana mainnet through `SOLANA_RPC_URL`. |
+| `PYTH_HERMES_URL` | Server only, optional | https origin override for the Hermes host (routes are appended). A keyless request is only sent to an explicit override. |
 | `NEXT_PUBLIC_SUPABASE_URL` | Public, build time | Hosted Supabase URL for accounts and shared provider coordination. |
 | `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | Public, build time | Current `sb_publishable_` key for optional authentication and owner-scoped cloud plans. |
 | `NEXT_PUBLIC_AUTH_EMAIL_ENABLED` | Public, build time | Set to the exact string `true` only after testing custom SMTP signup and recovery delivery. The launch deployment uses `false`; existing users can still sign in. |
 | `SUPABASE_SECRET_KEY` | Server only | Current `sb_secret_` key for shared provider request coordination; required on Vercel. Account and cloud-plan paths do not use this privileged key. |
 | `LOTLINE_SHARED_LIMITS` | Server only | Set to `true` to require the shared limiter locally. Vercel requires it automatically. |
-| `LOTLINE_EXECUTION_ENABLED`, `LOTLINE_EXECUTION_MIGRATIONS_READY`, `LOTLINE_EXECUTION_GUEST_MIGRATIONS_READY`, `LOTLINE_EXECUTION_INTEGRITY_MIGRATIONS_READY`, `LOTLINE_EXECUTION_REPOSITORY`, `LOTLINE_EXECUTION_VALIDATOR_READY`, `LOTLINE_EXECUTION_PROOF_MIGRATIONS_READY`, `LOTLINE_EXECUTION_ACCESS_POLICY`, `LOTLINE_EXECUTION_ALLOWED_WALLETS` | Server only | Execution safety gates. Keep execution disabled until all journal migrations, server secret, Jupiter key, RPC, supported-instruction review and production reconciliation checks are complete; see [execution readiness](docs/execution.md). |
-| `TOKENS_XYZ_ENABLED`, `TOKENS_XYZ_API_KEY` | Server only | Optional exact-mint context, disabled by default. Requires approved `assets:read` access and the exact flag `true`; see [contract and activation requirements](docs/tokens-enrichment.md). |
+| `LOTLINE_EXECUTION_ENABLED`, `LOTLINE_EXECUTION_MIGRATIONS_READY`, `LOTLINE_EXECUTION_GUEST_MIGRATIONS_READY`, `LOTLINE_EXECUTION_INTEGRITY_MIGRATIONS_READY`, `LOTLINE_EXECUTION_REPOSITORY`, `LOTLINE_EXECUTION_VALIDATOR_READY`, `LOTLINE_EXECUTION_PROOF_MIGRATIONS_READY`, `LOTLINE_EXECUTION_ACCESS_POLICY`, `LOTLINE_EXECUTION_ALLOWED_WALLETS` | Server only | Execution safety gates for a deployment that runs the in-app order path. That path turns on once journal migrations, server secret, Jupiter key, RPC, supported-instruction review and reconciliation checks are all in place; see [execution readiness](docs/execution.md). |
+| `TOKENS_XYZ_ENABLED`, `TOKENS_XYZ_API_KEY` | Server only | Optional exact-mint context. A deployment with approved `assets:read` access enables it with the exact flag `true`; see [contract and activation requirements](docs/tokens-enrichment.md). |
 
 Never put a privileged key or credential-bearing RPC URL in a public variable. `.env.local` is ignored by Git. Public RPC and Jupiter endpoints may throttle requests.
 
@@ -63,6 +64,26 @@ The external link opens the official `https://jup.ag/swap/` route with the selec
 
 For a quick precision check, set **10.000001 USDC** at **50/30/20**. The exact allocations are **5.000001 / 3.000000 / 2.000000 USDC**. **Verify this plan** exposes the arithmetic, issuer/mint sources, and quote freshness. A device draft is editable input; a named cloud plan is an explicitly saved copy; an estimate expires and must be requested again.
 
+## Ecosystem integrations
+
+Three Solana data integrations sit beside the planner. Each one reads, labels what it read and when, and never routes a purchase.
+
+### PreStocks: pre-IPO identity and estimates
+
+The separate [PreStocks planner](https://lotline.dev/pre-ipo) plans across eight pre-IPO assets: Anduril, Anthropic, Figure AI, Kalshi, Neuralink, OpenAI, Polymarket and SpaceX. Those eight identities are pinned in `lib/domain/prestocks.ts`, and every catalog load re-confirms each one against the live PreStocks API, comparing name, contract address, image and issuer link before the asset is offered. Each mint is then verified on Solana mainnet as a Token-2022 mint with the Scaled UI Amount extension, and re-read immediately before every quote so a paused mint or a changed metadata pointer stops the estimate rather than silently pricing a different token. Estimates come from the same read-only Jupiter order endpoint the xStocks planner uses, with no taker and nothing signed. Adding a newly listed PreStocks asset means editing that pinned list and re-running the mainnet verification, which is why the registry is a deliberate allowlist rather than whatever the API happens to return. The server routes are under `app/api/prestocks/`.
+
+### Pyth: price context for an estimate
+
+For AAPLx, MSFTx and NVDAx, Lotline reads the pinned equity and token feeds plus USDC/USD and shows them beside the Jupiter estimate, so a planner can see the reference price behind a quote. Reads come from Pyth Hermes at `https://hermes.pyth.network`, and every Hermes host has required a Pyth API key since 26 August 2026, so the equity references, the feed-price ratio and the purchase-review gate run on `PYTH_API_KEY` from a Pyth Terminal account.
+
+Independently of any key, Lotline reads USDC/USD straight from Pyth's sponsored price account on Solana mainnet through its own verified-mainnet RPC. It derives the account address from the push-oracle program and the feed id, then requires the receiver program as owner, the expected account discriminator, a full verification tag and a matching feed id before exposing the price. Every observation carries a provenance label saying which of the two paths it came from, and freshness is always measured from Pyth's own publish time, so a cached response can never make a price look newer than it is. Feed identities are checked against Pyth's official MCP server using its keyless `get_symbols` tool; `scripts/verify-pyth-feeds.mjs` runs that check on demand and all seven pinned ids matched on 26 September 2026. The code is `lib/server/pyth.ts` and `lib/server/pyth-onchain.ts`.
+
+### Meteora: where your asset prices other tokens
+
+Meteora's Dynamic Bonding Curve program lists tokenized stocks as **quote** tokens rather than as assets for sale: 737 of the 832 xStocks hold a DBC token badge, and launch pools price a newly created token in that xStock. Lotline reads that relationship directly for a selected asset. It checks the token badge account, finds the curve configs that quote in the asset, opens their pools, and computes an estimate with the official SDK's pure quote function at one confirmed slot, reporting curve progress against the migration threshold, reserves and the exact fee the curve charged. Because a curve's price moves with every swap, each figure is labelled with the pool it came from and the slot it was read at.
+
+Two things this is not. It is not a way to buy an xStock, since a USDC to xStock route runs through Jupiter and no bonding curve sells the xStock itself. And it is not a write path: Lotline never creates a pool, signs, or routes a purchase through DBC. PreStocks tokens carry no DBC badge and are planned from issuer identity data with Jupiter estimates. The code is `lib/domain/dbc.ts`, `lib/server/meteora-dbc.ts` and the panel in `components/dbc-pairs.tsx`.
+
 ## Precision and freshness
 
 - Budgets use plain decimal strings with up to six fractional digits, bounded to 1,000,000 USDC. Allocation uses BigInt micro-units and integer basis points, then distributes leftover micro-units by largest remainder with stable basket-order ties.
@@ -79,7 +100,7 @@ Guest basket settings, budget, and the manual review cadence are saved in versio
 
 Live provider requests use narrow same-origin handlers; authentication uses the official Supabase browser client. Server adapters validate issuer, Solana RPC, and Jupiter response data and expose normalized fields. RPC URLs, API keys, and raw provider errors are not returned. Catalog caching is approximately one hour; holdings approximately 15 seconds; identical quotes only briefly within freshness. Requests have timeouts, queue bounds, and a user-driven retry path.
 
-Optional **Load asset context** uses Tokens.xyz through a server adapter. It is disabled pending approved API access and does not affect asset eligibility, allocation, balances, unit conversion, or quote freshness. Missing context never blocks a contribution plan.
+Optional **Load asset context** uses Tokens.xyz through a server adapter on a deployment with approved API access. It is purely additional: asset eligibility, allocation, balances, unit conversion and quote freshness never depend on it, so a plan is complete with or without it.
 
 The Supabase-backed limiter reserves upstream start times across Vercel instances: Jupiter requests are spaced by at least 2.1 seconds and Solana requests by 150 milliseconds. Its bounded backlog rejects excess work instead of growing indefinitely. The table contains provider timing only, with no wallet or account data. A single local process also uses bounded in-process queues. Other applications using the same upstream key or IP can still consume provider allowances.
 
@@ -142,7 +163,7 @@ Lotline application code is [MIT licensed](LICENSE). It uses Next.js/React, Type
 - `components/`: responsive planner, account controls, installation UI, and shared visual components.
 - `lib/domain/`: pure exact math, plan identity, bounded share-link encoding, storage schema, text/CSV exports.
 - `lib/server/`: verified catalog, read-only Solana data, quote-only Jupiter adapter, and shared provider limits.
-- `lib/server/execution/`: disabled-by-default Jupiter order/execute boundary, exact signed-message/receipt checks, a narrow Jupiter route_v2/Raydium CLMM semantic validator, and Supabase journal adapter.
+- `lib/server/execution/`: the opt-in Jupiter order boundary, exact signed-message and receipt checks, a narrow Jupiter route_v2/Raydium CLMM semantic validator, and Supabase journal adapter.
 - `lib/supabase/`: public/browser and server clients plus cloud-plan validation.
 - `supabase/`: versioned migrations and database isolation verification.
 - `lib/demo/`: visibly synthetic Example fixtures.
@@ -152,7 +173,7 @@ Lotline application code is [MIT licensed](LICENSE). It uses Next.js/React, Type
 
 ## September 19 local continuation
 
-The [finish report](docs/finish-report-20260919.md) records additional wallet, recovery, receipt and manual-reminder fixes against `b843014`. That historical checkpoint is superseded by the September 20 release: the migrations and narrow semantic validator are implemented and checked. Public purchases remain disabled pending authenticated execution access and reviewed participants; production offers read-only planning and the official Jupiter handoff.
+The [finish report](docs/finish-report-20260919.md) records additional wallet, recovery, receipt and manual-reminder fixes against `b843014`. That historical checkpoint is superseded by the September 20 release: the migrations and narrow semantic validator are implemented and checked. Production offers read-only planning and the official Jupiter handoff, so every purchase is reviewed and approved in the planner's own wallet.
 
 ## Seeker, Android and PWA
 

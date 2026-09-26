@@ -10,7 +10,7 @@ export function pythReferences(mints: string[], now: number, price = '20000', ag
     feedId: mapping[kind], symbol: kind === 'token' ? `Crypto.${mapping.symbol}X/USD` : `Equity.US.${mapping.symbol}/USD`,
     kind, quoteCurrency: 'USD', unitBasis: kind === 'token' ? 'unverified-token-unit' : 'underlying-share',
     price, confidence: '10', exponent: -2, publishTime, publishedAt: new Date(publishTime * 1000).toISOString(), fetchedAt, expiresAt, state: observationState,
-    displayPrice: pythDecimal(price, -2), displayConfidence: '0.1', confidenceBps: pythConfidenceBps(price, '10'),
+    displayPrice: pythDecimal(price, -2), displayConfidence: '0.1', confidenceBps: pythConfidenceBps(price, '10'), provenance: 'hermes',
   });
   const items: MarketReferenceItem[] = mints.map(mint => {
     const mapping = PYTH_FEED_MAPPINGS.find(mapping => mapping.mint === mint);

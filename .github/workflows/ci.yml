@@ -25,6 +25,11 @@ jobs:
         with:
           node-version: 22
           cache: npm
+      # Keep npm 11 aligned with the checked-in lockfile. npm ci validates
+      # dependency resolution before applying omit flags, so a runner default
+      # on a different major reads the lockfile as out of sync (it reports
+      # utf-8-validate, an optional native dep of ws, as missing).
+      - run: npm install -g npm@11
       - run: npm ci
       - run: npm run lint
       - run: npm run typecheck
