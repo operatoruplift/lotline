@@ -18,6 +18,8 @@
     "node": ">=22.0.0"
   },
   "dependencies": {
+    "@coral-xyz/anchor": "0.31.1",
+    "@meteora-ag/dynamic-bonding-curve-sdk": "1.5.13",
     "@solana-mobile/wallet-standard-mobile": "^0.6.0",
     "@solana-program/token-2022": "0.17.0",
     "@solana/kit": "8.3.0",

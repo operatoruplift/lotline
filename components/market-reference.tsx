@@ -19,6 +19,10 @@ type Props = {
   onData?: (data: MarketReferenceResponse | null) => void;
 };
 type Result = { key: string; data?: MarketReferenceResponse; error?: string };
+const PROVENANCE_LABEL: Record<Observation['provenance'], string> = {
+  hermes: 'Read from Pyth Hermes',
+  'solana-receiver': 'Read from the Pyth receiver account on Solana mainnet',
+};
 
 function ObservationCard({ observation, label, now }: { observation?: Observation; label: string; now: number }) {
   const stale = observation && (observation.state === 'stale' || !isPythObservationFresh(observation, now));
@@ -29,6 +33,7 @@ function ObservationCard({ observation, label, now }: { observation?: Observatio
       <span className={stale ? styles.stale : styles.current}>{stale ? 'Stale reference' : 'Fresh reference'}</span>
       <span className={styles.detail}>Reported confidence ±${observation.displayConfidence}</span>
       <time className={styles.detail} dateTime={observation.publishedAt}>{utcTime(observation.publishedAt)}</time>
+      <span className={styles.detail} data-observation-provenance={observation.provenance}>{PROVENANCE_LABEL[observation.provenance]}</span>
       <details className={styles.feed}><summary>Feed identity</summary><p>{observation.symbol}</p><code>{observation.feedId}</code></details>
     </> : <p className={styles.detail}>No verified reference is available.</p>}
   </div>;
@@ -76,7 +81,9 @@ export function MarketReference({ assets, quotes, mode, planIdentity, now, enabl
   const current = result?.key === requestKey ? result : null;
   const pending = current === null;
   const data = current?.data;
-  const hasObservations = data?.items.some(item => item.underlying || item.token);
+  // A currency observation on its own is worth showing: keyless deployments read
+  // USDC/USD from chain while asset items state their Hermes scope.
+  const hasObservations = Boolean(data?.usdc) || Boolean(data?.items.some(item => item.underlying || item.token));
   const quoteExpired = successful.some(quote => now >= Math.min(Date.parse(quote.expiresAt), Date.parse(quote.fetchedAt) + 30_000));
   return <section className={styles.panel} aria-labelledby="market-reference-title" data-market-reference>
     <div className={styles.heading}>

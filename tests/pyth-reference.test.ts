@@ -1,8 +1,12 @@
 import { afterEach, beforeEach, expect, it, vi } from 'vitest';
 import { PYTH_MAPPED_MINTS, PYTH_USDC_FEED_ID, isPythObservationFresh, marketReferenceResponseSchema, pythConfidenceBps, pythDecimal, pythRatio, pythReferencesReady } from '../lib/domain/market-reference';
 import { PYTH_FEEDS, parsePythReferences } from '../lib/server/pyth';
+import { USDC_RECEIVER_DECODED, rpcResponder } from './fixtures/pyth-onchain';
 
 const now = Date.parse('2026-09-20T19:05:00.000Z');
+// The pinned on-chain fixture was published at this second; tests that read it set the clock nearby.
+const chainPublish = USDC_RECEIVER_DECODED.publishTime;
+const chainNow = (chainPublish + 56) * 1000;
 const mapping = PYTH_FEEDS[0];
 const fetchedAt = new Date(now).toISOString();
 function price(id: string, changes = {}) {
@@ -10,7 +14,8 @@ function price(id: string, changes = {}) {
 }
 const payload = () => ({ parsed: [price(mapping.underlying), price(mapping.token)] });
 const currencyPrice = (changes = {}) => price(PYTH_USDC_FEED_ID, { price: '99990000', conf: '1000', ...changes });
-beforeEach(() => { vi.resetModules(); vi.useFakeTimers(); vi.setSystemTime(now); vi.stubEnv('PYTH_API_KEY', 'test-server-only-key'); });
+// The RPC stays unconfigured unless a test opts in, so the on-chain currency leg is inert here.
+beforeEach(() => { vi.resetModules(); vi.useFakeTimers(); vi.setSystemTime(now); vi.stubEnv('PYTH_API_KEY', 'test-server-only-key'); vi.stubEnv('PYTH_HERMES_URL', ''); vi.stubEnv('SOLANA_RPC_URL', ''); });
 afterEach(() => { vi.unstubAllEnvs(); vi.unstubAllGlobals(); vi.useRealTimers(); });
 
 it('retains exact mantissas, exponent and original observation times without price equivalence', () => {
@@ -153,7 +158,7 @@ it('requests only pinned IDs with a server authorization header, bounded timeout
   const [first, simultaneous] = await Promise.all([getMarketReferences([mapping.mint]), getMarketReferences([mapping.mint])]);
   expect(first).toEqual(simultaneous); expect(fetcher).toHaveBeenCalledTimes(1);
   const [url, init] = fetcher.mock.calls[0] as unknown as [URL, RequestInit];
-  expect(url.origin + url.pathname).toBe('https://pyth.dourolabs.app/hermes/v2/updates/price/latest');
+  expect(url.origin + url.pathname).toBe('https://hermes.pyth.network/v2/updates/price/latest');
   expect(url.searchParams.getAll('ids[]')).toEqual([mapping.underlying, mapping.token, PYTH_USDC_FEED_ID]);
   expect(init).toMatchObject({ headers: { Authorization: 'Bearer test-server-only-key' }, cache: 'no-store', redirect: 'error' });
   expect(JSON.stringify(first)).not.toContain('test-server-only-key');
@@ -250,4 +255,100 @@ it('bounds callers to catalog mints, preserves unmapped assets, and validates ro
     const response = await POST(new Request('http://localhost/api/market-reference', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) }));
     expect(response.status).toBe(400); expect(response.headers.get('cache-control')).toBe('no-store');
   }
+});
+it('sends a keyless request only to an explicit https mirror and omits the authorization header', async () => {
+  vi.stubEnv('PYTH_API_KEY', ''); vi.stubEnv('PYTH_HERMES_URL', 'https://mirror.example/hermes/');
+  const fetcher = vi.fn(async () => new Response('unauthorized', { status: 401 })); vi.stubGlobal('fetch', fetcher);
+  const { getMarketReferences } = await import('../lib/server/pyth');
+  const response = await getMarketReferences([mapping.mint]);
+  expect(response.state).toBe('configuration-required'); expect(fetcher).toHaveBeenCalledTimes(1);
+  const [url, init] = fetcher.mock.calls[0] as unknown as [URL, RequestInit];
+  expect(url.origin + url.pathname).toBe('https://mirror.example/hermes/v2/updates/price/latest');
+  expect(Object.keys(init.headers as Record<string, string>)).not.toContain('Authorization');
+});
+it('sends the server key to an explicit https mirror', async () => {
+  vi.stubEnv('PYTH_HERMES_URL', 'https://pyth.dourolabs.app/hermes');
+  const fetcher = vi.fn(async () => Response.json(payload())); vi.stubGlobal('fetch', fetcher);
+  const { getMarketReferences } = await import('../lib/server/pyth');
+  expect((await getMarketReferences([mapping.mint])).state).toBe('success');
+  const [url, init] = fetcher.mock.calls[0] as unknown as [URL, RequestInit];
+  expect(url.origin + url.pathname).toBe('https://pyth.dourolabs.app/hermes/v2/updates/price/latest');
+  expect(init).toMatchObject({ headers: { Authorization: 'Bearer test-server-only-key' } });
+});
+it.each(['http://mirror.example', 'https://mirror.example/?ids[]=x', 'https://user:pw@mirror.example', 'not a url'])('refuses the Hermes override %s without any request', async override => {
+  vi.stubEnv('PYTH_HERMES_URL', override);
+  const fetcher = vi.fn(); vi.stubGlobal('fetch', fetcher);
+  const { getMarketReferences } = await import('../lib/server/pyth');
+  const response = await getMarketReferences([mapping.mint]);
+  expect(response.state).toBe('configuration-required'); expect(fetcher).not.toHaveBeenCalled();
+  expect(marketReferenceResponseSchema.safeParse(response).success).toBe(true);
+});
+it('reads USDC/USD keyless from the Solana receiver account while asset items and the purchase gate stay closed', async () => {
+  vi.stubEnv('PYTH_API_KEY', ''); vi.stubEnv('SOLANA_RPC_URL', 'https://rpc.example');
+  vi.setSystemTime(chainNow);
+  const fetcher = vi.fn(rpcResponder()); vi.stubGlobal('fetch', fetcher);
+  const { getMarketReferences } = await import('../lib/server/pyth');
+  const request = getMarketReferences([mapping.mint]);
+  await vi.advanceTimersByTimeAsync(1000);
+  const response = await request;
+  expect(response.state).toBe('partial');
+  expect(response.usdc).toMatchObject({ provenance: 'solana-receiver', feedId: PYTH_USDC_FEED_ID, symbol: 'Crypto.USDC/USD', kind: 'currency', price: '99991510', confidence: '16490', exponent: -8, displayPrice: '0.9999151', publishTime: chainPublish, state: 'fresh', expiresAt: new Date((chainPublish + 60) * 1000).toISOString() });
+  expect(response.items[0]).toMatchObject({ mint: mapping.mint, state: 'unavailable', comparison: 'not-comparable' });
+  expect(response.items[0].message).toContain('receiver account on Solana mainnet');
+  expect(fetcher.mock.calls.map(([url]) => String(url))).toEqual(['https://rpc.example', 'https://rpc.example']);
+  expect(marketReferenceResponseSchema.safeParse(response).success).toBe(true);
+  expect(pythReferencesReady(response, [mapping.mint], chainNow)).toBe(false);
+  const { POST } = await import('../app/api/market-reference/route');
+  const routed = POST(new Request('http://localhost/api/market-reference', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ mints: [mapping.mint] }) }));
+  await vi.advanceTimersByTimeAsync(1000);
+  expect((await routed).status).toBe(200);
+  // Sixty seconds after the original publish time the cached read reports stale; no new RPC read renews it.
+  vi.setSystemTime((chainPublish + 60) * 1000 + 500);
+  const later = getMarketReferences([mapping.mint]);
+  await vi.advanceTimersByTimeAsync(1000);
+  const aged = await later;
+  expect(aged.state).toBe('stale'); expect(aged.usdc?.state).toBe('stale'); expect(aged.usdc?.fetchedAt).toBe(response.usdc?.fetchedAt);
+  expect(fetcher).toHaveBeenCalledTimes(2);
+});
+it('cross-checks a keyed Hermes currency leg against the on-chain post and withholds a divergent reading', async () => {
+  vi.stubEnv('SOLANA_RPC_URL', 'https://rpc.example');
+  vi.setSystemTime(chainNow);
+  const hermesPayload = (usdcPrice?: string) => ({ parsed: [price(mapping.underlying, { publish_time: chainPublish }), price(mapping.token, { publish_time: chainPublish }), ...(usdcPrice ? [currencyPrice({ price: usdcPrice, publish_time: chainPublish })] : [])] });
+  const run = async (usdcPrice?: string) => {
+    // Each run starts from the same instant: advancing the fake clock across runs would age the observations.
+    vi.resetModules(); vi.setSystemTime(chainNow);
+    const responder = rpcResponder();
+    const fetcher = vi.fn(async (url: URL | string, init?: RequestInit) => String(url).startsWith('https://rpc.example') ? responder(url, init) : Response.json(hermesPayload(usdcPrice)));
+    vi.stubGlobal('fetch', fetcher);
+    const { getMarketReferences } = await import('../lib/server/pyth');
+    const request = getMarketReferences([mapping.mint]);
+    await vi.advanceTimersByTimeAsync(2000);
+    const response = await request;
+    expect(fetcher.mock.calls.some(([url]) => String(url).startsWith('https://hermes.pyth.network/v2/updates/price/latest'))).toBe(true);
+    expect(marketReferenceResponseSchema.safeParse(response).success).toBe(true);
+    return response;
+  };
+  // 0.15 basis points from the on-chain 99991510: the Hermes reading stands, labelled as Hermes.
+  const agreeing = await run('99990000');
+  expect(agreeing.state).toBe('success');
+  expect(agreeing.usdc).toMatchObject({ provenance: 'hermes', price: '99990000', state: 'fresh' });
+  // About 199 basis points apart: the currency leg is withheld; the equity/token items are untouched.
+  const divergent = await run('98000000');
+  expect(divergent.state).toBe('success'); expect(divergent.usdc).toBeUndefined(); expect(divergent.items[0].state).toBe('success');
+  // Hermes omitted the currency feed: the on-chain post fills the leg under its own label.
+  const filled = await run();
+  expect(filled.state).toBe('success');
+  expect(filled.usdc).toMatchObject({ provenance: 'solana-receiver', price: '99991510', state: 'fresh' });
+});
+it('keeps a keyed Hermes response intact when the RPC read fails', async () => {
+  vi.stubEnv('SOLANA_RPC_URL', 'https://rpc.example');
+  vi.setSystemTime(chainNow);
+  const fetcher = vi.fn(async (url: URL | string) => String(url).startsWith('https://rpc.example') ? new Response('', { status: 503 }) : Response.json({ parsed: [price(mapping.underlying, { publish_time: chainPublish }), price(mapping.token, { publish_time: chainPublish }), currencyPrice({ publish_time: chainPublish })] }));
+  vi.stubGlobal('fetch', fetcher);
+  const { getMarketReferences } = await import('../lib/server/pyth');
+  const request = getMarketReferences([mapping.mint]);
+  await vi.advanceTimersByTimeAsync(2000);
+  const response = await request;
+  expect(response.state).toBe('success');
+  expect(response.usdc).toMatchObject({ provenance: 'hermes', price: '99990000' });
 });
