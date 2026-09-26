@@ -1,15 +1,11 @@
-CONTROLLED REHEARSAL · CATALOG / QUOTES MOCKED · NO WALLET OR FUNDS. Silent recording captured from the current local application on September 20, 2026.
+No account needed. The catalog and quotes here are fixtures.
 
-Start planning without an account. The searchable Live catalog here is a fixture.
+Search by company, ticker, or exact mint.
 
-Search by company, ticker, or exact mint. Nothing is selected automatically.
+The split is applied; the budget is typed by hand.
 
-Explicitly apply the illustrative 50 / 30 / 20 split. Every asset and percentage stays editable.
+Ten USDC and one micro-USDC, conserved exactly.
 
-10.000001 USDC is conserved exactly: 5.000001 + 3.000000 + 2.000000. Outputs shown are mocked.
+Five point zero zero zero zero zero one, then three and two.
 
-Inspect the exact mint, issuer source, original quote time, and micro-USDC remainder.
-
-Purchase approval is gated. This clip proves planning UI, not wallet approval or real settlement.
-
-No real wallet connected, transaction signed, or funds moved. UI catalog and quote responses are controlled fixtures. This is not evidence of a mainnet settlement. Original September 12 narrated films are preserved separately.
+Review before you sign. Copy the plan, or review any asset on Jupiter. Never an auto-trade. No funds moved.

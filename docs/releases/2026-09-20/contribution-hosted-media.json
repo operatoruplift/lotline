@@ -5,16 +5,18 @@
     {
       "name": "first-minute",
       "src": "/videos/release-20260920/first-minute.mp4",
-      "bytes": 1624950,
-      "sha256": "f057dc6df83b51a4cb66fab09a51314a88d713057a652584d1e8602452ca7bf2",
-      "matchesLocal": true
+      "bytes": 2084731,
+      "sha256": "80748bd7702ad5a9d7d876f7c700b91edc1f4cfcc583629ad4475ce3a9fb242e",
+      "matchesLocal": true,
+      "narration": "Narration added 2026-09-26: a 48 kHz stereo AAC track generated locally with the macOS Samantha voice from the cue list in the .en.vtt file; the picture is unchanged."
     },
     {
       "name": "technical-proof",
       "src": "/videos/release-20260920/technical-proof.mp4",
-      "bytes": 2412661,
-      "sha256": "d6784d4c24ce90cd83246b5e881e81b45dd55173d6931a6934c6807f45d4ff3f",
-      "matchesLocal": true
+      "bytes": 3472612,
+      "sha256": "21830da0a7990d385a5d5c9a4e533e696091d959803e008b05891f5d757e951b",
+      "matchesLocal": true,
+      "narration": "Narration added 2026-09-26: a 48 kHz stereo AAC track generated locally with the macOS Samantha voice from the cue list in the .en.vtt file; the picture is unchanged."
     }
   ]
 }

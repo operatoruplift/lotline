@@ -11,15 +11,17 @@
       "durationSeconds": 25.96,
       "width": 1440,
       "height": 1000,
-      "sha256": "f057dc6df83b51a4cb66fab09a51314a88d713057a652584d1e8602452ca7bf2",
-      "bytes": 1624950,
-      "silent": true,
+      "sha256": "80748bd7702ad5a9d7d876f7c700b91edc1f4cfcc583629ad4475ce3a9fb242e",
+      "bytes": 2084731,
+      "silent": false,
       "fixtureOnly": true,
       "evidenceClasses": [
         "controlled-local-ui"
       ],
       "settlementVerified": false,
-      "transcript": "CONTROLLED REHEARSAL · CATALOG / QUOTES MOCKED · NO WALLET OR FUNDS. Silent recording captured from the current local application on September 20, 2026.\n\nStart planning without an account. The searchable Live catalog here is a fixture.\n\nSearch by company, ticker, or exact mint. Nothing is selected automatically.\n\nExplicitly apply the illustrative 50 / 30 / 20 split. Every asset and percentage stays editable.\n\n10.000001 USDC is conserved exactly: 5.000001 + 3.000000 + 2.000000. Outputs shown are mocked.\n\nInspect the exact mint, issuer source, original quote time, and micro-USDC remainder.\n\nPurchase approval is gated. This clip proves planning UI, not wallet approval or real settlement.\n\nNo real wallet connected, transaction signed, or funds moved. UI catalog and quote responses are controlled fixtures. This is not evidence of a mainnet settlement. Original September 12 narrated films are preserved separately.\n"
+      "transcript": "No account needed. The catalog and quotes here are fixtures. Search by company, ticker, or exact mint. The split is applied; the budget is typed by hand. Ten USDC and one micro-USDC, conserved exactly. Five point zero zero zero zero zero one, then three and two. Review before you sign. Copy the plan, or review any asset on Jupiter. Never an auto-trade. No funds moved.",
+      "audioStreams": 1,
+      "narration": "Narration added 2026-09-26: a 48 kHz stereo AAC track generated locally with the macOS Samantha voice from the cue list in the .en.vtt file; the picture is unchanged."
     },
     "technical-proof": {
       "src": "/videos/release-20260920/technical-proof.mp4",
@@ -29,9 +31,9 @@
       "durationSeconds": 57.04,
       "width": 1440,
       "height": 1000,
-      "sha256": "d6784d4c24ce90cd83246b5e881e81b45dd55173d6931a6934c6807f45d4ff3f",
-      "bytes": 2412661,
-      "silent": true,
+      "sha256": "21830da0a7990d385a5d5c9a4e533e696091d959803e008b05891f5d757e951b",
+      "bytes": 3472612,
+      "silent": false,
       "fixtureOnly": false,
       "evidenceClasses": [
         "controlled-local-ui",
@@ -39,7 +41,9 @@
         "source-call-path-explainer"
       ],
       "settlementVerified": false,
-      "transcript": "CONTROLLED REHEARSAL · CATALOG / QUOTES MOCKED · NO WALLET OR FUNDS. Silent recording captured from the current local application on September 20, 2026.\n\nTechnical walkthrough: exact integer allocation and explicit provenance; all quoted values are fixtures.\n\nExplicitly apply the illustrative 50 / 30 / 20 split. Every asset and percentage stays editable.\n\n10.000001 USDC is conserved exactly: 5.000001 + 3.000000 + 2.000000. Outputs shown are mocked.\n\nInspect the exact mint, issuer source, original quote time, and micro-USDC remainder.\n\nExpired estimates remain visibly stale. Saving or copying a plan cannot make its quotes fresh.\n\nRequest new estimates to obtain a new observation and expiry.\n\nPurchase approval is gated. This clip proves planning UI, not wallet approval or real settlement.\n\nRecorded unsigned mainnet evidence: 1 USDC, minimum 294240 raw AAPLx, 5162 network lamports, slot 448488963. No signing, broadcast, or verified settlement.\n\nSource path: createExecutionOrder → validateExecutableOrder → createAttempt → explicit wallet review. Exact signed message bytes and the required signature are verified before submission.\n\nPersist original signature before execute. An unknown result blocks replacement until original-signature reconciliation. Receipt checks and durable history protect partial contributions; real settlement remains unverified.\n\nAfter the controlled UI recording, separate explanatory slides summarize the sanitized unsigned mainnet proof from 2026-09-19T18:30:17.099Z, validator jupiter-route-v2-raydium-clmm-v1, message SHA-256 5e532264bf324de6…, and the implemented source call path. The original output unit context retains decimals 8 and clock-derived multiplier 1.0032690125398187; raw transaction amounts stay authoritative. These slides are not application screens or a recording of wallet approval. The simulation is unsigned; source and fixture evidence are not real settlement.\n\n\nNo real wallet connected, transaction signed, or funds moved. UI catalog and quote responses are controlled fixtures. This is not evidence of a mainnet settlement. Original September 12 narrated films are preserved separately.\n"
+      "transcript": "Lotline under the hood: fixture data, no funds. Apply the sample fifty-thirty-twenty split; all editable. Ten USDC and one micro-USDC is conserved exactly. Five point zero zero zero zero zero one, three, and two. Expired estimates stay visibly stale after saving or copying. Refresh for a new observation and expiry. Then review before you sign: quote only, nothing signed. One unsigned mainnet route: one USDC to at least 294,240 raw Apple xStock. Before a wallet can approve: the order is decoded, checked, and simulated; the wallet signs exactly what it reviewed. Persist, submit, reconcile. Signed state is stored before the network write. The receipt must match the original message. An unknown result blocks any replacement. Confirmed legs stay confirmed. Unsigned mainnet evidence throughout.",
+      "audioStreams": 1,
+      "narration": "Narration added 2026-09-26: a 48 kHz stereo AAC track generated locally with the macOS Samantha voice from the cue list in the .en.vtt file; the picture is unchanged."
     }
   }
 }

@@ -1,0 +1,13 @@
+A controlled test: mocked wallet, no funds moved.
+
+A hundred USDC, four assets.
+
+Review each leg before you sign.
+
+Two simulated legs confirm; receipts keep raw amounts.
+
+The third is unknown; approvals pause.
+
+A reload reconciles that leg, then resumes only the fourth.
+
+Receipts download; reminder saved; fits a phone.

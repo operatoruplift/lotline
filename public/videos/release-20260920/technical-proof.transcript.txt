@@ -1,26 +1,19 @@
-CONTROLLED REHEARSAL · CATALOG / QUOTES MOCKED · NO WALLET OR FUNDS. Silent recording captured from the current local application on September 20, 2026.
+Lotline under the hood: fixture data, no funds.
 
-Technical walkthrough: exact integer allocation and explicit provenance; all quoted values are fixtures.
+Apply the sample fifty-thirty-twenty split; all editable.
 
-Explicitly apply the illustrative 50 / 30 / 20 split. Every asset and percentage stays editable.
+Ten USDC and one micro-USDC is conserved exactly.
 
-10.000001 USDC is conserved exactly: 5.000001 + 3.000000 + 2.000000. Outputs shown are mocked.
+Five point zero zero zero zero zero one, three, and two.
 
-Inspect the exact mint, issuer source, original quote time, and micro-USDC remainder.
+Expired estimates stay visibly stale after saving or copying.
 
-Expired estimates remain visibly stale. Saving or copying a plan cannot make its quotes fresh.
+Refresh for a new observation and expiry.
 
-Request new estimates to obtain a new observation and expiry.
+Then review before you sign: quote only, nothing signed.
 
-Purchase approval is gated. This clip proves planning UI, not wallet approval or real settlement.
+One unsigned mainnet route: one USDC to at least 294,240 raw Apple xStock.
 
-Recorded unsigned mainnet evidence: 1 USDC, minimum 294240 raw AAPLx, 5162 network lamports, slot 448488963. No signing, broadcast, or verified settlement.
+Before a wallet can approve: the order is decoded, checked, and simulated; the wallet signs exactly what it reviewed.
 
-Source path: createExecutionOrder → validateExecutableOrder → createAttempt → explicit wallet review. Exact signed message bytes and the required signature are verified before submission.
-
-Persist original signature before execute. An unknown result blocks replacement until original-signature reconciliation. Receipt checks and durable history protect partial contributions; real settlement remains unverified.
-
-After the controlled UI recording, separate explanatory slides summarize the sanitized unsigned mainnet proof from 2026-09-19T18:30:17.099Z, validator jupiter-route-v2-raydium-clmm-v1, message SHA-256 5e532264bf324de6…, and the implemented source call path. The original output unit context retains decimals 8 and clock-derived multiplier 1.0032690125398187; raw transaction amounts stay authoritative. These slides are not application screens or a recording of wallet approval. The simulation is unsigned; source and fixture evidence are not real settlement.
-
-
-No real wallet connected, transaction signed, or funds moved. UI catalog and quote responses are controlled fixtures. This is not evidence of a mainnet settlement. Original September 12 narrated films are preserved separately.
+Persist, submit, reconcile. Signed state is stored before the network write. The receipt must match the original message. An unknown result blocks any replacement. Confirmed legs stay confirmed. Unsigned mainnet evidence throughout.

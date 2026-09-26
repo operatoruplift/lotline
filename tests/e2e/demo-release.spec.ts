@@ -17,24 +17,25 @@ for (const width of [390, 1440]) {
     const sponsor = page.locator('[data-demo-video="sponsor-planning"]');
     await expect(sponsor).toHaveAttribute('aria-describedby', 'sponsor-demo-description');
     await expect(page.locator('#sponsor-demo-description')).toContainText('controlled fixtures');
-    await expect(page.locator('#sponsor-demo-description')).toContainText('explicit Pyth-unavailable state');
+    await expect(page.locator('#sponsor-demo-description')).toContainText('Pyth reference status');
     await sponsor.scrollIntoViewIfNeeded();
     await sponsor.evaluate(node => (node as HTMLVideoElement).play());
     await expect.poll(() => sponsor.evaluate(node => (node as HTMLVideoElement).currentTime)).toBeGreaterThan(.25);
     const sponsorState = await sponsor.evaluate(node => { const video = node as HTMLVideoElement & { webkitAudioDecodedByteCount: number }; return { duration: video.duration, width: video.videoWidth, height: video.videoHeight, muted: video.muted, controls: video.controls, audioBytes: video.webkitAudioDecodedByteCount }; });
     expect(sponsorState.duration).toBeGreaterThanOrEqual(25);
     expect(sponsorState.duration).toBeLessThanOrEqual(45);
-    expect(sponsorState).toMatchObject({ width: 1440, height: 1000, muted: true, controls: true, audioBytes: 0 });
+    expect(sponsorState).toMatchObject({ width: 1440, height: 1000, muted: false, controls: true });
+    await expect.poll(() => sponsor.evaluate(node => (node as HTMLVideoElement & { webkitAudioDecodedByteCount: number }).webkitAudioDecodedByteCount)).toBeGreaterThan(0);
     await expect.poll(() => sponsor.evaluate(node => (node as HTMLVideoElement).textTracks[0]?.cues?.length ?? 0)).toBe(6);
     const sponsorCues = await sponsor.evaluate(node => Array.from((node as HTMLVideoElement).textTracks[0].cues ?? []).map(cue => ({ start: cue.startTime, end: cue.endTime, text: (cue as VTTCue).text })));
-    expect(sponsorCues.map(cue => cue.text).join(' ')).toMatch(/Pyth.*unavailable/i);
+    expect(sponsorCues.map(cue => cue.text).join(' ')).toMatch(/Pyth reference/i);
     for (const cue of sponsorCues) { expect(cue.start).toBeGreaterThanOrEqual(0); expect(cue.end).toBeGreaterThan(cue.start); expect(cue.end).toBeLessThanOrEqual(sponsorState.duration + .1); }
     await sponsor.evaluate(node => { const video = node as HTMLVideoElement; video.currentTime = video.duration / 2; });
     await expect.poll(() => sponsor.evaluate(node => (node as HTMLVideoElement).seeking)).toBe(false);
     await sponsor.evaluate(node => (node as HTMLVideoElement).pause());
     const sponsorTranscript = await request.get('/videos/release-20260921/sponsor-planning.transcript.txt');
     expect(sponsorTranscript.ok()).toBe(true);
-    expect(await sponsorTranscript.text()).toContain('Pyth unavailability is explicitly simulated');
+    expect(await sponsorTranscript.text()).toContain('Pyth reference status');
 
     for (const key of ['first-minute', 'technical-proof']) {
       const player = page.locator(`[data-demo-video="${key}"]`);
@@ -44,14 +45,15 @@ for (const width of [390, 1440]) {
       const state = await player.evaluate(node => { const video = node as HTMLVideoElement; return { duration: video.duration, width: video.videoWidth, muted: video.muted, controls: video.controls }; });
       expect(state.duration).toBeGreaterThan(15);
       expect(state.width).toBeGreaterThanOrEqual(1280);
-      expect(state).toMatchObject({ muted: true, controls: true });
+      expect(state).toMatchObject({ muted: false, controls: true });
+      await expect.poll(() => player.evaluate(node => (node as HTMLVideoElement & { webkitAudioDecodedByteCount: number }).webkitAudioDecodedByteCount)).toBeGreaterThan(0);
       await expect.poll(() => player.evaluate(node => (node as HTMLVideoElement).textTracks[0]?.cues?.length ?? 0)).toBeGreaterThan(2);
       await player.evaluate(node => { const video = node as HTMLVideoElement; video.currentTime = video.duration / 2; });
       await expect.poll(() => player.evaluate(node => (node as HTMLVideoElement).seeking)).toBe(false);
       await player.evaluate(node => (node as HTMLVideoElement).pause());
       const transcript = await request.get(`/videos/release-20260920/${key}.transcript.txt`);
       expect(transcript.ok()).toBe(true);
-      expect(await transcript.text()).toMatch(/controlled|mocked/i);
+      expect(await transcript.text()).toMatch(/controlled|mocked|fixture/i);
     }
 
     for (const key of ['product', 'technical'] as const) {
@@ -105,7 +107,8 @@ for (const width of [390, 1440]) {
       return { duration: video.duration, width: video.videoWidth, height: video.videoHeight, controls: video.controls, muted: video.muted, inline: video.playsInline, audioBytes: video.webkitAudioDecodedByteCount };
     });
     expect(fixtureMedia.duration).toBeCloseTo(25.2, 1);
-    expect(fixtureMedia).toMatchObject({ width: 1440, height: 1000, controls: true, muted: true, inline: true, audioBytes: 0 });
+    expect(fixtureMedia).toMatchObject({ width: 1440, height: 1000, controls: true, muted: false, inline: true });
+    await expect.poll(() => controlled.evaluate(node => (node as HTMLVideoElement & { webkitAudioDecodedByteCount: number }).webkitAudioDecodedByteCount)).toBeGreaterThan(0);
     await controlled.evaluate(node => { const video = node as HTMLVideoElement; video.currentTime = 12; });
     await expect.poll(() => controlled.evaluate(node => (node as HTMLVideoElement).currentTime)).toBeGreaterThanOrEqual(12);
     await controlled.evaluate(node => (node as HTMLVideoElement).pause());
