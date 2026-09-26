@@ -1,0 +1,30 @@
+WEBVTT
+
+1
+00:00:02.500 --> 00:00:06.000
+A controlled test: mocked wallet, no funds moved.
+
+2
+00:00:06.000 --> 00:00:08.700
+A hundred USDC, four assets.
+
+3
+00:00:08.700 --> 00:00:11.000
+Review each leg before you sign.
+
+4
+00:00:11.000 --> 00:00:14.500
+Two simulated legs confirm; receipts keep raw amounts.
+
+5
+00:00:14.500 --> 00:00:16.900
+The third is unknown; approvals pause.
+
+6
+00:00:16.900 --> 00:00:21.500
+A reload reconciles that leg, then resumes only the fourth.
+
+7
+00:00:21.500 --> 00:00:24.700
+Receipts download; reminder saved; fits a phone.
+

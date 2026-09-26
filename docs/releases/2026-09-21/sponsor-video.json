@@ -13,15 +13,16 @@
       "durationSeconds": 30,
       "width": 1440,
       "height": 1000,
-      "bytes": 1022939,
-      "sha256": "9ee0b9e5a03001bd8662b6998a2a0179f2d2cae6b4ca5348c3972bb18654799c",
-      "silent": true,
+      "bytes": 1555325,
+      "sha256": "59d60237afbcc02abb97362bb0ea4514decddb67338cf2e8f9d7f4857daf7044",
+      "silent": false,
       "fixtureOnly": true,
       "pythStatus": "explicit-unavailable-fixture",
       "evidenceClasses": [
         "controlled-local-ui"
       ],
-      "transcript": "CONTROLLED REHEARSAL \u00b7 CATALOG / QUOTES MOCKED \u00b7 PYTH UNAVAILABLE FIXTURE \u00b7 NO WALLET OR FUNDS. Silent application recording captured from the local production build on September 21, 2026. Cuts omit navigation delays between six observed application states.\n\nPreStocks has a separate planning catalog and device draft. Issuer trading-halt status is not published.\n\nChoose your own split. This illustrative 50 / 50 contribution is a fixture, not a recommendation.\n\nExact allocation: 10.000001 USDC = 5.000001 + 5.000000. Estimated token outputs are mocked.\n\nInspect exact Solana mints, PreStocks issuer links, original quote times, and unpublished halt status.\n\nCopy or export a planning-only split. Shared links exclude the wallet and estimates; no purchase is signed.\n\nxStocks estimates show the Pyth reference status. This unavailable fixture makes no live price comparison claim.\n\nPreStocks catalog and quote responses are controlled fixtures using pinned issuer identities. Pyth unavailability is explicitly simulated; no live oracle observation or token-price comparison is claimed. No wallet connected, transaction signed, or funds moved. The five earlier films remain unchanged.\n"
+      "transcript": "CONTROLLED REHEARSAL \u00b7 CATALOG / QUOTES MOCKED \u00b7 PYTH UNAVAILABLE FIXTURE \u00b7 NO WALLET OR FUNDS. Silent application recording captured from the local production build on September 21, 2026. Cuts omit navigation delays between six observed application states.\n\nPreStocks has a separate planning catalog and device draft. Issuer trading-halt status is not published.\n\nChoose your own split. This illustrative 50 / 50 contribution is a fixture, not a recommendation.\n\nExact allocation: 10.000001 USDC = 5.000001 + 5.000000. Estimated token outputs are mocked.\n\nInspect exact Solana mints, PreStocks issuer links, original quote times, and unpublished halt status.\n\nCopy or export a planning-only split. Shared links exclude the wallet and estimates; no purchase is signed.\n\nxStocks estimates show the Pyth reference status. This unavailable fixture makes no live price comparison claim.\n\nPreStocks catalog and quote responses are controlled fixtures using pinned issuer identities. Pyth unavailability is explicitly simulated; no live oracle observation or token-price comparison is claimed. No wallet connected, transaction signed, or funds moved. The five earlier films remain unchanged.\n",
+      "narration": "Narration added 2026-09-26: a 48 kHz stereo AAC track generated locally with the macOS Samantha voice from the cue list in the .en.vtt file; the picture is unchanged."
     }
   },
   "verification": {
@@ -31,7 +32,7 @@
       "width": 1440,
       "height": 1000,
       "framesPerSecond": 25,
-      "audioStreams": 0
+      "audioStreams": 1
     },
     "visualInspection": {
       "status": "passed",

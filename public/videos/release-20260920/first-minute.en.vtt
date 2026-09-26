@@ -1,25 +1,26 @@
 WEBVTT
 
 1
-00:00:00.966 --> 00:00:03.966
-Start planning without an account. The searchable Live catalog here is a fixture.
+00:00:00.500 --> 00:00:03.920
+No account needed. The catalog and quotes here are fixtures.
 
 2
-00:00:04.024 --> 00:00:06.524
-Search by company, ticker, or exact mint. Nothing is selected automatically.
+00:00:03.920 --> 00:00:06.800
+Search by company, ticker, or exact mint.
 
 3
-00:00:06.923 --> 00:00:09.923
-Explicitly apply the illustrative 50 / 30 / 20 split. Every asset and percentage stays editable.
+00:00:06.800 --> 00:00:10.040
+The split is applied; the budget is typed by hand.
 
 4
-00:00:10.044 --> 00:00:14.044
-10.000001 USDC is conserved exactly: 5.000001 + 3.000000 + 2.000000. Outputs shown are mocked.
+00:00:10.040 --> 00:00:14.160
+Ten USDC and one micro-USDC, conserved exactly.
 
 5
-00:00:14.230 --> 00:00:18.230
-Inspect the exact mint, issuer source, original quote time, and micro-USDC remainder.
+00:00:14.160 --> 00:00:18.160
+Five point zero zero zero zero zero one, then three and two.
 
 6
-00:00:18.299 --> 00:00:22.299
-Purchase approval is gated. This clip proves planning UI, not wallet approval or real settlement.
+00:00:18.160 --> 00:00:25.460
+Review before you sign. Copy the plan, or review any asset on Jupiter. Never an auto-trade. No funds moved.
+

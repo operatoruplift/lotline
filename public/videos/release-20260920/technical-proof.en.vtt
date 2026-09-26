@@ -1,41 +1,42 @@
 WEBVTT
 
 1
-00:00:00.766 --> 00:00:03.766
-Technical walkthrough: exact integer allocation and explicit provenance; all quoted values are fixtures.
+00:00:00.400 --> 00:00:03.960
+Lotline under the hood: fixture data, no funds.
 
 2
-00:00:04.231 --> 00:00:07.231
-Explicitly apply the illustrative 50 / 30 / 20 split. Every asset and percentage stays editable.
+00:00:03.960 --> 00:00:07.440
+Apply the sample fifty-thirty-twenty split; all editable.
 
 3
-00:00:07.372 --> 00:00:11.372
-10.000001 USDC is conserved exactly: 5.000001 + 3.000000 + 2.000000. Outputs shown are mocked.
+00:00:07.440 --> 00:00:11.600
+Ten USDC and one micro-USDC is conserved exactly.
 
 4
-00:00:11.551 --> 00:00:15.551
-Inspect the exact mint, issuer source, original quote time, and micro-USDC remainder.
+00:00:11.600 --> 00:00:16.400
+Five point zero zero zero zero zero one, three, and two.
 
 5
-00:00:16.471 --> 00:00:20.471
-Expired estimates remain visibly stale. Saving or copying a plan cannot make its quotes fresh.
+00:00:16.400 --> 00:00:20.480
+Expired estimates stay visibly stale after saving or copying.
 
 6
-00:00:20.536 --> 00:00:23.036
-Request new estimates to obtain a new observation and expiry.
+00:00:20.480 --> 00:00:23.040
+Refresh for a new observation and expiry.
 
 7
-00:00:23.059 --> 00:00:27.059
-Purchase approval is gated. This clip proves planning UI, not wallet approval or real settlement.
+00:00:23.040 --> 00:00:27.080
+Then review before you sign: quote only, nothing signed.
 
 8
-00:00:27.102 --> 00:00:34.602
-Recorded unsigned mainnet evidence: 1 USDC, minimum 294240 raw AAPLx, 5162 network lamports, slot 448488963. No signing, broadcast, or verified settlement.
+00:00:27.080 --> 00:00:34.600
+One unsigned mainnet route: one USDC to at least 294,240 raw Apple xStock.
 
 9
-00:00:34.622 --> 00:00:42.122
-Source path: createExecutionOrder → validateExecutableOrder → createAttempt → explicit wallet review. Exact signed message bytes and the required signature are verified before submission.
+00:00:34.600 --> 00:00:42.120
+Before a wallet can approve: the order is decoded, checked, and simulated; the wallet signs exactly what it reviewed.
 
 10
-00:00:42.147 --> 00:00:49.647
-Persist original signature before execute. An unknown result blocks replacement until original-signature reconciliation. Receipt checks and durable history protect partial contributions; real settlement remains unverified.
+00:00:42.120 --> 00:00:56.500
+Persist, submit, reconcile. Signed state is stored before the network write. The receipt must match the original message. An unknown result blocks any replacement. Confirmed legs stay confirmed. Unsigned mainnet evidence throughout.
+
