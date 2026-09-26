@@ -175,3 +175,31 @@ test('create a three-asset split and export using keyboard controls', async ({ p
   const download = await downloaded;
   expect(download.suggestedFilename()).toContain('lotline-example-plan');
 });
+
+test('the estimate notice clears itself instead of standing over a page that moved on', async ({ page }) => {
+  await page.clock.install({ time: new Date() });
+  await page.goto('/app?mode=example');
+  await page.getByLabel('USDC budget').fill('10.000001');
+  await page.getByRole('button', { name: 'Get estimates', exact: true }).click();
+  await expect(page.locator('.toast.visible')).toContainText('Example estimates updated');
+  await page.clock.fastForward(9_000);
+  // The notice reported one completed action; the panels below it stay authoritative.
+  await expect(page.locator('.toast.visible')).toHaveCount(0);
+  await expect(page.getByRole('button', { name: 'Dismiss notification', exact: true })).toHaveCount(0);
+  await expect(page.getByRole('button', { name: 'Download CSV', exact: true })).toBeEnabled();
+});
+
+test('a failed action keeps its account on screen until the reader dismisses it', async ({ page }) => {
+  await page.addInitScript(() => {
+    Object.defineProperty(navigator, 'clipboard', { value: { writeText: async () => { throw new DOMException('Clipboard denied', 'NotAllowedError'); } } });
+  });
+  await page.clock.install({ time: new Date() });
+  await page.goto('/app?mode=example');
+  await page.getByRole('button', { name: 'Copy mint for AAPLx', exact: true }).click();
+  await expect(page.locator('.toast.visible')).toContainText('Clipboard access');
+  // A failure is the only account of what happened, so waiting does not erase it.
+  await page.clock.fastForward(30_000);
+  await expect(page.locator('.toast.visible')).toContainText('Clipboard access');
+  await page.getByRole('button', { name: 'Dismiss notification', exact: true }).click();
+  await expect(page.locator('.toast.visible')).toHaveCount(0);
+});

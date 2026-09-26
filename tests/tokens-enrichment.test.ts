@@ -255,11 +255,12 @@ describe('transport bounds and route contract', () => {
     expect((await second).state).toBe('unavailable'); expect(fetcher).toHaveBeenCalledTimes(1);
   });
 
-  it('keeps the optional route no-store and rejects unexpected query fields', async () => {
+  it('answers the switched-off optional route with 200, keeps it no-store, and rejects unexpected query fields', async () => {
     vi.stubEnv('TOKENS_XYZ_ENABLED', 'false');
     const { GET } = await import('../app/api/asset-details/route');
     const response = await GET(new Request(`https://lotline.test/api/asset-details?network=solana&mint=${MINT}`));
-    expect(response.status).toBe(503); expect(response.headers.get('cache-control')).toBe('no-store');
+    // The body is a complete determination about a supported request, not a fault.
+    expect(response.status).toBe(200); expect(response.headers.get('cache-control')).toBe('no-store');
     expect((await response.json()).state).toBe('configuration-required');
     for (const query of [`network=ethereum&mint=${MINT}`, `network=solana&mint=${MINT}&url=https://example.com`, `network=solana&mint=${MINT}&mint=${MINT}`]) {
       const invalid = await GET(new Request(`https://lotline.test/api/asset-details?${query}`));
