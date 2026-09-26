@@ -125,6 +125,10 @@ Tests cover exact math, storage and export safety, multiple token accounts, scal
 
 The type-check command generates Next.js route types before running TypeScript, so it also works from a clean checkout.
 
+### Dependency review
+
+Meteora's official SDK is the source of the bonding curve quote, and it is built on the older Solana JavaScript stack, so it adds Anchor and spl-token to the tree alongside Lotline's own `@solana/kit`. That chain carries six high-severity advisories with no patched release anywhere in it. The production build was checked: none of the affected packages appears in the compiled output of the route that uses the SDK, which calls only the program IDL and a pure quote function, and every account decoded is fetched by address and checked for program ownership and length first. The full analysis and the commands to re-check it are in the [dependency review](docs/dependency-review-20260926.md).
+
 ## Supabase and Vercel deployment
 
 September 11–12 deployment records describe a configured Supabase project, Git-connected Vercel project, and all three migrations applied across the initial and catalog-expansion checkpoints. Those historical records alone do not establish the latest public release or revalidate its credentials. See [deployment configuration and evidence](docs/deployment.md) for the current release and its actual checks. `NEXT_PUBLIC_AUTH_EMAIL_ENABLED=false` keeps unavailable email flows explicit while preserving existing-user sign-in and owner-scoped cloud plans.
