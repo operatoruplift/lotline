@@ -34,11 +34,15 @@ function PoolRow({ pool, symbol }: { pool: DbcPool; symbol: string }) {
   return <div className={styles.observation}>
     <span className={styles.label}>Launch token {abbreviateAddress(pool.baseMint)}</span>
     <strong className={styles.price}>{bps(pool.progressBps)} <small>of migration threshold</small></strong>
-    <span className={styles.detail}>Curve fee {bps(pool.cliffFeeBps)} · reserve {pool.quoteReserveRaw} raw {symbol}</span>
+    <span className={styles.detail}>
+      {pool.estimate ? <>Fee at this read {bps(pool.estimate.feeBps)}</> : <>Launch fee {bps(pool.cliffFeeBps)}</>}
+      {' · reserve '}{pool.quoteReserveRaw} raw {symbol}
+    </span>
     {pool.estimate
       ? <span className={styles.detail}>
           {pool.estimate.amountInRaw} raw {symbol} would price {pool.estimate.outRaw} raw launch units at this read,
-          after a {bps(pool.estimate.feeBps)} curve fee on the {pool.estimate.feeSide} side.
+          charged on the {pool.estimate.feeSide} side.
+          {pool.cliffFeeBps !== pool.estimate.feeBps && <> This curve opened at {bps(pool.cliffFeeBps)} and its schedule has brought the fee down since launch.</>}
         </span>
       : <span className={styles.detail}>{pool.message ?? 'This curve has migrated off the bonding curve, so it prices through its graduated pool.'}</span>}
     <a className={styles.detail} href={explorer(pool.pool)} target="_blank" rel="noreferrer noopener">

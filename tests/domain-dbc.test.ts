@@ -183,3 +183,15 @@ describe('DBC copy', () => {
     expect(DBC_COPY.readOnly).toMatch(/never creates pools, signs, or routes purchases/);
   });
 });
+
+describe('DBC fee schedule', () => {
+  it('distinguishes the fee a curve opened with from the fee it charges now', () => {
+    // Meteora's fee scheduler decays from cliffFeeNumerator, so a pool can
+    // advertise a 50% launch fee while charging 1.25% at the current point.
+    // Reporting the launch fee as "the" fee would overstate the cost 40x.
+    const launch = dbcCliffFeeBps('5000000000'.slice(0, 9));
+    expect(launch).toBe(5000);
+    expect(dbcFeeBps('12570', '1000000')).toBe(125);
+    expect(launch).not.toBe(dbcFeeBps('12570', '1000000'));
+  });
+});
