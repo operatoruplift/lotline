@@ -323,6 +323,9 @@ it.each(['http://mirror.example', 'https://mirror.example/?ids[]=x', 'https://us
 // Keyless reads. Lazer's live answer was captured on a Sunday at LAZER_FETCHED_AT; the
 // clock sits 2.4 seconds after it. In-session cases republish every feed at lazerSec.
 const lazerNow = Date.parse(LAZER_FETCHED_AT) + 2400;
+// Each keyless case re-imports the server module graph; on a cold CI runner that
+// costs seconds, so every case is its own test with a wider budget.
+const KEYLESS_TIMEOUT = 45_000;
 const lazerSec = Math.floor(lazerNow / 1000) - 2;
 type Fetcher = (url: URL | string, init?: RequestInit) => Promise<Response>;
 function keylessFetcher(lazer: Fetcher, accounts: Record<string, unknown>) {
@@ -380,7 +383,7 @@ it('reads every pinned feed keyless from Pyth Lazer with no credential and label
   const routed = await until(POST(new Request('http://localhost/api/market-reference', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ mints: [mapping.mint] }) })));
   expect(routed.status).toBe(200);
   expect(lazerCalls(fetcher)).toHaveLength(1);
-});
+}, KEYLESS_TIMEOUT);
 it('opens the purchase gate in session when Lazer and the shard-one receiver agree on the equity', async () => {
   // Published 57 seconds before the read: fresh now, and still inside the five-second
   // response cache when the sixty-second window closes.
@@ -404,24 +407,27 @@ it('opens the purchase gate in session when Lazer and the shard-one receiver agr
   expect(aged.state).toBe('stale');
   expect(aged.items[0].comparison).toBe('not-comparable');
   expect(lazerCalls(fetcher)).toHaveLength(1);
-});
-it('withholds a leg when Lazer and the receiver account disagree beyond the tolerance, leaving the rest intact', async () => {
+}, KEYLESS_TIMEOUT);
+it('withholds an equity leg that disagrees with the receiver account beyond the tolerance, leaving the rest intact', async () => {
   // AAPL on chain 2.5 percent above Lazer: the equity leg is withheld, the token and USDC legs stand.
-  const equityOff = await keyless(keylessFetcher(lazerResponder(lazerPayloadAt(lazerSec)), { [USDC_RECEIVER_ACCOUNT]: freshUsdc(), [AAPL_EQUITY_RECEIVER_ACCOUNT]: freshAapl('35000000') }));
-  expect(equityOff.items[0].underlying).toBeUndefined();
-  expect(equityOff.items[0].token).toMatchObject({ state: 'fresh' });
-  expect(equityOff.items[0]).toMatchObject({ state: 'partial', comparison: 'not-comparable' });
-  expect(equityOff.usdc).toMatchObject({ provenance: 'lazer-proxy', state: 'fresh' });
-  expect(pythReferencesReady(equityOff, [mapping.mint], lazerNow)).toBe(false);
-  // USDC on chain about 200 basis points away: the currency leg is withheld, the asset item is untouched.
-  const usdcOff = await keyless(keylessFetcher(lazerResponder(lazerPayloadAt(lazerSec)), { [USDC_RECEIVER_ACCOUNT]: receiverAccountAt(USDC_RECEIVER_BASE64, lazerSec, '98000000'), [AAPL_EQUITY_RECEIVER_ACCOUNT]: freshAapl() }));
-  expect(usdcOff.usdc).toBeUndefined();
-  expect(usdcOff.items[0].state).toBe('success');
-  expect(pythReferencesReady(usdcOff, [mapping.mint], lazerNow)).toBe(true);
-  // A receiver account that is not fresh is not a basis for comparison: Lazer stands alone.
-  const chainStale = await keyless(keylessFetcher(lazerResponder(lazerPayloadAt(lazerSec)), { [USDC_RECEIVER_ACCOUNT]: freshUsdc(), [AAPL_EQUITY_RECEIVER_ACCOUNT]: receiverAccountAt(AAPL_EQUITY_RECEIVER_BASE64, lazerSec - 3600, '35000000') }));
-  expect(chainStale.items[0].underlying).toMatchObject({ provenance: 'lazer-proxy', price: '34143006', state: 'fresh' });
-});
+  const response = await keyless(keylessFetcher(lazerResponder(lazerPayloadAt(lazerSec)), { [USDC_RECEIVER_ACCOUNT]: freshUsdc(), [AAPL_EQUITY_RECEIVER_ACCOUNT]: freshAapl('35000000') }));
+  expect(response.items[0].underlying).toBeUndefined();
+  expect(response.items[0].token).toMatchObject({ state: 'fresh' });
+  expect(response.items[0]).toMatchObject({ state: 'partial', comparison: 'not-comparable' });
+  expect(response.usdc).toMatchObject({ provenance: 'lazer-proxy', state: 'fresh' });
+  expect(pythReferencesReady(response, [mapping.mint], lazerNow)).toBe(false);
+}, KEYLESS_TIMEOUT);
+it('withholds a USDC leg that disagrees with the receiver account and leaves the asset item untouched', async () => {
+  // USDC on chain about 200 basis points away: the currency leg is withheld, the asset item stands.
+  const response = await keyless(keylessFetcher(lazerResponder(lazerPayloadAt(lazerSec)), { [USDC_RECEIVER_ACCOUNT]: receiverAccountAt(USDC_RECEIVER_BASE64, lazerSec, '98000000'), [AAPL_EQUITY_RECEIVER_ACCOUNT]: freshAapl() }));
+  expect(response.usdc).toBeUndefined();
+  expect(response.items[0].state).toBe('success');
+  expect(pythReferencesReady(response, [mapping.mint], lazerNow)).toBe(true);
+}, KEYLESS_TIMEOUT);
+it('does not compare against a receiver reading that is not fresh, so Lazer stands alone', async () => {
+  const response = await keyless(keylessFetcher(lazerResponder(lazerPayloadAt(lazerSec)), { [USDC_RECEIVER_ACCOUNT]: freshUsdc(), [AAPL_EQUITY_RECEIVER_ACCOUNT]: receiverAccountAt(AAPL_EQUITY_RECEIVER_BASE64, lazerSec - 3600, '35000000') }));
+  expect(response.items[0].underlying).toMatchObject({ provenance: 'lazer-proxy', price: '34143006', state: 'fresh' });
+}, KEYLESS_TIMEOUT);
 it('falls back to the receiver accounts when Lazer cannot be reached and never invents a token leg', async () => {
   const fetcher = keylessFetcher(lazerResponder(undefined, 503), { [USDC_RECEIVER_ACCOUNT]: freshUsdc(), [AAPL_EQUITY_RECEIVER_ACCOUNT]: freshAapl() });
   const response = await keyless(fetcher);
@@ -435,7 +441,7 @@ it('falls back to the receiver accounts when Lazer cannot be reached and never i
   expect(response.message).toContain('receiver accounts on Solana mainnet');
   expect(response.message).not.toMatch(/unavailable|disabled|not configured/i);
   expect(pythReferencesReady(response, [mapping.mint], lazerNow)).toBe(false);
-});
+}, KEYLESS_TIMEOUT);
 it('reads USDC/USD keyless from the Solana receiver account while asset items and the purchase gate stay closed', async () => {
   // Lazer down and only the sponsored USDC/USD account on chain: the currency leg
   // is shown under its own label, the asset item claims nothing.
@@ -455,7 +461,7 @@ it('reads USDC/USD keyless from the Solana receiver account while asset items an
   const aged = await until((await import('../lib/server/pyth')).getMarketReferences([mapping.mint]));
   expect(aged.state).toBe('stale'); expect(aged.usdc?.state).toBe('stale'); expect(aged.usdc?.fetchedAt).toBe(response.usdc?.fetchedAt);
   expect(fetcher.mock.calls.length).toBe(calls);
-});
+}, KEYLESS_TIMEOUT);
 it('reports unavailable when neither Lazer nor the receiver accounts answer, without any credential anywhere', async () => {
   const fetcher = keylessFetcher(lazerResponder(undefined, 503), {});
   const response = await keyless(fetcher);
@@ -467,7 +473,7 @@ it('reports unavailable when neither Lazer nor the receiver accounts answer, wit
   const { POST } = await import('../app/api/market-reference/route');
   const routed = await until(POST(new Request('http://localhost/api/market-reference', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ mints: [mapping.mint] }) })));
   expect(routed.status).toBe(503);
-});
+}, KEYLESS_TIMEOUT);
 it('cross-checks a keyed Hermes currency leg against the on-chain post and withholds a divergent reading', async () => {
   vi.stubEnv('SOLANA_RPC_URL', 'https://rpc.example');
   vi.setSystemTime(chainNow);
