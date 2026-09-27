@@ -1,9 +1,10 @@
 import 'server-only';
 import { z } from 'zod';
 import { XSTOCK_REGISTRY } from '../domain/assets';
-import { MARKET_REFERENCE_MAX_MINTS, PYTH_FEED_MAPPINGS, PYTH_USDC_FEED_ID, buildPythObservation, isPythObservationFresh, pythRatio, type MarketReferenceItem, type MarketReferenceResponse, type PythObservation } from '../domain/market-reference';
+import { MARKET_REFERENCE_MAX_MINTS, PYTH_FEED_MAPPINGS, PYTH_USDC_FEED_ID, PYTH_USDC_LAZER_ID, buildPythObservation, isPythObservationFresh, pythRatio, type MarketReferenceItem, type MarketReferenceResponse, type PythObservation } from '../domain/market-reference';
 import { addressSchema, BoundedCache, ServiceError, SpacedQueue } from './common';
-import { priceDivergenceBps, readOnchainUsdcObservation, USDC_CROSS_CHECK_MAX_BPS } from './pyth-onchain';
+import { priceDivergenceBps, readOnchainEquityObservation, readOnchainUsdcObservation, USDC_CROSS_CHECK_MAX_BPS } from './pyth-onchain';
+import { readLazerFeeds, type LazerRead } from './pyth-lazer';
 
 // Verified against official Hermes metadata; see the dated public discovery evidence.
 // No symbol guessing, user-provided feed IDs, or cross-chain token-price equivalence.
@@ -20,7 +21,8 @@ const knownMints = new Set(XSTOCK_REGISTRY.map(asset => asset.mint));
 let starts: number[] = [];
 let cooldownUntil = 0;
 const caveat = 'Separate USD references. The cross-feed ratio is context only; the token feed unit basis is not verified against an underlying share.';
-const keylessScope = 'USDC/USD is read from the Pyth receiver account on Solana mainnet. Equity and token references for this asset are served through Pyth Hermes with a server API key.';
+const keylessScope = 'Read without a key: Pyth Lazer serves the equity, token and USDC/USD feeds, and each equity and USDC reading is cross-checked against the Pyth receiver accounts on Solana mainnet.';
+const chainScope = 'Read without a key from the Pyth receiver accounts on Solana mainnet: equity and USDC/USD references. Token references arrive when Pyth Lazer answers.';
 
 type HermesEndpoint = { url: string; explicit: boolean } | { url: null; explicit: true };
 /** Public host by default; an operator override must be https and is used as an origin only. */
@@ -77,6 +79,13 @@ export function parsePythReferences(payload: unknown, mints: string[], fetchedAt
     if (!value) return;
     return buildPythObservation({ feedId: id, symbol, kind, price: value.price, confidence: value.conf, exponent: value.expo, publishTime: value.publish_time, fetchedAt, provenance: 'hermes' }, now);
   };
+  return assembleReferences(observation, mints, fetchedAt, caveat);
+}
+
+type ObservationLookup = (id: string, symbol: string, kind: PythObservation['kind']) => PythObservation | undefined;
+/** One assembly for every source: the same item shape, states and expiry arithmetic. */
+function assembleReferences(observation: ObservationLookup, mints: string[], fetchedAt: string, message: string, absent = 'Pyth did not return these price feeds.'): MarketReferenceResponse {
+  const expected = PYTH_FEEDS.filter(feed => mints.includes(feed.mint));
   const items: MarketReferenceItem[] = mints.map(mint => {
     const mapping = expected.find(feed => feed.mint === mint);
     if (!mapping) return { mint, state: 'unavailable', comparison: 'not-comparable', message: 'No verified Pyth feed mapping is available for this asset.' };
@@ -84,20 +93,43 @@ export function parsePythReferences(payload: unknown, mints: string[], fetchedAt
     const token = observation(mapping.token, `Crypto.${mapping.symbol}X/USD`, 'token');
     const state = itemState(underlying, token);
     const comparable = Boolean(underlying && token && state === 'success');
-    return { mint, state, comparison: comparable ? 'cross-feed-context' : 'not-comparable', ...(comparable ? { comparisonRatio: pythRatio(token!, underlying!) } : {}), ...(underlying ? { underlying } : {}), ...(token ? { token } : {}), message: underlying || token ? caveat : 'Pyth did not return these price feeds.' };
+    return { mint, state, comparison: comparable ? 'cross-feed-context' : 'not-comparable', ...(comparable ? { comparisonRatio: pythRatio(token!, underlying!) } : {}), ...(underlying ? { underlying } : {}), ...(token ? { token } : {}), message: underlying || token ? caveat : absent };
   });
   const usdc = observation(PYTH_USDC_FEED_ID, 'Crypto.USDC/USD', 'currency');
   const expiries = [...items.flatMap(item => [item.underlying, item.token]), usdc].filter(value => value !== undefined).map(value => Date.parse(value.expiresAt));
-  return { source: 'pyth', state: summarize(items, usdc), fetchedAt, expiresAt: expiries.length ? new Date(Math.min(...expiries)).toISOString() : fetchedAt, items, ...(usdc ? { usdc } : {}), message: caveat };
+  return { source: 'pyth', state: summarize(items, usdc), fetchedAt, expiresAt: expiries.length ? new Date(Math.min(...expiries)).toISOString() : fetchedAt, items, ...(usdc ? { usdc } : {}), message };
 }
 
-/** Keyless: the currency leg comes from chain; asset items state their Hermes scope. */
-function keylessMarketReference(mints: string[], usdc: PythObservation): MarketReferenceResponse {
-  const items: MarketReferenceItem[] = mints.map(mint => ({
-    mint, state: 'unavailable', comparison: 'not-comparable',
-    message: PYTH_FEEDS.some(feed => feed.mint === mint) ? keylessScope : 'No verified Pyth feed mapping is available for this asset.',
-  }));
-  return { source: 'pyth', state: summarize(items, usdc), fetchedAt: usdc.fetchedAt, expiresAt: usdc.expiresAt, items, usdc, message: keylessScope };
+/**
+ * Keyless. Pyth Lazer answers every pinned feed with no credential, so it is
+ * the primary source; the receiver accounts on Solana mainnet are read for the
+ * equity and USDC legs as an independent second reading. Where both exist and
+ * are fresh they must agree within the tolerance or that leg is withheld; where
+ * Lazer cannot be reached, the on-chain legs stand on their own and the token
+ * legs are absent rather than invented. Nothing here sends a credential.
+ */
+async function keylessReferences(mints: string[], now = Date.now()): Promise<MarketReferenceResponse> {
+  const expected = PYTH_FEEDS.filter(feed => mints.includes(feed.mint));
+  const ids = [...expected.flatMap(feed => [feed.lazerUnderlying, feed.lazerToken]), PYTH_USDC_LAZER_ID];
+  let lazer: { reads: Map<number, LazerRead>; fetchedAt: string } | undefined;
+  try { lazer = await readLazerFeeds(ids, now); } catch { lazer = undefined; }
+  const [usdcChain, ...equityChain] = await Promise.all([readOnchainUsdcObservation(now), ...expected.map(feed => readOnchainEquityObservation(feed, now))]);
+  const chain = new Map<string, PythObservation | undefined>([[PYTH_USDC_FEED_ID, usdcChain], ...expected.map((feed, index) => [feed.underlying, equityChain[index]] as const)]);
+  const fetchedAt = lazer?.fetchedAt ?? new Date().toISOString();
+  const lazerId = (hex: string) => hex === PYTH_USDC_FEED_ID ? PYTH_USDC_LAZER_ID : expected.flatMap(feed => [[feed.underlying, feed.lazerUnderlying], [feed.token, feed.lazerToken]] as const).find(([id]) => id === hex)?.[1];
+  const observation: ObservationLookup = (id, symbol, kind) => {
+    const numeric = lazerId(id);
+    const read = numeric === undefined ? undefined : lazer?.reads.get(numeric);
+    const primary = read ? buildPythObservation({ feedId: id, symbol, kind, price: read.price, confidence: read.confidence, exponent: read.exponent, publishTime: read.publishTime, fetchedAt, provenance: 'lazer-proxy', marketSession: read.marketSession }, now) : undefined;
+    const second = chain.get(id);
+    if (!primary) return second;
+    if (!second || primary.state !== 'fresh' || second.state !== 'fresh') return primary;
+    try { if (priceDivergenceBps(primary, second) <= USDC_CROSS_CHECK_MAX_BPS) return primary; } catch { /* withheld below */ }
+    return undefined;
+  };
+  const anyChain = [...chain.values()].some(Boolean);
+  if (!lazer && !anyChain) return emptyMarketReference(mints, 'unavailable', 'Pyth price references could not be reached or verified.');
+  return assembleReferences(observation, mints, fetchedAt, lazer ? keylessScope : chainScope, lazer ? 'Pyth Lazer did not return these price feeds.' : chainScope);
 }
 
 /**
@@ -197,8 +229,15 @@ export async function getMarketReferences(mints: string[]): Promise<MarketRefere
   // Without a key and without an explicit mirror, Hermes answers 401 for every price
   // route, so the currency leg is read from chain and no Hermes request is made.
   if (!apiKey && !hermes.explicit) {
-    const usdc = await readOnchainUsdcObservation();
-    return usdc ? keylessMarketReference(ordered, usdc) : emptyMarketReference(mints, 'configuration-required', 'Pyth price access is not configured. Your Jupiter estimates remain available.');
+    const keylessKey = `keyless:${ordered.join(',')}`;
+    const cachedKeyless = cache.get(keylessKey);
+    if (cachedKeyless) return current(cachedKeyless);
+    let keyless = pending.get(keylessKey);
+    if (!keyless) {
+      keyless = keylessReferences(ordered).then(result => { cache.set(keylessKey, result, 5000); return result; }).finally(() => pending.delete(keylessKey));
+      pending.set(keylessKey, keyless);
+    }
+    return current(await keyless);
   }
   const key = ordered.join(',');
   const existing = cache.get(key);

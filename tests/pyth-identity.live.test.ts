@@ -1,6 +1,7 @@
 import { expect, it } from 'vitest';
 import { mkdir, writeFile } from 'node:fs/promises';
-import { PYTH_FEED_MAPPINGS, PYTH_USDC_FEED_ID } from '../lib/domain/market-reference';
+import { PYTH_FEED_MAPPINGS, PYTH_USDC_FEED_ID, PYTH_USDC_LAZER_ID } from '../lib/domain/market-reference';
+import { LAZER_DEFAULT_HOSTS } from '../lib/server/pyth-lazer';
 
 /**
  * Explicit opt-in only (PYTH_LIVE=1). Calls the official Pyth MCP server's keyless
@@ -41,11 +42,12 @@ async function getSymbols(id: number, query: string, assetType: string, session?
 
 const checks = [
   ...PYTH_FEED_MAPPINGS.flatMap(mapping => [
-    { query: mapping.symbol, assetType: 'equity', symbol: `Equity.US.${mapping.symbol}/USD`, pinned: mapping.underlying, role: `${mapping.symbol} underlying` },
-    { query: `${mapping.symbol}X`, assetType: 'crypto', symbol: `Crypto.${mapping.symbol}X/USD`, pinned: mapping.token, role: `${mapping.symbol} token` },
+    { query: mapping.symbol, assetType: 'equity', symbol: `Equity.US.${mapping.symbol}/USD`, pinned: mapping.underlying, lazer: mapping.lazerUnderlying, role: `${mapping.symbol} underlying` },
+    { query: `${mapping.symbol}X`, assetType: 'crypto', symbol: `Crypto.${mapping.symbol}X/USD`, pinned: mapping.token, lazer: mapping.lazerToken, role: `${mapping.symbol} token` },
   ]),
-  { query: 'USDC', assetType: 'crypto', symbol: 'Crypto.USDC/USD', pinned: PYTH_USDC_FEED_ID, role: 'currency' },
+  { query: 'USDC', assetType: 'crypto', symbol: 'Crypto.USDC/USD', pinned: PYTH_USDC_FEED_ID, lazer: PYTH_USDC_LAZER_ID, role: 'currency' },
 ];
+type LazerRegistryRow = { pyth_lazer_id: number; symbol: string; hermes_id: string; exponent: number; asset_type: string };
 
 it.skipIf(process.env.PYTH_LIVE !== '1')('every pinned feed id equals the hermes_id the official Pyth MCP get_symbols tool publishes', async () => {
   const startedAt = new Date().toISOString();
@@ -63,4 +65,28 @@ it.skipIf(process.env.PYTH_LIVE !== '1')('every pinned feed id equals the hermes
   await writeFile(new URL('../test-results/pyth-identity-live.json', import.meta.url), `${JSON.stringify(evidence, null, 2)}\n`);
   expect(results).toHaveLength(PYTH_FEED_MAPPINGS.length * 2 + 1);
   for (const result of results) expect(result, `${result.role} ${result.symbol}`).toMatchObject({ published: result.pinned, match: true });
+}, 120_000);
+
+/**
+ * Explicit opt-in only (PYTH_LIVE=1). Downloads the keyless Lazer symbol registry
+ * and checks that every pinned Lazer id names the pinned symbol and the pinned
+ * hermes_id, so the numeric ids the keyless path requests are the same feeds
+ * the on-chain cross-check reads. No price is requested and no credential is sent.
+ */
+it.skipIf(process.env.PYTH_LIVE !== '1')('every pinned Lazer id names the pinned symbol and hermes_id in the Lazer registry', async () => {
+  const startedAt = new Date().toISOString();
+  const host = LAZER_DEFAULT_HOSTS[0];
+  const response = await fetch(`${host}/v1/symbols`, { headers: { accept: 'application/json' }, signal: AbortSignal.timeout(60_000) });
+  expect(response.status).toBe(200);
+  const rows = (await response.json()) as LazerRegistryRow[];
+  const registry = new Map(rows.map(row => [row.pyth_lazer_id, row]));
+  const results = checks.map(check => {
+    const row = registry.get(check.lazer);
+    return { role: check.role, lazerId: check.lazer, symbol: check.symbol, pinned: check.pinned, publishedSymbol: row?.symbol ?? null, publishedHermesId: row?.hermes_id ?? null, exponent: row?.exponent ?? null, match: row?.symbol === check.symbol && row?.hermes_id === check.pinned };
+  });
+  const evidence = { startedAt, completedAt: new Date().toISOString(), endpoint: `${host}/v1/symbols`, feedsListed: rows.length, credentialSent: false, pricesRequested: 0, results };
+  await mkdir(new URL('../test-results/', import.meta.url), { recursive: true });
+  await writeFile(new URL('../test-results/pyth-lazer-registry-live.json', import.meta.url), `${JSON.stringify(evidence, null, 2)}\n`);
+  expect(results).toHaveLength(PYTH_FEED_MAPPINGS.length * 2 + 1);
+  for (const result of results) expect(result, `${result.role} ${result.symbol}`).toMatchObject({ publishedSymbol: result.symbol, publishedHermesId: result.pinned, match: true });
 }, 120_000);

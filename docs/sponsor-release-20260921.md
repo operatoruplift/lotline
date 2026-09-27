@@ -1,5 +1,7 @@
 # Lotline sponsor continuation — September 21, 2026
 
+> Update, 27 September 2026: Pyth references now read without a key from Pyth Lazer and are cross-checked against Pyth's receiver accounts on Solana mainnet; `PYTH_API_KEY` is optional. The statements below describe the state on their own date. See the Pyth section of the README.
+
 This release extends the existing contribution product with a separate PreStocks planner and an optional Pyth reference panel. It preserves the implemented design, logo, original films, authentication, xStocks catalog, exact contribution math, and disabled-by-default purchase gates. No trade, token launch, pool creation, competition submission, or domain purchase was performed.
 
 ## Delivered behavior

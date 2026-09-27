@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { Activity, Clock3, ExternalLink, LoaderCircle, RefreshCw } from 'lucide-react';
 import type { Asset, Mode, QuotesResponse } from '@/lib/domain/types';
-import { isPythObservationFresh, marketReferenceResponseSchema, type MarketReferenceResponse } from '@/lib/domain/market-reference';
+import { describeObservationAge, isPythObservationFresh, marketReferenceResponseSchema, type MarketReferenceResponse } from '@/lib/domain/market-reference';
 import { quoteBenchmark } from '@/lib/domain/quote-benchmark';
 import { utcTime } from './verification-receipt';
 import styles from './market-reference.module.css';
@@ -27,15 +27,21 @@ const SCOPE_INTRO = 'This panel shows the verified Pyth readings behind your pla
 const PROVENANCE_LABEL: Record<Observation['provenance'], string> = {
   hermes: 'Read from Pyth Hermes',
   'solana-receiver': 'Read from the Pyth receiver account on Solana mainnet',
+  'lazer-proxy': 'Read from Pyth Lazer, no key required',
 };
+const AGE_LABEL = { fresh: 'Fresh reference', 'session-close': 'Last close · market closed', stale: 'Stale reference' } as const;
 
 function ObservationCard({ observation, label, now }: { observation?: Observation; label: string; now: number }) {
-  const stale = observation && (observation.state === 'stale' || !isPythObservationFresh(observation, now));
+  // Pyth's own session flag makes an equity print from the last close a labelled
+  // fact rather than a warning; a state the server already called stale still wins.
+  const described = observation ? describeObservationAge(observation, now) : 'stale';
+  const age = described === 'fresh' && observation?.state === 'stale' ? 'stale' : described;
+  const stale = age !== 'fresh';
   return <div className={styles.observation}>
     <span className={styles.label}>{label}</span>
     {observation ? <>
       <strong className={styles.price}>${observation.displayPrice} <small>USD</small></strong>
-      <span className={stale ? styles.stale : styles.current}>{stale ? 'Stale reference' : 'Fresh reference'}</span>
+      <span className={stale ? styles.stale : styles.current} data-observation-age={age}>{AGE_LABEL[age]}</span>
       <span className={styles.detail}>Reported confidence ±${observation.displayConfidence}</span>
       <time className={styles.detail} dateTime={observation.publishedAt}>{utcTime(observation.publishedAt)}</time>
       <span className={styles.detail} data-observation-provenance={observation.provenance}>{PROVENANCE_LABEL[observation.provenance]}</span>

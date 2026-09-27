@@ -1,5 +1,7 @@
 # PreStocks + Pyth review follow-through
 
+> Update, 27 September 2026: Pyth references now read without a key from Pyth Lazer and are cross-checked against Pyth's receiver accounts on Solana mainnet; `PYTH_API_KEY` is optional. The statements below describe the state on their own date. See the Pyth section of the README.
+
 Canonical production URL: https://lotline.dev. This release preserves the separate PreStocks planner, original films, brand, authentication and exact allocation calculations.
 
 The subsequent [planning-benchmark follow-up](quote-benchmark.md) uses documented scaled share exposure and a separate USDC/USD feed, avoiding the token-feed unit ambiguity described below. This file retains the earlier freshness release's deployment evidence.

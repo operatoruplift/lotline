@@ -33,3 +33,41 @@ export function rpcResponder(accounts: unknown[] = [receiverAccountJson()], gene
     return new Response('', { status: 404 });
   };
 }
+
+/**
+ * Shard 1 is the shard Pyth's push oracle writes the US equity feeds to during a
+ * trading session. These four accounts were read with getMultipleAccounts
+ * (base64, confirmed) on 2026-09-27T07:57:37.504Z at slot 450936137 from
+ * api.mainnet-beta.solana.com, a Sunday: each equity account carries Friday's
+ * closing print, which is exactly what a cross-check must see as not fresh.
+ */
+export const AAPL_EQUITY_RECEIVER_ACCOUNT = 'D9uk39pqZMcnmtPP9WeC8cREUpKZmyXLga9mSQ79SphW';
+export const MSFT_EQUITY_RECEIVER_ACCOUNT = 'EKhrgXYwqsjgxF71Gxznui1zdoeqgxJzzPzfefEmm5un';
+export const NVDA_EQUITY_RECEIVER_ACCOUNT = '5VETJ8h3p4JrESYrzhjTDAWPEjDjfcnduqe9CjxgqBNd';
+export const USDC_SHARD1_RECEIVER_ACCOUNT = '91LF2K1yGkwpePM43yctMX1BGwf6atSFgjcPnNYG8czx';
+export const AAPL_EQUITY_RECEIVER_BASE64 = 'IvEjY51+9M20lIZyMNU/Ew6sDypIEyPeOYmooRWTOJq2X67JeylJMQFJ9rZcsd5rEOr3XnwDygKcMG0DV+kbUxGxdQhKWtVWiBj7CAIAAAAAiBMAAAAAAAD7////9wq3agAAAAD2CrdqAAAAAAm1CAIAAAAAhA4AAAAAAAAMM9oaAAAAAAA=';
+export const AAPL_EQUITY_RECEIVER_SLOT = 450936137;
+export const AAPL_EQUITY_RECEIVER_FETCHED_AT = '2026-09-27T07:57:37.504Z';
+export const AAPL_EQUITY_RECEIVER_DECODED = {
+  feedId: AAPL_MAPPING.underlying, price: '34143000', confidence: '5000', exponent: -5, publishTime: 1790380791,
+  prevPublishTime: 1790380790, emaPrice: '34125065', emaConfidence: '3716', postedSlot: '450507532', verification: 'full' as const,
+};
+
+/** The same account bytes with a chosen publish time and, optionally, price: freshness and divergence cases without inventing an account. */
+export function receiverAccountAt(base64: string, publishTime: number, price?: string, changes: Record<string, unknown> = {}) {
+  const buffer = Buffer.from(base64, 'base64');
+  buffer.writeBigInt64LE(BigInt(publishTime), 93);
+  buffer.writeBigInt64LE(BigInt(publishTime - 1), 101);
+  if (price !== undefined) buffer.writeBigInt64LE(BigInt(price), 73);
+  return receiverAccountJson({ data: [buffer.toString('base64'), 'base64'], ...changes });
+}
+
+/** Answers getMultipleAccounts by address, so accounts on several shards can be served in one test; unknown addresses are null. */
+export function rpcResponderByAddress(accounts: Record<string, unknown>, genesis = MAINNET_GENESIS_HASH, slot = AAPL_EQUITY_RECEIVER_SLOT) {
+  return async (_url: URL | string, init?: RequestInit): Promise<Response> => {
+    const body = JSON.parse(String(init?.body ?? '{}')) as { method?: string; params?: [string[]] };
+    if (body.method === 'getGenesisHash') return Response.json({ jsonrpc: '2.0', id: 1, result: genesis });
+    if (body.method === 'getMultipleAccounts') return Response.json({ jsonrpc: '2.0', id: 1, result: { context: { slot }, value: (body.params?.[0] ?? []).map(address => accounts[address] ?? null) } });
+    return new Response('', { status: 404 });
+  };
+}

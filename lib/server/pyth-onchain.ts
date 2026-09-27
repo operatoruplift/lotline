@@ -26,6 +26,13 @@ export const PRICE_UPDATE_V2_DISCRIMINATOR = '22f123639d7ef4cd';
 export const PRICE_UPDATE_V2_LENGTH = 134;
 export const PYTH_SPONSORED_SHARD = 0;
 /**
+ * Shard 1 is where Pyth's push oracle keeps the US equity feeds current: during
+ * a trading session it is written about every ten seconds (7,982 writes counted
+ * on 2026-09-25), while shard 0 last carried these feeds in August. Reading the
+ * wrong shard is how a live feed looks weeks stale. Verified 2026-09-27.
+ */
+export const PYTH_EQUITY_SHARD = 1;
+/**
  * A keyed Hermes read and the on-chain post describe the same aggregate within
  * the 60-second window, so a wider gap than this marks a read that cannot be
  * trusted as the USDC/USD leg of a benchmark.
@@ -126,30 +133,42 @@ export function priceDivergenceBps(a: Pick<PythObservation, 'price' | 'exponent'
  * failure resolves to undefined so a keyed Hermes response is never taken down
  * by the RPC, and a keyless response carries no invented observation.
  */
-export async function readReceiverAccount(feedId: string): Promise<ReceiverRead | undefined> {
+export async function readReceiverAccount(feedId: string, shard = PYTH_SPONSORED_SHARD): Promise<ReceiverRead | undefined> {
   if (!rpcConfigured()) return undefined;
-  const cached = readCache.get(feedId);
+  // One feed lives on several shards; the key must carry both or reads collide.
+  const key = `${shard}:${feedId}`;
+  const cached = readCache.get(key);
   if (cached) return cached;
-  let promise = pending.get(feedId);
+  let promise = pending.get(key);
   if (!promise) {
     promise = (async () => {
       await verifyMainnetRpc();
-      const account = await receiverAddress(feedId);
+      const account = await receiverAddress(feedId, shard);
       const fetchedAt = new Date().toISOString();
       const parsed = multipleAccountsSchema.safeParse(await rpcRequest('getMultipleAccounts', [[account], { encoding: 'base64', commitment: 'confirmed' }]));
       if (!parsed.success || parsed.data.value.length !== 1 || !parsed.data.value[0]) throw new ServiceError('unavailable', 'The Pyth receiver account could not be verified.');
       const read = { ...parseReceiverAccount(parsed.data.value[0], feedId), account, fetchedAt, slot: parsed.data.context.slot };
-      readCache.set(feedId, read, CACHE_TTL_MS);
+      readCache.set(key, read, CACHE_TTL_MS);
       return read;
-    })().catch(() => undefined).finally(() => pending.delete(feedId));
-    pending.set(feedId, promise);
+    })().catch(() => undefined).finally(() => pending.delete(key));
+    pending.set(key, promise);
   }
   return promise;
 }
 
-/** The pinned Crypto.USDC/USD feed as a labelled observation, or undefined. */
-export async function readOnchainUsdcObservation(now = Date.now()): Promise<PythObservation | undefined> {
-  const read = await readReceiverAccount(PYTH_USDC_FEED_ID);
+/** One receiver account, on the given shard, as a labelled observation; undefined on any failure. */
+export async function readOnchainObservation(feedId: string, symbol: string, kind: PythObservation['kind'], shard: number, now = Date.now()): Promise<PythObservation | undefined> {
+  const read = await readReceiverAccount(feedId, shard);
   if (!read) return undefined;
-  return buildPythObservation({ feedId: read.feedId, symbol: 'Crypto.USDC/USD', kind: 'currency', price: read.price, confidence: read.confidence, exponent: read.exponent, publishTime: read.publishTime, fetchedAt: read.fetchedAt, provenance: 'solana-receiver' }, now);
+  return buildPythObservation({ feedId: read.feedId, symbol, kind, price: read.price, confidence: read.confidence, exponent: read.exponent, publishTime: read.publishTime, fetchedAt: read.fetchedAt, provenance: 'solana-receiver' }, now);
+}
+
+/** The pinned Crypto.USDC/USD feed from the sponsored shard, or undefined. */
+export function readOnchainUsdcObservation(now = Date.now()): Promise<PythObservation | undefined> {
+  return readOnchainObservation(PYTH_USDC_FEED_ID, 'Crypto.USDC/USD', 'currency', PYTH_SPONSORED_SHARD, now);
+}
+
+/** A pinned equity feed from the shard that carries it live, or undefined. */
+export function readOnchainEquityObservation(mapping: { underlying: string; symbol: string }, now = Date.now()): Promise<PythObservation | undefined> {
+  return readOnchainObservation(mapping.underlying, `Equity.US.${mapping.symbol}/USD`, 'underlying', PYTH_EQUITY_SHARD, now);
 }
