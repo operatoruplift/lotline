@@ -1,5 +1,7 @@
 # Pyth reference provenance and access gate
 
+> Update, 27 September 2026: Pyth references now read without a key from Pyth Lazer and are cross-checked against Pyth's receiver accounts on Solana mainnet; `PYTH_API_KEY` is optional. The statements below describe the state on their own date. See the Pyth section of the README.
+
 The adapter reads independent Pyth USD references for the existing USDC contribution review. It does not request transactions or change Jupiter estimates. The first release maps only the pinned Solana AAPLx, MSFTx and NVDAx identities to six verified Pyth feed IDs. Other catalog assets explicitly have no verified mapping.
 
 ## Official sources and observed access

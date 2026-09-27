@@ -1,5 +1,7 @@
 # Pyth planning-estimate benchmark
 
+> Update, 27 September 2026: Pyth references now read without a key from Pyth Lazer and are cross-checked against Pyth's receiver accounts on Solana mainnet; `PYTH_API_KEY` is optional. The statements below describe the state on their own date. See the Pyth section of the README.
+
 This follows the [September 23 freshness release](release.md). Eight PreStocks identities and read-only estimates were verified on production. PreStocks remains a separate planning flow; no purchase or settlement is claimed.
 
 ## Resolved comparison basis

@@ -1,5 +1,7 @@
 # Landing motion and production integration checks
 
+> Update, 27 September 2026: Pyth references now read without a key from Pyth Lazer and are cross-checked against Pyth's receiver accounts on Solana mainnet; `PYTH_API_KEY` is optional. The statements below describe the state on their own date. See the Pyth section of the README.
+
 Canonical site: https://lotline.dev. This record distinguishes local motion verification from read-only checks of the production release already serving on September 23, 2026.
 
 ## Changes

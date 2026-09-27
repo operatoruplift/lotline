@@ -4,14 +4,25 @@ export const PYTH_MAX_AGE_SECONDS = 60;
 export const MARKET_REFERENCE_MAX_MINTS = 10;
 export const PYTH_USDC_FEED_ID = 'eaa020c61cc479712813461ce153894a96a6c00b21ed0cfc2798d1f9a9e9c94a';
 /** Where an observation was read: the Hermes HTTP service, or a Pyth receiver account on Solana mainnet. */
-export const PYTH_PROVENANCES = ['hermes', 'solana-receiver'] as const;
+export const PYTH_PROVENANCES = ['hermes', 'solana-receiver', 'lazer-proxy'] as const;
+/** Trading session Pyth reports for a feed; equities close, crypto and USDC trade around the clock. */
+export const PYTH_MARKET_SESSIONS = ['regular', 'pre-market', 'after-hours', 'closed', 'unknown'] as const;
+export type PythMarketSession = typeof PYTH_MARKET_SESSIONS[number];
+/** Pyth Lazer's numeric id for Crypto.USDC/USD, resolved by exact hermes_id equality on 2026-09-27. */
+export const PYTH_USDC_LAZER_ID = 7;
 export type PythProvenance = typeof PYTH_PROVENANCES[number];
 
 // Pinned to official Hermes metadata. A token feed does not establish share equivalence.
+/**
+ * Hex ids are the canonical identity (Hermes and the on-chain receiver use them).
+ * The Lazer ids were resolved from Pyth's keyless symbol registry by exact
+ * hermes_id equality, one match each, on 2026-09-27; scripts/verify-pyth-feeds.mjs
+ * re-checks both sets against Pyth's published metadata.
+ */
 export const PYTH_FEED_MAPPINGS = [
-  { mint: 'XsbEhLAtcf6HdfpFZ5xEMdqW8nfAvcsP5bdudRLJzJp', symbol: 'AAPL', underlying: '49f6b65cb1de6b10eaf75e7c03ca029c306d0357e91b5311b175084a5ad55688', token: '978e6cc68a119ce066aa830017318563a9ed04ec3a0a6439010fc11296a58675' },
-  { mint: 'XspzcW1PRtgf6Wj92HCiZdjzKCyFekVD8P5Ueh3dRMX', symbol: 'MSFT', underlying: 'd0ca23c1cc005e004ccf1db5bf76aeb6a49218f43dac3d4b275e92de12ded4d1', token: 'bb723a70af731ab56b9a650eb7e8ac22b7bc07ea77f8670bd1fa9a37bf6df3f5' },
-  { mint: 'Xsc9qvGR1efVDFGLrVsmkzv3qi45LTBjeUKSPmx9qEh', symbol: 'NVDA', underlying: 'b1073854ed24cbc755dc527418f52b7d271f6cc967bbf8d8129112b18860a593', token: '4244d07890e4610f46bbde67de8f43a4bf8b569eebe904f136b469f148503b7f' },
+  { mint: 'XsbEhLAtcf6HdfpFZ5xEMdqW8nfAvcsP5bdudRLJzJp', symbol: 'AAPL', underlying: '49f6b65cb1de6b10eaf75e7c03ca029c306d0357e91b5311b175084a5ad55688', token: '978e6cc68a119ce066aa830017318563a9ed04ec3a0a6439010fc11296a58675', lazerUnderlying: 922, lazerToken: 1792 },
+  { mint: 'XspzcW1PRtgf6Wj92HCiZdjzKCyFekVD8P5Ueh3dRMX', symbol: 'MSFT', underlying: 'd0ca23c1cc005e004ccf1db5bf76aeb6a49218f43dac3d4b275e92de12ded4d1', token: 'bb723a70af731ab56b9a650eb7e8ac22b7bc07ea77f8670bd1fa9a37bf6df3f5', lazerUnderlying: 1292, lazerToken: 3116 },
+  { mint: 'Xsc9qvGR1efVDFGLrVsmkzv3qi45LTBjeUKSPmx9qEh', symbol: 'NVDA', underlying: 'b1073854ed24cbc755dc527418f52b7d271f6cc967bbf8d8129112b18860a593', token: '4244d07890e4610f46bbde67de8f43a4bf8b569eebe904f136b469f148503b7f', lazerUnderlying: 1314, lazerToken: 1833 },
 ] as const;
 export const PYTH_MAPPED_MINTS: readonly string[] = PYTH_FEED_MAPPINGS.map(mapping => mapping.mint);
 /**
@@ -86,6 +97,7 @@ export const pythObservationSchema = z.strictObject({
   displayConfidence: decimal,
   confidenceBps: decimal,
   provenance: z.enum(PYTH_PROVENANCES),
+  marketSession: z.optional(z.enum(PYTH_MARKET_SESSIONS)),
 }).check(z.superRefine((value, context) => {
   if (!/^[1-9][0-9]{0,18}$/.test(value.price) || !/^(0|[1-9][0-9]{0,19})$/.test(value.confidence)
     || !Number.isInteger(value.exponent) || Math.abs(value.exponent) > 12 || !Number.isSafeInteger(value.publishTime) || value.publishTime < 1 || value.publishTime > 4_102_444_800) return;
@@ -134,7 +146,7 @@ export const marketReferenceResponseSchema = z.strictObject({
 export type PythObservation = z.infer<typeof pythObservationSchema>;
 export type MarketReferenceResponse = z.infer<typeof marketReferenceResponseSchema>;
 export type MarketReferenceItem = MarketReferenceResponse['items'][number];
-export type PythObservationInput = Pick<PythObservation, 'feedId' | 'symbol' | 'kind' | 'price' | 'confidence' | 'exponent' | 'publishTime' | 'fetchedAt' | 'provenance'>;
+export type PythObservationInput = Pick<PythObservation, 'feedId' | 'symbol' | 'kind' | 'price' | 'confidence' | 'exponent' | 'publishTime' | 'fetchedAt' | 'provenance'> & { marketSession?: PythMarketSession };
 
 /**
  * One builder for every source, so a Hermes read and an on-chain read carry the
@@ -151,12 +163,26 @@ export function buildPythObservation(input: PythObservationInput, now = Date.now
     state: now < Date.parse(expiresAt) ? 'fresh' : 'stale',
     displayPrice: pythDecimal(input.price, input.exponent), displayConfidence: pythDecimal(input.confidence, input.exponent),
     confidenceBps: pythConfidenceBps(input.price, input.confidence), provenance: input.provenance,
+    ...(input.marketSession ? { marketSession: input.marketSession } : {}),
   };
 }
 
 /** Reading or rendering a response never extends its original publish-time lifetime. */
 export function isPythObservationFresh(observation: PythObservation, now = Date.now()): boolean {
   return Number.isFinite(now) && observation.publishTime * 1000 <= now && now < Date.parse(observation.expiresAt);
+}
+
+export type PythObservationAge = 'fresh' | 'session-close' | 'stale';
+/**
+ * How to describe an observation's age. An equity feed stops printing when its
+ * market closes, so its last print is the session close rather than a lapse;
+ * that is labelled as such but is never counted as fresh, so the purchase gate
+ * and the benchmark are unchanged by it.
+ */
+export function describeObservationAge(observation: PythObservation, now = Date.now()): PythObservationAge {
+  if (isPythObservationFresh(observation, now)) return 'fresh';
+  if (observation.kind === 'underlying' && observation.marketSession === 'closed') return 'session-close';
+  return 'stale';
 }
 
 /** Only the pinned, mapped assets require Pyth; unrelated catalog assets remain usable. */

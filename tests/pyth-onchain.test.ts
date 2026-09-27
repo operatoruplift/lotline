@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, expect, it, vi } from 'vitest';
-import { PYTH_USDC_FEED_ID, marketReferenceResponseSchema, pythObservationSchema } from '../lib/domain/market-reference';
-import { PRICE_UPDATE_V2_DISCRIMINATOR, PRICE_UPDATE_V2_LENGTH, decodePriceUpdateV2, parseReceiverAccount, priceDivergenceBps, receiverAddress } from '../lib/server/pyth-onchain';
-import { AAPL_MAPPING, AAPL_TOKEN_RECEIVER_ACCOUNT, AAPL_UNDERLYING_RECEIVER_ACCOUNT, USDC_RECEIVER_ACCOUNT, USDC_RECEIVER_BASE64, USDC_RECEIVER_DECODED, USDC_RECEIVER_FETCHED_AT, receiverAccountJson, rpcResponder } from './fixtures/pyth-onchain';
+import { PYTH_FEED_MAPPINGS, PYTH_USDC_FEED_ID, marketReferenceResponseSchema, pythObservationSchema } from '../lib/domain/market-reference';
+import { PRICE_UPDATE_V2_DISCRIMINATOR, PRICE_UPDATE_V2_LENGTH, PYTH_EQUITY_SHARD, decodePriceUpdateV2, parseReceiverAccount, priceDivergenceBps, receiverAddress } from '../lib/server/pyth-onchain';
+import { AAPL_EQUITY_RECEIVER_ACCOUNT, AAPL_EQUITY_RECEIVER_BASE64, AAPL_EQUITY_RECEIVER_DECODED, AAPL_EQUITY_RECEIVER_FETCHED_AT, AAPL_MAPPING, AAPL_TOKEN_RECEIVER_ACCOUNT, AAPL_UNDERLYING_RECEIVER_ACCOUNT, MSFT_EQUITY_RECEIVER_ACCOUNT, NVDA_EQUITY_RECEIVER_ACCOUNT, USDC_RECEIVER_ACCOUNT, USDC_RECEIVER_BASE64, USDC_RECEIVER_DECODED, USDC_RECEIVER_FETCHED_AT, USDC_SHARD1_RECEIVER_ACCOUNT, receiverAccountAt, receiverAccountJson, rpcResponder, rpcResponderByAddress } from './fixtures/pyth-onchain';
 
 const fixtureNow = Date.parse(USDC_RECEIVER_FETCHED_AT);
 const bytes = () => Buffer.from(USDC_RECEIVER_BASE64, 'base64');
@@ -115,4 +115,50 @@ it('resolves to no observation without a configured RPC, off mainnet, or for a m
     expect(await request).toBeUndefined();
     if (genesis) expect(fetcher).toHaveBeenCalledTimes(1);
   }
+});
+it('derives the shard-one receiver addresses that carry the US equities live', async () => {
+  expect(PYTH_EQUITY_SHARD).toBe(1);
+  await expect(receiverAddress(AAPL_MAPPING.underlying, PYTH_EQUITY_SHARD)).resolves.toBe(AAPL_EQUITY_RECEIVER_ACCOUNT);
+  await expect(receiverAddress(PYTH_FEED_MAPPINGS[1].underlying, PYTH_EQUITY_SHARD)).resolves.toBe(MSFT_EQUITY_RECEIVER_ACCOUNT);
+  await expect(receiverAddress(PYTH_FEED_MAPPINGS[2].underlying, PYTH_EQUITY_SHARD)).resolves.toBe(NVDA_EQUITY_RECEIVER_ACCOUNT);
+  await expect(receiverAddress(PYTH_USDC_FEED_ID, PYTH_EQUITY_SHARD)).resolves.toBe(USDC_SHARD1_RECEIVER_ACCOUNT);
+});
+it('decodes the pinned shard-one AAPL receiver account exactly and sees a weekend print as not fresh', () => {
+  const buffer = Buffer.from(AAPL_EQUITY_RECEIVER_BASE64, 'base64');
+  const readAt = Date.parse(AAPL_EQUITY_RECEIVER_FETCHED_AT);
+  expect(buffer).toHaveLength(PRICE_UPDATE_V2_LENGTH);
+  expect(decodePriceUpdateV2(buffer, AAPL_MAPPING.underlying, readAt)).toEqual(AAPL_EQUITY_RECEIVER_DECODED);
+  expect(new Date(AAPL_EQUITY_RECEIVER_DECODED.publishTime * 1000).toISOString()).toBe('2026-09-25T23:59:51.000Z');
+  expect(readAt - AAPL_EQUITY_RECEIVER_DECODED.publishTime * 1000).toBeGreaterThan(60_000);
+  expect(() => decodePriceUpdateV2(buffer, PYTH_USDC_FEED_ID, readAt)).toThrow('could not be verified');
+});
+it('reads an equity from shard one under its own label and keeps reads of one feed on different shards apart', async () => {
+  vi.stubEnv('SOLANA_RPC_URL', 'https://rpc.example');
+  const publish = AAPL_EQUITY_RECEIVER_DECODED.publishTime;
+  vi.useFakeTimers(); vi.setSystemTime((publish + 10) * 1000);
+  const fetcher = vi.fn(rpcResponderByAddress({
+    [AAPL_EQUITY_RECEIVER_ACCOUNT]: receiverAccountJson({ data: [AAPL_EQUITY_RECEIVER_BASE64, 'base64'] }),
+    [USDC_RECEIVER_ACCOUNT]: receiverAccountAt(USDC_RECEIVER_BASE64, publish + 9),
+    [USDC_SHARD1_RECEIVER_ACCOUNT]: receiverAccountAt(USDC_RECEIVER_BASE64, publish - 100_000, '99000000'),
+  }));
+  vi.stubGlobal('fetch', fetcher);
+  const { readOnchainEquityObservation, readOnchainUsdcObservation, readReceiverAccount } = await import('../lib/server/pyth-onchain');
+  const request = readOnchainEquityObservation(AAPL_MAPPING);
+  await vi.advanceTimersByTimeAsync(2000);
+  const equity = await request;
+  expect(equity).toMatchObject({ provenance: 'solana-receiver', feedId: AAPL_MAPPING.underlying, symbol: 'Equity.US.AAPL/USD', kind: 'underlying', unitBasis: 'underlying-share', quoteCurrency: 'USD', price: '34143000', confidence: '5000', exponent: -5, displayPrice: '341.43', displayConfidence: '0.05', publishTime: publish, publishedAt: '2026-09-25T23:59:51.000Z', state: 'fresh' });
+  expect(equity?.marketSession).toBeUndefined();
+  expect(pythObservationSchema.safeParse(equity).success).toBe(true);
+  const requested = () => fetcher.mock.calls.map(([, init]) => JSON.parse(String((init as RequestInit).body)) as { method: string; params?: [string[]] }).filter(body => body.method === 'getMultipleAccounts').map(body => body.params![0][0]);
+  expect(requested()).toEqual([AAPL_EQUITY_RECEIVER_ACCOUNT]);
+  const sponsored = readOnchainUsdcObservation();
+  await vi.advanceTimersByTimeAsync(2000);
+  expect((await sponsored)?.price).toBe('99991510');
+  const shardOne = readReceiverAccount(PYTH_USDC_FEED_ID, PYTH_EQUITY_SHARD);
+  await vi.advanceTimersByTimeAsync(2000);
+  expect(await shardOne).toMatchObject({ account: USDC_SHARD1_RECEIVER_ACCOUNT, price: '99000000' });
+  expect(requested()).toEqual([AAPL_EQUITY_RECEIVER_ACCOUNT, USDC_RECEIVER_ACCOUNT, USDC_SHARD1_RECEIVER_ACCOUNT]);
+  // The sponsored read is still served from its own cache entry.
+  expect((await readOnchainUsdcObservation())?.price).toBe('99991510');
+  expect(requested()).toHaveLength(3);
 });
