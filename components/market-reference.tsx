@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { Activity, Clock3, ExternalLink, LoaderCircle, RefreshCw } from 'lucide-react';
 import type { Asset, Mode, QuotesResponse } from '@/lib/domain/types';
-import { describeObservationAge, isPythObservationFresh, marketReferenceResponseSchema, type MarketReferenceResponse } from '@/lib/domain/market-reference';
+import { describeObservationAge, marketReferenceResponseSchema, type MarketReferenceResponse, type PythObservationAge } from '@/lib/domain/market-reference';
 import { quoteBenchmark } from '@/lib/domain/quote-benchmark';
 import { utcTime } from './verification-receipt';
 import styles from './market-reference.module.css';
@@ -31,11 +31,19 @@ const PROVENANCE_LABEL: Record<Observation['provenance'], string> = {
 };
 const AGE_LABEL = { fresh: 'Fresh reference', 'session-close': 'Last close · market closed', stale: 'Stale reference' } as const;
 
+/**
+ * How old a reading is for display. Pyth's own session flag makes an equity print
+ * from the last close a labelled fact rather than a warning, and the server marks
+ * such a reading stale by age as well; a reading the server called stale while its
+ * timestamps still look fresh here is shown as stale, never as fresh.
+ */
+function observationAge(observation: Observation, now: number): PythObservationAge {
+  const described = describeObservationAge(observation, now);
+  return described === 'fresh' && observation.state === 'stale' ? 'stale' : described;
+}
+
 function ObservationCard({ observation, label, now }: { observation?: Observation; label: string; now: number }) {
-  // Pyth's own session flag makes an equity print from the last close a labelled
-  // fact rather than a warning; a state the server already called stale still wins.
-  const described = observation ? describeObservationAge(observation, now) : 'stale';
-  const age = described === 'fresh' && observation?.state === 'stale' ? 'stale' : described;
+  const age = observation ? observationAge(observation, now) : 'stale';
   const stale = age !== 'fresh';
   return <div className={styles.observation}>
     <span className={styles.label}>{label}</span>
@@ -141,10 +149,14 @@ export function MarketReference({ assets, quotes, mode, planIdentity, now, enabl
       {observed.length > 0 && <div className={styles.assets}>{observed.map(item => {
         const asset = assets.find(candidate => candidate.mint === item.mint);
         const observations = [item.underlying, item.token].filter((value): value is Observation => Boolean(value));
-        const stale = observations.some(observation => observation.state === 'stale' || !isPythObservationFresh(observation, now));
+        const ages = observations.map(observation => observationAge(observation, now));
+        const stale = ages.some(age => age !== 'fresh');
+        // A closed market is a fact about the session, not a failed check: when every
+        // reading that is not fresh is an equity at its last close, the heading says so.
+        const atLastClose = stale && ages.every(age => age !== 'stale');
         const benchmark = quoteBenchmark(successful.find(quote => quote.mint === item.mint), data, now);
         return <article key={item.mint} className={styles.asset} data-reference-mint={item.mint}>
-          <div className={styles.assetHeading}><h4>{asset?.symbol ?? 'Selected asset'} <span>{asset?.name}</span></h4><span className={stale ? styles.stale : styles.current}>{stale ? 'Reference check stale' : 'Reference data current'}</span></div>
+          <div className={styles.assetHeading}><h4>{asset?.symbol ?? 'Selected asset'} <span>{asset?.name}</span></h4><span className={stale ? styles.stale : styles.current} data-reference-state={atLastClose ? 'session-close' : stale ? 'stale' : 'fresh'}>{atLastClose ? 'Market closed · last close shown' : stale ? 'Reference check stale' : 'Reference data current'}</span></div>
           <div className={styles.prices}><ObservationCard observation={item.underlying} label="Underlying equity · per share" now={now} /><ObservationCard observation={item.token} label="Token feed · unit basis unverified" now={now} /></div>
           {!stale && item.comparison === 'cross-feed-context' && item.comparisonRatio && <p className={styles.comparison} data-reference-comparison>Feed-price ratio: approximately {item.comparisonRatio}× (token USD feed ÷ equity USD feed, rounded down to eight decimal places). The feed units are not verified as equivalent, so this is context only.</p>}
           {benchmark.state === 'available' ? <div className={styles.benchmark} data-quote-benchmark>
