@@ -102,6 +102,21 @@ test('a reference panel with nothing verified claims nothing and leaves estimate
   await expect(page.getByRole('cell', { name: '+1.23', exact: true })).toHaveCount(3);
 });
 
+test('a closed market is labelled as last close on every equity card and heading, and keeps the comparison closed', async ({ page }) => {
+  await page.route('**/api/market-reference', route => route.fulfill({ json: references(route.request().postDataJSON().mints, Date.now(), '20000', 0, true) }));
+  await setup(page);
+  await expect(panel(page).getByText('Last close · market closed', { exact: true })).toHaveCount(3);
+  await expect(panel(page).getByText('Market closed · last close shown', { exact: true })).toHaveCount(3);
+  // The token feeds are current, the equities are not stale readings but a closed session, and nothing says stale.
+  await expect(panel(page).getByText('Fresh reference', { exact: true })).toHaveCount(3);
+  await expect(panel(page).getByText('Stale reference', { exact: true })).toHaveCount(0);
+  await expect(panel(page).getByText('Reference check stale', { exact: true })).toHaveCount(0);
+  await expect(panel(page).getByText('Read from Pyth Lazer, no key required', { exact: true })).toHaveCount(6);
+  await expect(panel(page).locator('[data-reference-comparison]')).toHaveCount(0);
+  await expect(panel(page).locator('[data-reference-state="session-close"]')).toHaveCount(3);
+  await expect(page.getByRole('button', { name: 'Download CSV', exact: true })).toBeEnabled();
+});
+
 test('refreshing a stale oracle observation cannot renew a thirty-second quote', async ({ page }) => {
   await page.clock.install({ time: new Date() });
   let reads = 0;
