@@ -79,6 +79,7 @@ Signed-in users also have an owner-scoped `/api/contribution-schedules` GET/POST
 | xStocks issuer catalog | Exact symbol plus Solana mint, halt status and logo provenance | Catalog presence as proof of legal eligibility or liquidity |
 | Supabase | Authenticated owner journal and schedule metadata with RLS | Browser access to execution journal or service keys |
 | Jupiter Recurring | Documentation reference only | Automated xStocks DCA; current Token-2022 support is not enabled |
+| Backpack Securities | Keyless venue tape for the underlyings Backpack tokenizes, shown as a price comparison beside the Jupiter estimate (`/api/rails`) | Any Backpack account, RFQ, mint or redeem call; execution stays on Jupiter in the user's wallet |
 
 ## Local verification
 
