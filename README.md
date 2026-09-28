@@ -95,6 +95,8 @@ Two things this is not. It is not a way to buy an xStock, since a USDC to xStock
 
 `LOTLINE_MARKETS_ENABLED=true` turns on a browsable market view of all 840 verified assets (stocks, ETFs and pre-IPO tokens) with a dated Jupiter snapshot, a per-asset sheet with a 1D/7D/30D price chart and the verified identity, one-tap adding to the device draft, a reviewed `/app?add=<mint>` link, a phone tab bar, and **Balance toward your split**, which reads the split as a target mix and suggests a no-sell division of the next contribution from the loaded balances. Stock/ETF labels come from Nasdaq's public symbol directory. Every figure is labelled as a snapshot, never a quote; allocations still come only from a fresh estimate for the exact amount. The flag is off by default, so the submitted interface is unchanged. See [markets](docs/markets.md).
 
+A separate flag, `LOTLINE_GALLERY_ENABLED`, turns on **community plans**: members share a saved plan's name and split (never its budget), anyone can copy one into the planner's review dialog with their own budget, and plans rank by copies, never by returns. See [community plans](docs/community-plans.md).
+
 ## Precision and freshness
 
 - Budgets use plain decimal strings with up to six fractional digits, bounded to 1,000,000 USDC. Allocation uses BigInt micro-units and integer basis points, then distributes leftover micro-units by largest remainder with stable basket-order ties.

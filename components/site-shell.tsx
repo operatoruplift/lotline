@@ -5,14 +5,15 @@ import { DecorativeVideo } from './decorative-video';
 import { Reveal } from './reveal';
 import styles from './site-shell.module.css';
 
-export function SiteHeader({ active, dataMode, markets = false }: { active?: 'app' | 'how' | 'pre-ipo' | 'markets'; dataMode?: 'example' | 'live'; markets?: boolean }) {
+export function SiteHeader({ active, dataMode, markets = false, community = false }: { active?: 'app' | 'how' | 'pre-ipo' | 'markets' | 'community'; dataMode?: 'example' | 'live'; markets?: boolean; community?: boolean }) {
   return <header className={`site-header ${styles.header}`}><div className={styles.headerInner}>
     <Brand /><nav aria-label="Main navigation">
       <Link href="/how-it-works" className={active === 'how' ? 'nav-link active' : 'nav-link'} aria-current={active === 'how' ? 'page' : undefined}>How it works</Link>
       {markets && <Link href="/markets" className={active === 'markets' ? 'nav-link active' : 'nav-link'} aria-current={active === 'markets' ? 'page' : undefined}>Markets</Link>}
+      {community && <Link href="/plans" className={active === 'community' ? 'nav-link active' : 'nav-link'} aria-current={active === 'community' ? 'page' : undefined}>Community</Link>}
       <Link href={active === 'pre-ipo' ? '/app' : '/pre-ipo'} className="nav-link">{active === 'pre-ipo' ? 'xStocks' : 'Pre-IPO'}</Link>
       <Link href="/sign-in" className="nav-link account-link">Sign in</Link>
-      {active === 'app' || active === 'pre-ipo' || active === 'markets' ? <span className={`network-badge${dataMode === 'example' ? ' network-example' : ''}`}><span />{dataMode === 'example' ? 'Synthetic example' : 'Solana mainnet'}</span> : <Link className="header-cta" href="/app">Make a plan <ArrowUpRight size={15} /></Link>}
+      {active === 'app' || active === 'pre-ipo' || active === 'markets' || active === 'community' ? <span className={`network-badge${dataMode === 'example' ? ' network-example' : ''}`}><span />{dataMode === 'example' ? 'Synthetic example' : 'Solana mainnet'}</span> : <Link className="header-cta" href="/app">Make a plan <ArrowUpRight size={15} /></Link>}
     </nav>
   </div></header>;
 }

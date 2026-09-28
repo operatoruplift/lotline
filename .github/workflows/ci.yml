@@ -51,7 +51,7 @@ jobs:
       # dark, this one exercises them on a second server with the flag on.
       - name: Test markets behind their operator flag
         run: |
-          LOTLINE_MARKETS_ENABLED=true npm run start -- --port 3102 --hostname 127.0.0.1 > /tmp/lotline-markets-server.log 2>&1 &
+          LOTLINE_MARKETS_ENABLED=true LOTLINE_GALLERY_ENABLED=true npm run start -- --port 3102 --hostname 127.0.0.1 > /tmp/lotline-markets-server.log 2>&1 &
           for attempt in $(seq 1 30); do
             if curl -fsS http://127.0.0.1:3102/ > /dev/null; then break; fi
             sleep 1
