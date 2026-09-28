@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import Image from 'next/image';
+import Link from 'next/link';
 import { isAddress } from '@solana/kit';
 import { ArrowDownToLine, ArrowRight, ArrowUpRight, Check, ChevronDown, CircleHelp, Clipboard, Clock3, ExternalLink, FlaskConical, Info, LoaderCircle, Plus, RefreshCw, ShieldCheck, Trash2, Wallet, WifiOff, X } from 'lucide-react';
 import type { Asset, Basket, CatalogResponse, HoldingsResponse, Mode, ProjectionResponse, Quote, QuotesResponse } from '@/lib/domain/types';
@@ -28,6 +29,7 @@ import { ContributionSchedule } from './contribution-schedule';
 import { MarketReference } from './market-reference';
 import { DbcPairs } from './dbc-pairs';
 import { RailComparison } from './rail-comparison';
+import { AddAssetReview } from './add-asset-review';
 import type { MarketReferenceResponse } from '@/lib/domain/market-reference';
 import { PLANNER_UNIVERSES, type PlannerUniverse } from '@/lib/domain/planner-universe';
 import onboarding from './planner-onboarding.module.css';
@@ -78,7 +80,7 @@ async function readResponse<T>(response: Response): Promise<T> {
   return await response.json() as T;
 }
 
-export function Planner({ initialMode: requestedMode, cloudEnabled = true, universe = 'xstocks' }: { initialMode: Mode; cloudEnabled?: boolean; universe?: PlannerUniverse }) {
+export function Planner({ initialMode: requestedMode, cloudEnabled = true, universe = 'xstocks', marketsEnabled = false }: { initialMode: Mode; cloudEnabled?: boolean; universe?: PlannerUniverse; marketsEnabled?: boolean }) {
   const config = PLANNER_UNIVERSES[universe];
   const initialMode = config.supportsExample ? requestedMode : 'live';
   const xstocks = universe === 'xstocks';
@@ -411,7 +413,7 @@ export function Planner({ initialMode: requestedMode, cloudEnabled = true, unive
   const validationMessage = !plan.valid ? (basket.items.length ? plan.message : null) : unknownSelected ? (mode === 'example' ? 'A selected asset is outside the bundled Example catalog. Change or remove it, or switch to Live for current verification.' : 'Selected assets are temporarily unverified. Your split is preserved; refresh the catalog before estimates or purchase review.') : null;
   const selectedAssets = basket.items.map((item) => assetMap.get(item.mint)).filter((asset): asset is Asset => !!asset);
 
-  return <><SiteHeader active={xstocks ? "app" : "pre-ipo"} dataMode={mode} /><main id="main" className="planner-page page-width">
+  return <><SiteHeader active={xstocks ? "app" : "pre-ipo"} dataMode={mode} markets={marketsEnabled} /><main id="main" className="planner-page page-width">
     <div className="planner-heading"><div><p className="eyebrow">A LITTLE CLARITY. A CLEAR NEXT STEP.</p><h1>{xstocks ? "Your next contribution." : "Your PreStocks contribution."}</h1><p>Choose your split. See the estimates. Keep the decision yours.</p></div>{config.supportsExample && <div className="mode-switch" role="group" aria-label="Data mode"><button type="button" onClick={() => switchMode('live')} aria-pressed={mode === 'live'} className={mode === 'live' ? 'selected' : ''}><span className="mode-dot" />Live</button><button type="button" onClick={() => switchMode('example')} aria-pressed={mode === 'example'} className={mode === 'example' ? 'selected' : ''}><FlaskConical size={14} />Example</button></div>}</div>
     {!xstocks && <div className="inline-notice" role="note"><Info size={17} /><span>Plan with PreStocks tokens using issuer metadata and verified Solana mints. Trading-halt status is not published by PreStocks. Review each product’s terms at its issuer source.</span></div>}
     {mode === 'example' && <div className="example-banner"><FlaskConical size={19} /><div><strong>A practice plan. All the clarity.</strong><p>Explore {EXAMPLE_ASSETS.length} assets from the bundled identity snapshot. Balances, rates, and scaled units are synthetic. No real wallet is shown; use Live for current verification and quotes.</p></div><button type="button" className="text-button" onClick={() => switchMode('live')}>Switch to Live <ArrowRight size={15} /></button></div>}
@@ -437,6 +439,7 @@ export function Planner({ initialMode: requestedMode, cloudEnabled = true, unive
           {basket.items.map((item, index) => { const asset = displayAssetMap.get(item.mint); const unverified = mode === 'live' && !assetMap.has(item.mint); return <div className={`basket-row${unverified ? ` ${onboarding.unverifiedRow}` : ''}`} key={item.mint}><AssetAvatar asset={asset} /><div className="basket-asset"><button type="button" className="asset-change" aria-label={`Change ${asset?.symbol ?? 'unverified asset'}`} onClick={() => openPicker(item.mint)} disabled={catalogLoading || !assets.length}>{asset?.symbol ?? 'Unverified asset'}<ChevronDown size={11} /></button><span>{asset?.name ?? `${item.mint.slice(0, 5)}…${item.mint.slice(-4)}`}</span>{unverified && <span className={onboarding.unverified}>Temporarily unverified</span>}</div><div className="percent-field"><label htmlFor={`weight-${index}`} className="sr-only">{asset?.symbol ?? `Asset ${index + 1}`} percentage</label><input id={`weight-${index}`} inputMode="decimal" autoComplete="off" value={item.percent} onChange={(event) => updateBasket({ ...basket, items: basket.items.map((entry, i) => i === index ? { ...entry, percent: event.target.value } : entry) })} /><span>%</span></div><button type="button" className="icon-button remove-button" aria-label={`Remove ${asset?.symbol ?? 'unverified asset'}`} onClick={() => updateBasket({ ...basket, items: basket.items.filter((_, i) => i !== index) }, true)}><Trash2 size={15} /></button></div>; })}
         </div>
         {(basket.items.length < MAX_PLAN_ASSETS || replacingMint !== null) && <div className="asset-picker-area">{showPicker && assets.length > 0 ? <AssetPicker assetNoun={config.assetNoun} autoFocus={pickerAutoFocus} example={mode === 'example'} assets={assets.filter(asset => !basket.items.some(item => item.mint === asset.mint))} onSelect={mint => updateBasket({ ...basket, items: replacingMint ? basket.items.map(item => item.mint === replacingMint ? { ...item, mint } : item) : [...basket.items, { mint, percent: basket.items.length === 0 ? '100' : '0' }] }, true)} onClose={() => { setShowPicker(false); setReplacingMint(null); }} /> : <button type="button" className="add-asset-button" onClick={() => openPicker()} disabled={catalogLoading || !assets.length || (!replacingMint && basket.items.length >= assets.length)}><Plus size={16} />{catalogLoading ? 'Loading verified assets…' : 'Add an asset'}</button>}</div>}
+        {marketsEnabled && mode === 'live' && <Link className={onboarding.browseMarkets} href={xstocks ? '/markets' : '/markets?category=pre-ipo'}>Browse all markets with prices <ArrowRight size={12} /></Link>}
         {basket.items.length > 0 && <><div className="allocation-bar plan-bar" aria-hidden="true">{basket.items.map((item, index) => { let bps = 0; try { bps = parsePercent(item.percent); } catch { /* Invalid percentages have no bar width. */ } return <span key={item.mint} style={{ width: `${Math.min(100, bps / 100)}%`, background: ['var(--forest)', 'var(--sage)', 'var(--mint)', '#437365', '#82946B'][index % 5] }} />; })}</div><div className={`weight-total ${splitComplete ? 'valid' : 'invalid'}`}><span>{splitComplete ? <Check size={13} /> : <Info size={13} />}{validPercentages ? `${displayAmount((totalBps / 100).toFixed(2), 0)}% allocated` : 'Check percentage fields'}</span><span>{splitHint}</span></div></>}
         <div className="split-tools">{basket.items.length > 1 && <button type="button" onClick={splitEvenly}>Split evenly</button>}{mode === 'example' && <button type="button" onClick={() => { const next = copyBasket(DEFAULT_BASKET); applySharedPlan(next, 'example'); const view = exampleView(next); setQuotes(view.quotes); setProjections(view.projections); setNow(Date.now()); setNotice({ text: 'Example reset to the illustrative 50 / 30 / 20 split.' }); }}>Reset example</button>}</div><p className="split-explainer">These percentages apply to your new contribution.</p>
         {validationMessage && !catalogLoading && <p className="validation-message" id="plan-validation"><Info size={14} /><span>{validationMessage}</span></p>}
@@ -479,6 +482,7 @@ export function Planner({ initialMode: requestedMode, cloudEnabled = true, unive
     </div>
     {xstocks && cloudEnabled && <CloudPlans basket={basket} onLoad={next => updateBasket(next, true)} />}
     <div className="planner-footnote"><ShieldCheck size={14} /><span>Your contribution percentages are your choice. Lotline provides calculations and estimates, not investment advice.</span><a href="/how-it-works">How it works <ArrowUpRight size={13} /></a></div>
+    {marketsEnabled && <AddAssetReview universe={universe} basket={basket} ready={saved !== 'pending' && mode === 'live'} onAdd={(next, symbol, percent) => { updateBasket(next, true); setNotice({ text: `${symbol} added at ${percent}%. Set its share, then request estimates.` }); }} />}
     <div className={`toast${notice ? ' visible' : ''}${notice?.error ? ' toast-error' : ''}`} role="status" aria-live="polite" aria-atomic="true">{notice && <>{notice.error ? <Info size={17} /> : <Check size={17} />}<span>{notice.text}</span><button type="button" aria-label="Dismiss notification" onClick={() => setNotice(null)}><X size={15} /></button></>}</div>
   </main><SiteFooter /></>;
 }

@@ -47,6 +47,19 @@ jobs:
         env:
           E2E_BASE_URL: http://127.0.0.1:3100
           E2E_PRODUCTION: 'true'
+      # Markets ship behind LOTLINE_MARKETS_ENABLED; the suite above proves they stay
+      # dark, this one exercises them on a second server with the flag on.
+      - name: Test markets behind their operator flag
+        run: |
+          LOTLINE_MARKETS_ENABLED=true npm run start -- --port 3102 --hostname 127.0.0.1 > /tmp/lotline-markets-server.log 2>&1 &
+          for attempt in $(seq 1 30); do
+            if curl -fsS http://127.0.0.1:3102/ > /dev/null; then break; fi
+            sleep 1
+          done
+          npm run test:e2e:markets
+        env:
+          E2E_MARKETS_BASE_URL: http://127.0.0.1:3102
+          E2E_PRODUCTION: 'true'
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         if: failure()
         with:

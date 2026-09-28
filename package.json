@@ -12,6 +12,7 @@
     "typecheck": "next typegen && tsc --noEmit",
     "test": "vitest run",
     "test:e2e": "playwright test",
+    "test:e2e:markets": "playwright test -c playwright.markets.config.ts",
     "verify": "npm run lint && npm run typecheck && npm test && npm run build"
   },
   "engines": {
