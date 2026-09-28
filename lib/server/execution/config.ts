@@ -1,5 +1,5 @@
 import 'server-only';
-import { EXECUTION_POLICY_VERSION, type ExecutionLimits } from '@/lib/domain/execution';
+import { EXECUTION_POLICY_VERSION, MAX_BATCH_LEGS, type ExecutionLimits } from '@/lib/domain/execution';
 import { SEMANTIC_VALIDATOR_VERSION } from './route-semantics';
 import { addressSchema, ServiceError } from '@/lib/server/common';
 
@@ -28,9 +28,17 @@ export type ExecutionConfig = {
   validatorVersion: string;
   limits: ExecutionLimits;
   supportedWalletFeatures: readonly ['solana:signTransaction'];
+  /** Several legs may be reviewed together and signed once; needs the batch journal migration. */
+  batchSigning: boolean;
+  maxBatchLegs: number;
   message?: string;
   reasons: string[];
 };
+
+/** The batch column exists only after its additive migration; reads and writes never assume it. */
+export function batchSigningEnabled(): boolean {
+  return process.env.LOTLINE_EXECUTION_BATCH_MIGRATIONS_READY === 'true';
+}
 
 export function executionConfig(): ExecutionConfig {
   const reasons: string[] = [];
@@ -56,6 +64,8 @@ export function executionConfig(): ExecutionConfig {
     validatorVersion: SEMANTIC_VALIDATOR_VERSION,
     limits: EXECUTION_LIMITS,
     supportedWalletFeatures: ['solana:signTransaction'],
+    batchSigning: batchSigningEnabled(),
+    maxBatchLegs: MAX_BATCH_LEGS,
     ...(reasons.length ? { message: 'In-app purchases are not available in this release. You can plan a contribution and review it independently on Jupiter.' } : {}),
     reasons,
   };

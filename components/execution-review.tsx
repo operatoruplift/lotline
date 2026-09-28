@@ -7,7 +7,7 @@ import { StandardConnect, StandardEvents, type StandardConnectFeature, type Stan
 import { SolanaSignTransaction, type SolanaSignTransactionFeature } from '@solana/wallet-standard-features';
 import type { Wallet, WalletAccount } from '@wallet-standard/base';
 import type { Asset, Basket, Mode, Quote, UnitContext } from '@/lib/domain/types';
-import { validateIntentShape, type ContributionIntent, type ExecutionState } from '@/lib/domain/execution';
+import { MAX_BATCH_LEGS, validateIntentShape, type ContributionIntent, type ExecutionState } from '@/lib/domain/execution';
 import { formatUsdc, validatePlan } from '@/lib/domain/math';
 import { pythReferencesReady, type MarketReferenceResponse } from '@/lib/domain/market-reference';
 
@@ -20,12 +20,23 @@ type Props = {
   scheduleOccurrenceId?: string;
   marketReferences: MarketReferenceResponse | null;
 };
-type ExecutionConfig = { state: string; enabled: boolean; reconciliationAvailable?: boolean; policyVersion?: string; limits?: { slippageBps: number; maximumPriorityFeeLamports: string; maximumTotalSolCostLamports: string; maximumTokenFeeBps: number }; reasons?: string[]; message?: string };
+type ExecutionConfig = { state: string; enabled: boolean; reconciliationAvailable?: boolean; batchSigning?: boolean; maxBatchLegs?: number; policyVersion?: string; limits?: { slippageBps: number; maximumPriorityFeeLamports: string; maximumTotalSolCostLamports: string; maximumTokenFeeBps: number }; reasons?: string[]; message?: string };
 type Review = { id: string; runId: string; legId: string; mint: string; requestId: string; messageHash: string; transaction: string; state: string; inputRaw: string; outputRaw: string; minimumOutputRaw: string; expiresAt: string; router: string; fingerprint: string; signature?: string; prioritizationFeeLamports?: string; signatureFeeLamports?: string; rentFeeLamports?: string; totalSolCostLamports?: string; feeBps?: number; feeMint?: string; semanticProof?: { version: string; simulationSlot: number; issuerControlled: boolean; outputUnitContext?: UnitContext }; platformFee?: { amount?: string; feeMint: string; feeBps: number } };
 type RunLeg = { id: string; leg_key: string; mint: string; state: ExecutionState; input_raw: string; receipt?: Record<string, unknown> | null };
 type RunSnapshot = { run: { id: string; intent: ContributionIntent }; legs: RunLeg[]; attempts: Array<{ id: string; leg_id: string; state: ExecutionState; signature?: string | null; evidence?: Record<string, unknown> | null }> };
 const unresolvedStates: readonly string[] = ['signed', 'submitted', 'confirming', 'unknown'];
+const finalStates: readonly string[] = ['confirmed', 'failed-onchain', 'rejected', 'expired-unbroadcast'];
 const pendingKey = (runId: string) => `lotline:pending-execution:${runId}`;
+/** The uncertainty fence holds one attempt id, or every attempt id of a batch approved together. */
+function readPending(runId: string): string[] {
+  try {
+    const raw = localStorage.getItem(pendingKey(runId));
+    if (!raw) return [];
+    return raw.startsWith('[') ? (JSON.parse(raw) as string[]) : [raw];
+  } catch { return []; }
+}
+type BatchReview = { batchId: string; items: Review[]; fingerprint: string };
+type BatchStep = 'queued' | 'submitting' | 'confirming' | 'confirmed' | 'failed' | 'unknown' | 'skipped';
 
 function shortAddress(value: string) { return `${value.slice(0, 4)}…${value.slice(-4)}`; }
 function toBase64(bytes: Uint8Array) { let binary = ''; bytes.forEach(byte => { binary += String.fromCharCode(byte); }); return btoa(binary); }
@@ -50,6 +61,8 @@ export function ExecutionReview({ mode, basket, assets, quotes, catalogVerified,
   const [selectedWallet, setSelectedWallet] = useState<Wallet | null>(null);
   const [account, setAccount] = useState<WalletAccount | null>(null);
   const [review, setReview] = useState<Review | null>(null);
+  const [batch, setBatch] = useState<BatchReview | null>(null);
+  const [batchSteps, setBatchSteps] = useState<Record<string, BatchStep>>({});
   const [intent, setIntent] = useState<ContributionIntent | null>(null);
   const [runLegs, setRunLegs] = useState<RunLeg[]>([]);
   const [runId, setRunId] = useState<string | null>(null);
@@ -81,7 +94,7 @@ export function ExecutionReview({ mode, basket, assets, quotes, catalogVerified,
   useEffect(() => {
     latestFingerprint.current = mode === 'live' && catalogVerified && pythReviewReady ? currentFingerprint : null;
     approvalVersion.current += 1;
-    if (!catalogVerified) queueMicrotask(() => setReview(null));
+    if (!catalogVerified) queueMicrotask(() => { setReview(null); setBatch(null); });
   }, [catalogVerified, currentFingerprint, mode, pythReviewReady]);
   useEffect(() => { const timer = window.setInterval(() => setNow(Date.now()), 1000); return () => window.clearInterval(timer); }, []);
 
@@ -145,9 +158,8 @@ export function ExecutionReview({ mode, basket, assets, quotes, catalogVerified,
     try {
       let snapshot = await readSnapshot(requestedRunId);
       const savedIntent = snapshot.run.intent;
-      let pendingAttempt: string | null = null;
-      try { pendingAttempt = localStorage.getItem(pendingKey(requestedRunId)); } catch { /* The server journal remains available without device storage. */ }
-      const activeAttempts = snapshot.attempts.filter(attempt => (unresolvedStates.includes(attempt.state) && attempt.signature) || (attempt.id === pendingAttempt && !['confirmed', 'failed-onchain', 'rejected', 'expired-unbroadcast'].includes(attempt.state)));
+      const pendingIds = readPending(requestedRunId);
+      const activeAttempts = snapshot.attempts.filter(attempt => (unresolvedStates.includes(attempt.state) && attempt.signature) || (pendingIds.includes(attempt.id) && !finalStates.includes(attempt.state)));
       for (const attempt of activeAttempts) {
         await fetch(`/api/execution/attempts/${encodeURIComponent(attempt.id)}/reconcile`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ attemptId: attempt.id }) });
       }
@@ -158,15 +170,17 @@ export function ExecutionReview({ mode, basket, assets, quotes, catalogVerified,
       const confirmed = executable.filter(leg => leg.state === 'confirmed');
       let localPending = false;
       try {
-        const pendingAttempt = localStorage.getItem(pendingKey(requestedRunId));
-        const finalAttempt = snapshot.attempts.find(attempt => attempt.id === pendingAttempt && (['confirmed', 'failed-onchain', 'rejected'].includes(attempt.state) || (attempt.state === 'expired-unbroadcast' && !attempt.signature)));
-        if (finalAttempt) localStorage.removeItem(pendingKey(requestedRunId));
-        else localPending = Boolean(pendingAttempt);
+        const stillPending = readPending(requestedRunId);
+        // The fence lifts only when every attempt it covers has a final outcome; a
+        // batch whose later legs were never sent clears once those orders expire.
+        const settled = (id: string) => snapshot.attempts.some(attempt => attempt.id === id && (['confirmed', 'failed-onchain', 'rejected'].includes(attempt.state) || (attempt.state === 'expired-unbroadcast' && !attempt.signature)));
+        if (stillPending.length && stillPending.every(settled)) localStorage.removeItem(pendingKey(requestedRunId));
+        else localPending = stillPending.length > 0;
       } catch { /* The server journal remains authoritative if browser storage is unavailable. */ }
       const blocked = localPending || executable.some(leg => unresolvedStates.includes(leg.state));
       setBlocked(blocked); setReceipts(snapshot.attempts.filter(attempt => attempt.signature));
       setRunId(requestedRunId); setRunFingerprint(intentFingerprint(savedIntent)); setIntent(savedIntent); setRunLegs(executable); setConfirmedCount(confirmed.length); setConfirmedMints(confirmed.map(leg => leg.mint));
-      setReview(null);
+      setReview(null); setBatch(null);
       if (blocked) {
         setMessage('A previous leg still needs reconciliation. Lotline has paused new approvals until its original outcome is known.');
         return;
@@ -199,23 +213,65 @@ export function ExecutionReview({ mode, basket, assets, quotes, catalogVerified,
     return () => { active = false; };
   }, [config?.enabled, config?.reconciliationAvailable, loadRun, mode]);
 
+  /** Journals the reviewed plan and returns the run id; no order is prepared here. */
+  const createRunForPlan = useCallback(async (): Promise<string> => {
+    if (!config?.enabled || !config.limits || !account) throw new Error('Connect a wallet before reviewing a purchase.');
+    const intent = { version: 1 as const, chain: 'solana:mainnet' as const, wallet: account.address, inputMint: 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v', budgetRaw: plan.allocations.reduce((sum, item) => sum + BigInt(item.usdcRaw), 0n).toString(), legs: plan.allocations.map((item, index) => ({ id: `${assetByMint.get(item.mint)?.symbol.toLowerCase() ?? `leg-${index}`}`, issuerId: assetByMint.get(item.mint)?.symbol ?? item.mint, mint: item.mint, allocationBps: item.weightBps, maximumInputRaw: item.usdcRaw })), policyVersion: config.policyVersion ?? 'unknown', reviewedLimits: config.limits, ...(scheduleOccurrenceId ? { scheduleOccurrenceId } : {}) };
+    const response = await fetch('/api/execution/runs', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ intent }) });
+    const data = await response.json() as { state: string; message?: string; run?: { id: string }; legs?: RunLeg[] };
+    if (!response.ok || data.state !== 'success' || !data.run?.id || !data.legs?.length) throw new Error(data.message ?? 'The contribution review could not be created.');
+    try { sessionStorage.setItem('lotline:last-execution-run', data.run.id); } catch { /* Session storage is optional. */ }
+    return data.run.id;
+  }, [account, assetByMint, config, plan, scheduleOccurrenceId]);
+
   const createReview = useCallback(async () => {
     if (!config?.enabled || !config.limits || !account || !plan.valid || !quotesReady(Date.now()) || !catalogVerified || !referencesReady() || blocked || signing.current) return;
     setBusy(true); setError(false); setMessage(null);
     try {
-      const intent = { version: 1 as const, chain: 'solana:mainnet' as const, wallet: account.address, inputMint: 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v', budgetRaw: plan.allocations.reduce((sum, item) => sum + BigInt(item.usdcRaw), 0n).toString(), legs: plan.allocations.map((item, index) => ({ id: `${assetByMint.get(item.mint)?.symbol.toLowerCase() ?? `leg-${index}`}`, issuerId: assetByMint.get(item.mint)?.symbol ?? item.mint, mint: item.mint, allocationBps: item.weightBps, maximumInputRaw: item.usdcRaw })), policyVersion: config.policyVersion ?? 'unknown', reviewedLimits: config.limits, ...(scheduleOccurrenceId ? { scheduleOccurrenceId } : {}) };
-      const response = await fetch('/api/execution/runs', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ intent }) });
-      const data = await response.json() as { state: string; message?: string; run?: { id: string }; legs?: RunLeg[] };
-      if (!response.ok || data.state !== 'success' || !data.run?.id || !data.legs?.length) throw new Error(data.message ?? 'The contribution review could not be created.');
-      try { sessionStorage.setItem('lotline:last-execution-run', data.run.id); } catch { /* Session storage is optional. */ }
-      await loadRun(data.run.id, true);
+      await loadRun(await createRunForPlan(), true);
     } catch (err) { setMessage(err instanceof Error ? err.message : 'The review could not be created.'); setError(true); }
     finally { setBusy(false); }
-  }, [account, assetByMint, blocked, catalogVerified, config, loadRun, plan, quotesReady, referencesReady, scheduleOccurrenceId]);
+  }, [account, blocked, catalogVerified, config, createRunForPlan, loadRun, plan, quotesReady, referencesReady]);
 
   const resumeRemaining = useCallback(() => {
     if (catalogVerified && referencesReady() && runId && runFingerprint === currentFingerprint) void loadRun(runId, true);
   }, [catalogVerified, currentFingerprint, loadRun, referencesReady, runFingerprint, runId]);
+
+  /** Prepares one order per remaining leg (up to the batch cap) under a shared batch id. */
+  const prepareBatch = useCallback(async (targetRunId: string, savedIntent: ContributionIntent, legs: RunLeg[]) => {
+    if (!referencesReady()) throw new Error('Refresh Pyth references before requesting a purchase review.');
+    const version = approvalVersion.current;
+    if (intentFingerprint(savedIntent) !== latestFingerprint.current) throw new Error('Refresh the catalog and review the saved split before requesting a batch.');
+    const remaining = legs.filter(leg => leg.state !== 'confirmed').slice(0, Math.min(MAX_BATCH_LEGS, config?.maxBatchLegs ?? MAX_BATCH_LEGS));
+    if (remaining.length === 0) throw new Error('Every reviewed leg is already confirmed.');
+    const response = await fetch(`/api/execution/runs/${encodeURIComponent(targetRunId)}/batch-order`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ intent: savedIntent, legIds: remaining.map(leg => leg.id) }) });
+    const data = await response.json() as { state: string; message?: string; batchId?: string; attempts?: (Omit<Review, 'runId' | 'fingerprint'> & { legId: string; mint: string })[] };
+    if (!response.ok || data.state !== 'success' || !data.batchId || !data.attempts?.length) throw new Error(data.message ?? 'The batch could not be prepared.');
+    if (version !== approvalVersion.current || intentFingerprint(savedIntent) !== latestFingerprint.current || !referencesReady()) throw new Error('The plan, wallet, catalog, or price references changed while preparing this batch. Request a fresh review.');
+    const fingerprint = intentFingerprint(savedIntent);
+    setReview(null);
+    setBatch({ batchId: data.batchId, fingerprint, items: data.attempts.map(attempt => ({ ...attempt, runId: targetRunId, fingerprint })) });
+    setBatchSteps(Object.fromEntries(data.attempts.map(attempt => [attempt.legId, 'queued' as BatchStep])));
+    setMessage(`${data.attempts.length} legs are ready. Review each amount, then approve them together in your wallet.`);
+  }, [config?.maxBatchLegs, referencesReady]);
+
+  const startBatch = useCallback(async () => {
+    if (!config?.batchSigning || !account || !plan.valid || !catalogVerified || !referencesReady() || blocked || signing.current || busy) return;
+    setBusy(true); setError(false); setMessage(null);
+    try {
+      let targetRunId = runId && runFingerprint === currentFingerprint ? runId : null;
+      if (!targetRunId) {
+        if (!quotesReady(Date.now())) throw new Error('Refresh estimates before reviewing a purchase.');
+        targetRunId = await createRunForPlan();
+        await loadRun(targetRunId, false);
+      }
+      const snapshot = await readSnapshot(targetRunId);
+      const executable = snapshot.legs.filter(leg => BigInt(leg.input_raw) > 0n);
+      if (executable.some(leg => unresolvedStates.includes(leg.state))) throw new Error('A previous leg still needs reconciliation before another approval.');
+      await prepareBatch(targetRunId, snapshot.run.intent, executable);
+    } catch (err) { setMessage(err instanceof Error ? err.message : 'The batch could not be prepared.'); setError(true); }
+    finally { setBusy(false); }
+  }, [account, blocked, busy, catalogVerified, config?.batchSigning, createRunForPlan, currentFingerprint, loadRun, plan.valid, prepareBatch, quotesReady, referencesReady, runFingerprint, runId]);
 
   const signAndSubmit = useCallback(async () => {
     if (!review || !selectedWallet || !account || signing.current || blocked || !catalogVerified || !referencesReady() || !hasCompleteFees(review)) return;
@@ -277,6 +333,70 @@ export function ExecutionReview({ mode, basket, assets, quotes, catalogVerified,
     } finally { signing.current = false; setBusy(false); }
   }, [account, blocked, catalogVerified, loadRun, referencesReady, review, selectedWallet]);
 
+  const signBatch = useCallback(async () => {
+    if (!batch || !selectedWallet || !account || signing.current || blocked || !catalogVerified || !referencesReady() || !batch.items.every(hasCompleteFees)) return;
+    const version = approvalVersion.current;
+    if (batch.fingerprint !== latestFingerprint.current) { setBatch(null); setMessage('The plan changed after this review. Request fresh estimates and review again.'); setError(true); return; }
+    if (batch.items.some(item => Date.parse(item.expiresAt) <= Date.now())) { setBatch(null); setMessage('An unsigned order in this batch expired. Review the remaining legs again.'); return; }
+    const feature = selectedWallet.features[SolanaSignTransaction] as SolanaSignTransactionFeature[typeof SolanaSignTransaction] | undefined;
+    if (!feature?.supportedTransactionVersions.includes(0)) { setMessage('This wallet cannot sign the supported Solana version 0 transaction.'); setError(true); return; }
+    if (!navigator.locks) { setMessage('This browser cannot coordinate wallet approvals across tabs. Use a current browser to continue safely.'); setError(true); return; }
+    signing.current = true; setBusy(true); setError(false);
+    let submissionStarted = false;
+    const runIdForBatch = batch.items[0].runId;
+    try {
+      await navigator.locks.request('lotline:wallet-approval', { ifAvailable: true }, async lock => {
+        if (!lock) throw new Error('Another Lotline tab is reviewing a wallet approval. Finish there, then check this contribution.');
+        const snapshot = await readSnapshot(runIdForBatch);
+        const legs = batch.items.map(item => snapshot.legs.find(leg => leg.id === item.legId));
+        if (legs.some(leg => !leg || leg.state === 'confirmed' || unresolvedStates.includes(leg.state)) || readPending(runIdForBatch).length) {
+          setBatch(null); await loadRun(runIdForBatch, false); return;
+        }
+        if (version !== approvalVersion.current || batch.fingerprint !== latestFingerprint.current || batch.items.some(item => Date.parse(item.expiresAt) <= Date.now()) || !referencesReady()) throw new Error('This review changed or expired. Request a fresh batch before signing.');
+        setMessage(`Your wallet is waiting for one approval covering ${batch.items.length} purchases. Check every transaction there.`);
+        const signed = await feature.signTransaction(...batch.items.map(item => ({ account, transaction: fromBase64(item.transaction), chain: 'solana:mainnet' as const })));
+        if (signed.length !== batch.items.length || signed.some(output => !output?.signedTransaction)) throw new Error('The wallet returned a different number of signed transactions. Nothing was submitted.');
+        if (latestReferences.current && !referencesReady()) throw new Error('Pyth references expired during approval. Refresh estimates and references before reviewing again. The signed bytes were not submitted.');
+        if (version !== approvalVersion.current || batch.fingerprint !== latestFingerprint.current) throw new Error('The plan, wallet, or catalog changed during approval. The signed bytes were not submitted.');
+        if (!referencesReady()) throw new Error('Pyth references became unavailable during approval. Refresh references before reviewing again. The signed bytes were not submitted.');
+        // The fence grows one leg at a time, written before each network write, so it
+        // covers exactly the legs Lotline sent. Signed bytes for legs it never sent
+        // stay in this tab only and their orders expire unsigned.
+        const sent: string[] = [];
+        let stopped = false;
+        for (const [index, item] of batch.items.entries()) {
+          if (stopped) { setBatchSteps(steps => ({ ...steps, [item.legId]: 'skipped' })); continue; }
+          setBatchSteps(steps => ({ ...steps, [item.legId]: 'submitting' }));
+          if (Date.parse(item.expiresAt) <= Date.now()) { setBatchSteps(steps => ({ ...steps, [item.legId]: 'skipped' })); stopped = true; continue; }
+          sent.push(item.id);
+          localStorage.setItem(pendingKey(runIdForBatch), JSON.stringify(sent));
+          submissionStarted = true; setBlocked(true);
+          const response = await fetch(`/api/execution/runs/${encodeURIComponent(item.runId)}/legs/${encodeURIComponent(item.legId)}/execute`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ requestId: item.requestId, signedTransaction: toBase64(signed[index].signedTransaction), messageHash: item.messageHash }) });
+          const data = await response.json() as { state: string; message?: string };
+          if (!response.ok || (data.state !== 'confirming' && data.state !== 'success')) { setBatchSteps(steps => ({ ...steps, [item.legId]: data.state === 'expired-unbroadcast' ? 'skipped' : 'unknown' })); stopped = true; continue; }
+          setBatchSteps(steps => ({ ...steps, [item.legId]: 'confirming' }));
+          let outcome: BatchStep = 'unknown';
+          for (let attempt = 0; attempt < 8; attempt += 1) {
+            await new Promise(resolve => window.setTimeout(resolve, attempt === 0 ? 400 : 1500));
+            const reconcile = await fetch(`/api/execution/attempts/${encodeURIComponent(item.id)}/reconcile`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ attemptId: item.id }) });
+            const reconciliation = await reconcile.json() as { state: string };
+            if (reconcile.ok && reconciliation.state === 'confirmed') { outcome = 'confirmed'; break; }
+            if (reconciliation.state === 'failed-onchain') { outcome = 'failed'; break; }
+            if (!reconcile.ok || reconciliation.state !== 'confirming') break;
+          }
+          setBatchSteps(steps => ({ ...steps, [item.legId]: outcome }));
+          // Later legs are sent only after the earlier one is confirmed on chain.
+          if (outcome !== 'confirmed') stopped = true;
+        }
+        await loadRun(runIdForBatch, false);
+      });
+    } catch (err) {
+      setBatch(null);
+      setMessage(submissionStarted ? 'The submission outcome is uncertain. Check the original receipt before any further approval; no replacement purchase was created.' : err instanceof Error ? err.message : 'The wallet rejected the approval. No purchase was submitted.');
+      setError(true);
+    } finally { signing.current = false; setBusy(false); }
+  }, [account, batch, blocked, catalogVerified, loadRun, referencesReady, selectedWallet]);
+
   function downloadReceipts() {
     const fields = ['confirmationStatus', 'slot', 'feeLamports', 'blockTime', 'proofAt', 'inputMint', 'outputMint', 'inputDebitRaw', 'outputCreditRaw', 'walletSolDebitLamports', 'transactionMessageHash', 'reason'];
     const body = { version: 1, chain: 'solana:mainnet', runId, reviewedIntent: intent, receipts: receipts.map(receipt => ({ attemptId: receipt.id, legId: receipt.leg_id, state: receipt.state, signature: receipt.signature, evidence: Object.fromEntries(fields.flatMap(key => receipt.evidence?.[key] !== undefined ? [[key, receipt.evidence[key]]] : [])) })) };
@@ -288,6 +408,11 @@ export function ExecutionReview({ mode, basket, assets, quotes, catalogVerified,
   if (mode === 'example') return <section className="execution-card execution-example" aria-labelledby="execution-heading"><div className="execution-card-heading"><div><div className="panel-kicker">03 <span /> EXECUTION READINESS</div><h2 id="execution-heading">Practice mode stays read-only.</h2></div><FlaskConical size={18} /></div><p>Example plans never connect a wallet, request a signature, or submit a purchase. Switch to Live for current issuer and chain checks.</p><div className="execution-note"><ShieldCheck size={15} /> No funds move in Example mode.</div></section>;
 
   const hasMatchingRun = Boolean(runId && runFingerprint === currentFingerprint);
+  const batchMatchesPlan = Boolean(batch && batch.fingerprint === currentFingerprint);
+  const batchFeesReady = Boolean(batch && batch.items.every(hasCompleteFees));
+  const batchExpired = Boolean(batch && batch.items.some(item => Date.parse(item.expiresAt) <= now));
+  const batchCandidates = hasMatchingRun ? runLegs.filter(leg => leg.state !== 'confirmed').length : plan.valid ? plan.allocations.filter(item => item.usdcRaw !== '0').length : 0;
+  const batchSize = Math.min(batchCandidates, config?.maxBatchLegs ?? MAX_BATCH_LEGS);
   const reviewMatchesPlan = Boolean(review && review.fingerprint === currentFingerprint);
   const feesReady = Boolean(review && hasCompleteFees(review));
   const expired = Boolean(review && Date.parse(review.expiresAt) <= now);
@@ -297,8 +422,8 @@ export function ExecutionReview({ mode, basket, assets, quotes, catalogVerified,
     <div className="execution-card-heading"><div><div className="panel-kicker">03 <span /> EXECUTION READINESS</div><h2 id="execution-heading">Review before you sign.</h2></div><LockKeyhole size={18} /></div>
     {!config?.enabled ? <div className="execution-gate"><p>{config?.message ?? 'Checking purchase availability…'}</p><span><ShieldCheck size={14} />Planning stays available. Opening Jupiter does not request a signature in Lotline.</span></div> : null}
     {(config?.enabled || runId) && <>
-      <p>Each asset is a separate transaction. Review and approve one leg at a time; a later failure cannot undo a confirmed purchase.</p>
-      {runLegs.length > 0 && <div className="execution-progress" role="status"><span>{confirmedCount} of {runLegs.length} legs confirmed{confirmedMints.length > 0 && <small className="execution-confirmed">Confirmed: {confirmedMints.map(mint => assetByMint.get(mint)?.symbol ?? mint.slice(0, 6)).join(', ')}</small>}</span><small>{blocked ? 'Reconciliation required' : confirmedCount === runLegs.length ? 'Run complete' : review ? `Leg ${Math.min(legIndex + 1, runLegs.length)} is in review` : 'Resume when ready'}</small></div>}
+      <p>Each asset is a separate transaction. Review one leg at a time, or review up to {config?.maxBatchLegs ?? MAX_BATCH_LEGS} legs and approve them in one wallet prompt; a later failure cannot undo a confirmed purchase.</p>
+      {runLegs.length > 0 && <div className="execution-progress" role="status"><span>{confirmedCount} of {runLegs.length} legs confirmed{confirmedMints.length > 0 && <small className="execution-confirmed">Confirmed: {confirmedMints.map(mint => assetByMint.get(mint)?.symbol ?? mint.slice(0, 6)).join(', ')}</small>}</span><small>{blocked ? 'Reconciliation required' : confirmedCount === runLegs.length ? 'Run complete' : batch ? `${batch.items.length} legs ready for one approval` : review ? `Leg ${Math.min(legIndex + 1, runLegs.length)} is in review` : 'Resume when ready'}</small></div>}
       {config?.enabled && (wallets.length === 0 ? <div className="execution-wallet-empty"><WalletCards size={17} /><span>No Wallet Standard wallet was detected in this browser.</span></div> : <div className="execution-wallets"><span className="field-label">Wallet</span>{account ? <div className="connected-wallet"><Check size={15} /><span>{shortAddress(account.address)}</span><small>{selectedWallet?.name ?? 'Wallet Standard'}</small></div> : <div className="wallet-options">{wallets.map(wallet => <button type="button" key={wallet.name} onClick={() => chooseWallet(wallet)} disabled={busy || restoring}>{wallet.name}<ArrowRight size={14} /></button>)}</div>}</div>)}
       {!catalogVerified && <p className="execution-message error">Current asset verification is unavailable, an issuer halt is reported, or you’re offline. Refresh the catalog before a new approval. Existing receipts can still be checked online.</p>}
       {!pythReviewReady && <p className="execution-message error" data-pyth-review-gate>Fresh Pyth references are required for mapped assets before purchase review. Get estimates, then refresh market references if needed. Existing receipts can still be checked.</p>}
@@ -307,8 +432,31 @@ export function ExecutionReview({ mode, basket, assets, quotes, catalogVerified,
           {!feesReady && <p className="execution-message error">Complete fee information is unavailable. No wallet approval can be requested.</p>}
           {(!reviewMatchesPlan || expired) && <p className="execution-message error">{expired ? 'This unsigned order expired. Refresh its review before signing.' : 'The plan changed. Request fresh estimates and review the updated amount.'}</p>}
           {(!reviewMatchesPlan || expired) ? <button type="button" className="button secondary" onClick={() => setReview(null)} disabled={busy}>Update review</button> : <button type="button" className="button primary" onClick={() => void signAndSubmit()} disabled={busy || restoring || !feesReady || !catalogVerified || !pythReviewReady}>{busy ? <><LoaderCircle size={15} className="spinning" />Waiting…</> : <>Sign this purchase <ArrowRight size={15} /></>}</button>}
-        </> : <button type="button" className="button primary" onClick={hasMatchingRun ? resumeRemaining : createReview} disabled={busy || restoring || !account || !plan.valid || !catalogVerified || !pythReviewReady || (!hasMatchingRun && !allQuotesReady) || (hasMatchingRun && (confirmedCount === runLegs.length || terminalFailure))}>{busy || restoring ? <><LoaderCircle size={15} className="spinning" />{restoring ? 'Restoring review…' : 'Preparing review…'}</> : hasMatchingRun ? <>Resume remaining <ArrowRight size={15} /></> : <>Review purchase <ArrowRight size={15} /></>}</button>}
+        </> : batch ? <>
+          {!batchFeesReady && <p className="execution-message error">Complete fee information is unavailable for a leg. No wallet approval can be requested.</p>}
+          {(!batchMatchesPlan || batchExpired) && <p className="execution-message error">{batchExpired ? 'An unsigned order in this batch expired. Review the remaining legs again.' : 'The plan changed. Request fresh estimates and review the updated amounts.'}</p>}
+          {(!batchMatchesPlan || batchExpired) ? <button type="button" className="button secondary" onClick={() => setBatch(null)} disabled={busy}>Update review</button> : <button type="button" className="button primary" onClick={() => void signBatch()} disabled={busy || restoring || !batchFeesReady || !catalogVerified || !pythReviewReady}>{busy ? <><LoaderCircle size={15} className="spinning" />Waiting…</> : <>Sign {batch.items.length} purchases at once <ArrowRight size={15} /></>}</button>}
+          {!busy && <button type="button" className="button secondary" onClick={() => setBatch(null)}>Discard batch</button>}
+        </> : <>
+          <button type="button" className="button primary" onClick={hasMatchingRun ? resumeRemaining : createReview} disabled={busy || restoring || !account || !plan.valid || !catalogVerified || !pythReviewReady || (!hasMatchingRun && !allQuotesReady) || (hasMatchingRun && (confirmedCount === runLegs.length || terminalFailure))}>{busy || restoring ? <><LoaderCircle size={15} className="spinning" />{restoring ? 'Restoring review…' : 'Preparing review…'}</> : hasMatchingRun ? <>Resume remaining <ArrowRight size={15} /></> : <>Review purchase <ArrowRight size={15} /></>}</button>
+          {config?.batchSigning && batchCandidates >= 2 && <button type="button" className="button secondary" onClick={() => void startBatch()} disabled={busy || restoring || !account || !plan.valid || !catalogVerified || !pythReviewReady || (!hasMatchingRun && !allQuotesReady) || terminalFailure}>{batchCandidates > batchSize ? `Review next ${batchSize} & sign once` : `Review all ${batchSize} & sign once`} <ArrowRight size={15} /></button>}
+        </>}
       </div>
+      {batch && <div className="execution-batch" data-execution-batch>
+        <p>{batch.items.length} separate transactions, one wallet approval. Each leg is sent only after the previous one is confirmed on Solana; a later failure cannot undo an earlier confirmed purchase, and unsent legs simply expire.</p>
+        <ol>
+          {batch.items.map((item, index) => {
+            const step = batchSteps[item.legId] ?? 'queued';
+            const label = step === 'confirmed' ? 'Confirmed' : step === 'confirming' ? 'Confirming' : step === 'submitting' ? 'Submitting' : step === 'failed' ? 'Failed on chain' : step === 'unknown' ? 'Needs reconciliation' : step === 'skipped' ? 'Not sent' : 'Queued';
+            return <li key={item.id} data-batch-step={step}>
+              <span className="execution-batch-index">{step === 'confirmed' ? <Check size={14} /> : index + 1}</span>
+              <div><strong>{assetByMint.get(item.mint)?.symbol ?? item.mint.slice(0, 6)}</strong><small>{formatUsdc(item.inputRaw)} USDC · minimum {item.minimumOutputRaw} raw units · expires {new Date(item.expiresAt).toLocaleTimeString()}</small></div>
+              <span className={`execution-batch-state execution-batch-${step}`}>{label}</span>
+            </li>;
+          })}
+        </ol>
+        <p><ShieldCheck size={14} />Solana Mobile wallets show one approval for all legs; some desktop wallets ask once per transaction. Every message is the exact reviewed order.</p>
+      </div>}
       {review && <div className="execution-review">
         <div><span>Asset / issuer</span><strong>{selectedAsset?.name ?? review.mint} · xStocks</strong></div>
         <div><span>Gross USDC debit</span><strong>{formatUsdc(review.inputRaw)} USDC</strong></div>

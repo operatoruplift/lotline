@@ -2,6 +2,12 @@ import { MAX_PLAN_ASSETS } from './limits';
 import { allocate, MAX_BUDGET_RAW } from './math';
 
 export const EXECUTION_POLICY_VERSION = '2026-09-14.v1';
+/**
+ * Legs approved in one wallet prompt. Each executable order lives about thirty
+ * seconds from the moment Jupiter builds it, and orders are built one after
+ * another, so a small batch keeps the last order fresh while the first is signed.
+ */
+export const MAX_BATCH_LEGS = 3;
 export const EXECUTION_STATES = [
   'planned', 'quoting', 'review-required', 'awaiting-wallet', 'signed', 'submitted',
   'confirming', 'confirmed', 'rejected', 'failed-onchain', 'expired-unbroadcast', 'unknown',

@@ -95,6 +95,26 @@ describe('execution migrations in isolated PostgreSQL', () => {
     await expect(attempt(secondLeg)).resolves.toBeTypeOf('string');
   });
 
+  it('lets attempts of one batch be active together and refuses any other active review', async () => {
+    const runId = await run();
+    const first = await leg(runId);
+    const second = await leg(runId, 'two');
+    const third = await db.query<{ id: string }>(`insert into public.lotline_execution_legs (run_id, leg_key, issuer_id, mint, allocation_bps, input_raw, state) values ($1, 'three', 'xstocks', '33333333333333333333333333333333', 10000, '1000000', 'planned') returning id`, [runId]).then(result => result.rows[0].id);
+    const batch = '00000000-0000-4000-8000-00000000b001';
+    const batched = async (legId: string, batchId: string | null) => db.query<{ id: string }>(`insert into public.lotline_execution_attempts
+      (leg_id, provider_request_id, transaction_message_hash, original_blockhash, minimum_output_raw, state, batch_id)
+      values ($1, $2, $3, $4, '1', 'review-required', $5) returning id`, [legId, `batch-${++sequence}`, hash(sequence), wallet, batchId]).then(result => result.rows[0].id);
+    const one = await batched(first, batch);
+    await expect(batched(second, batch)).resolves.toBeTypeOf('string');
+    await expect(batched(third, '00000000-0000-4000-8000-00000000b002')).rejects.toThrow(/run_active_attempt_exists/);
+    await expect(attempt(third)).rejects.toThrow(/run_active_attempt_exists/);
+    await expect(db.query('update public.lotline_execution_attempts set batch_id=$1 where id=$2', ['00000000-0000-4000-8000-00000000b003', one])).rejects.toThrow(/execution_identity_immutable/);
+    const otherRun = await leg(await run());
+    await expect(batched(otherRun, batch)).rejects.toThrow(/execution_batch_run_mismatch/);
+    await db.query("update public.lotline_execution_attempts set state='expired-unbroadcast' where batch_id=$1", [batch]);
+    await expect(attempt(third)).resolves.toBeTypeOf('string');
+  });
+
   it('preserves unresolved attempts even when an old run has a terminal summary', async () => {
     const unresolvedRun = await run(undefined, 'confirmed');
     const id = await attempt(await leg(unresolvedRun));

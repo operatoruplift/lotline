@@ -706,3 +706,16 @@ html[data-motion="reduced"] [data-reveal]{opacity:1!important;filter:none!import
 @media(max-width:600px){.schedule-actions{flex-direction:column}.schedule-actions .button{width:100%}}
 /* Three actions do not fit one narrow row; the review link takes its own full-width line. */
 @media(max-width:600px){.handoff-row>div:last-child{gap:16px;row-gap:9px}.handoff-review{width:100%;justify-content:center;min-height:40px;font-size:10px}}
+
+/* Sign-once batches */
+.execution-batch { display: grid; gap: 10px; margin-top: 14px; padding: 14px; border: 1px solid var(--line, rgba(0, 0, 0, 0.12)); border-radius: 14px; }
+.execution-batch ol { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.execution-batch li { display: grid; grid-template-columns: 28px 1fr auto; align-items: center; gap: 10px; }
+.execution-batch li small { display: block; opacity: 0.8; font-size: 0.8rem; overflow-wrap: anywhere; }
+.execution-batch-index { width: 28px; height: 28px; border-radius: 999px; border: 1px solid currentColor; display: inline-grid; place-items: center; font-size: 0.8rem; font-weight: 700; }
+.execution-batch-state { font-size: 0.75rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; white-space: nowrap; }
+.execution-batch-confirmed { color: var(--positive, #1b7f4b); }
+.execution-batch-failed, .execution-batch-unknown { color: var(--negative, #b42336); }
+.execution-batch-skipped { opacity: 0.6; }
+.execution-batch p { display: flex; gap: 6px; align-items: flex-start; margin: 0; font-size: 0.85rem; }
+@media (max-width: 600px) { .execution-batch li { grid-template-columns: 28px 1fr; } .execution-batch-state { grid-column: 2; } }
