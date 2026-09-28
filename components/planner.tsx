@@ -81,7 +81,7 @@ async function readResponse<T>(response: Response): Promise<T> {
   return await response.json() as T;
 }
 
-export function Planner({ initialMode: requestedMode, cloudEnabled = true, universe = 'xstocks', marketsEnabled = false }: { initialMode: Mode; cloudEnabled?: boolean; universe?: PlannerUniverse; marketsEnabled?: boolean }) {
+export function Planner({ initialMode: requestedMode, cloudEnabled = true, universe = 'xstocks', marketsEnabled = false, galleryEnabled = false }: { initialMode: Mode; cloudEnabled?: boolean; universe?: PlannerUniverse; marketsEnabled?: boolean; galleryEnabled?: boolean }) {
   const config = PLANNER_UNIVERSES[universe];
   const initialMode = config.supportsExample ? requestedMode : 'live';
   const xstocks = universe === 'xstocks';
@@ -414,7 +414,7 @@ export function Planner({ initialMode: requestedMode, cloudEnabled = true, unive
   const validationMessage = !plan.valid ? (basket.items.length ? plan.message : null) : unknownSelected ? (mode === 'example' ? 'A selected asset is outside the bundled Example catalog. Change or remove it, or switch to Live for current verification.' : 'Selected assets are temporarily unverified. Your split is preserved; refresh the catalog before estimates or purchase review.') : null;
   const selectedAssets = basket.items.map((item) => assetMap.get(item.mint)).filter((asset): asset is Asset => !!asset);
 
-  return <><SiteHeader active={xstocks ? "app" : "pre-ipo"} dataMode={mode} markets={marketsEnabled} /><main id="main" className="planner-page page-width">
+  return <><SiteHeader active={xstocks ? "app" : "pre-ipo"} dataMode={mode} markets={marketsEnabled} community={galleryEnabled} /><main id="main" className="planner-page page-width">
     <div className="planner-heading"><div><p className="eyebrow">A LITTLE CLARITY. A CLEAR NEXT STEP.</p><h1>{xstocks ? "Your next contribution." : "Your PreStocks contribution."}</h1><p>Choose your split. See the estimates. Keep the decision yours.</p></div>{config.supportsExample && <div className="mode-switch" role="group" aria-label="Data mode"><button type="button" onClick={() => switchMode('live')} aria-pressed={mode === 'live'} className={mode === 'live' ? 'selected' : ''}><span className="mode-dot" />Live</button><button type="button" onClick={() => switchMode('example')} aria-pressed={mode === 'example'} className={mode === 'example' ? 'selected' : ''}><FlaskConical size={14} />Example</button></div>}</div>
     {!xstocks && <div className="inline-notice" role="note"><Info size={17} /><span>Plan with PreStocks tokens using issuer metadata and verified Solana mints. Trading-halt status is not published by PreStocks. Review each product’s terms at its issuer source.</span></div>}
     {mode === 'example' && <div className="example-banner"><FlaskConical size={19} /><div><strong>A practice plan. All the clarity.</strong><p>Explore {EXAMPLE_ASSETS.length} assets from the bundled identity snapshot. Balances, rates, and scaled units are synthetic. No real wallet is shown; use Live for current verification and quotes.</p></div><button type="button" className="text-button" onClick={() => switchMode('live')}>Switch to Live <ArrowRight size={15} /></button></div>}
@@ -482,7 +482,7 @@ export function Planner({ initialMode: requestedMode, cloudEnabled = true, unive
       </section>
       </div>
     </div>
-    {xstocks && cloudEnabled && <CloudPlans basket={basket} onLoad={next => updateBasket(next, true)} />}
+    {xstocks && cloudEnabled && <CloudPlans basket={basket} onLoad={next => updateBasket(next, true)} galleryEnabled={galleryEnabled} />}
     <div className="planner-footnote"><ShieldCheck size={14} /><span>Your contribution percentages are your choice. Lotline provides calculations and estimates, not investment advice.</span><a href="/how-it-works">How it works <ArrowUpRight size={13} /></a></div>
     {marketsEnabled && <AddAssetReview universe={universe} basket={basket} ready={saved !== 'pending' && mode === 'live'} onAdd={(next, symbol, percent) => { updateBasket(next, true); setNotice({ text: `${symbol} added at ${percent}%. Set its share, then request estimates.` }); }} />}
     <div className={`toast${notice ? ' visible' : ''}${notice?.error ? ' toast-error' : ''}`} role="status" aria-live="polite" aria-atomic="true">{notice && <>{notice.error ? <Info size={17} /> : <Check size={17} />}<span>{notice.text}</span><button type="button" aria-label="Dismiss notification" onClick={() => setNotice(null)}><X size={15} /></button></>}</div>

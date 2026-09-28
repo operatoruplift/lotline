@@ -8,13 +8,16 @@ import { formatUsdc } from '@/lib/domain/math';
 import { MAX_PLAN_ASSETS } from '@/lib/domain/limits';
 import { authEmailEnabled } from '@/lib/supabase/config';
 import type { CloudPlan } from '@/lib/supabase/plans';
+import { SharePlanControl, type SharedState } from './gallery/share-plan-control';
 
 type PlansModule = typeof import('@/lib/supabase/plans');
 import styles from './auth.module.css';
 
 type Session = { state: 'loading' | 'signed-in' | 'guest' | 'configuration-required' | 'unavailable'; user?: { id: string; email?: string } | null };
-export function CloudPlans({ basket, onLoad }: { basket: Basket; onLoad: (basket: Basket) => void }) {
+export function CloudPlans({ basket, onLoad, galleryEnabled = false }: { basket: Basket; onLoad: (basket: Basket) => void; galleryEnabled?: boolean }) {
   const [session, setSession] = useState<Session>({ state: 'loading' });
+  // Which saved plans are shared to community plans; loaded only when the gallery is on.
+  const [shared, setShared] = useState<Record<string, SharedState>>({});
   const [plans, setPlans] = useState<CloudPlan[]>([]);
   const [name, setName] = useState('My contribution');
   const [busy, setBusy] = useState(false);
@@ -30,7 +33,7 @@ export function CloudPlans({ basket, onLoad }: { basket: Basket; onLoad: (basket
 
   const clearPrivateState = useCallback((nextId: string | null) => {
     accountId.current = nextId;
-    setPlans([]); setName('My contribution'); setMessage(''); setFailed(false); setBusy(false);
+    setPlans([]); setShared({}); setName('My contribution'); setMessage(''); setFailed(false); setBusy(false);
   }, []);
 
   const expireSession = useCallback(() => {
@@ -69,9 +72,14 @@ export function CloudPlans({ basket, onLoad }: { basket: Basket; onLoad: (basket
       const validated = cloudPlanRecord.array().safeParse(data.plans);
       if (!result.ok || !validated.success) { setFailed(true); setMessage('Your cloud plans could not be loaded. Retry when you’re online.'); return; }
       setPlans(validated.data);
+      if (galleryEnabled) {
+        const mine = await fetch('/api/gallery/mine', { cache: 'no-store', signal: AbortSignal.timeout(15_000) }).then(response => response.ok ? response.json() : null).catch(() => null) as { shared?: { id: string; plan_id: string; display_name: string | null; copy_count: number }[] } | null;
+        if (revision !== generation.current) return;
+        setShared(Object.fromEntries((mine?.shared ?? []).map(entry => [entry.plan_id, { id: entry.id, displayName: entry.display_name, copies: entry.copy_count }])));
+      }
     } catch { if (revision === generation.current) { clearPrivateState(null); setSession({ state: 'unavailable' }); } }
     finally { if (revision === generation.current) setRefreshing(false); }
-  }, [clearPrivateState, expireSession]);
+  }, [clearPrivateState, expireSession, galleryEnabled]);
 
   useEffect(() => {
     queueMicrotask(() => void refresh());
@@ -165,7 +173,7 @@ export function CloudPlans({ basket, onLoad }: { basket: Basket; onLoad: (basket
               <div className={styles.cloudHeading}><p className={styles.accountEmail}>Signed in as {session.user?.email ?? 'your account'}</p><button className={styles.textButton} onClick={signOut} disabled={busy || refreshing}>Sign out</button></div>
               <form onSubmit={save} className={styles.saveForm}><label htmlFor="cloud-plan-name">Plan name<input id="cloud-plan-name" value={name} onChange={event => setName(event.target.value)} maxLength={60} required disabled={busy || refreshing} /></label><button className={styles.primary} type="submit" disabled={busy || refreshing || !body || plans.length >= 20}>{busy || refreshing ? <LoaderCircle size={16} className={styles.spin} /> : <Plus size={16} />}Save this plan</button></form>
               {!body && <p>Choose one to {MAX_PLAN_ASSETS} supported assets, a positive budget, and a split totaling 100% before saving.</p>}
-              <ul className={styles.planList}>{plans.map(plan => <li key={plan.id}><div><strong>{plan.name}</strong><span>{formatUsdc(plan.budget_raw).replace(/0+$/, '').replace(/\.$/, '')} USDC · {plan.allocations.length} {plan.allocations.length === 1 ? 'asset' : 'assets'}</span></div><div className={styles.planActions}><button className={styles.textButton} disabled={busy || refreshing} aria-label={`Load ${plan.name}`} onClick={() => { if (busy || refreshing) return; if (!plansModule) return; onLoad(plansModule.cloudPlanToBasket({ name: plan.name, budget_raw: plan.budget_raw, allocations: plan.allocations })); setFailed(false); setMessage(`Loaded ${plan.name}. Get fresh estimates when you’re ready.`); }}>Load</button><button className={styles.textButton} disabled={busy || refreshing} aria-label={`Delete ${plan.name}`} onClick={() => void remove(plan.id)}>Delete</button></div></li>)}</ul>
+              <ul className={styles.planList}>{plans.map(plan => <li key={plan.id}><div><strong>{plan.name}</strong><span>{formatUsdc(plan.budget_raw).replace(/0+$/, '').replace(/\.$/, '')} USDC · {plan.allocations.length} {plan.allocations.length === 1 ? 'asset' : 'assets'}</span>{galleryEnabled && <SharePlanControl planId={plan.id} planName={plan.name} shared={shared[plan.id]} disabled={busy || refreshing} onChange={(next, text, error) => { setShared(current => { const copy = { ...current }; if (next) copy[plan.id] = next; else delete copy[plan.id]; return copy; }); setFailed(Boolean(error)); setMessage(text); }} />}</div><div className={styles.planActions}><button className={styles.textButton} disabled={busy || refreshing} aria-label={`Load ${plan.name}`} onClick={() => { if (busy || refreshing) return; if (!plansModule) return; onLoad(plansModule.cloudPlanToBasket({ name: plan.name, budget_raw: plan.budget_raw, allocations: plan.allocations })); setFailed(false); setMessage(`Loaded ${plan.name}. Get fresh estimates when you’re ready.`); }}>Load</button><button className={styles.textButton} disabled={busy || refreshing} aria-label={`Delete ${plan.name}`} onClick={() => void remove(plan.id)}>Delete</button></div></li>)}</ul>
               {plans.length === 0 && <p>No cloud plans yet. Your local draft is only uploaded when you choose Save this plan.</p>}
               <button className={styles.textButton} disabled={busy || refreshing} onClick={() => { setMessage(''); void refresh(); }}>Refresh saved plans</button>
             </>}

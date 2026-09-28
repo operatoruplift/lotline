@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState, type FormEvent } from 'react';
 import Link from 'next/link';
-import { ChartNoAxesCombined, FlaskConical, Link2, ListChecks, Plus, Rocket, Search, UserRound, X } from 'lucide-react';
+import { ChartNoAxesCombined, FlaskConical, Link2, ListChecks, Plus, Rocket, Search, UserRound, Users, X } from 'lucide-react';
 import { planLinkTarget } from '@/lib/domain/share';
 import styles from './app-tab-bar.module.css';
 
@@ -14,7 +14,7 @@ const LONG_PRESS_MS = 450;
  * to start or extend a plan; a long press opens the same sheet with the link
  * field focused. Nothing here buys, signs or uploads.
  */
-export function AppTabBar({ active }: { active: Section }) {
+export function AppTabBar({ active, gallery = false }: { active?: Section; gallery?: boolean }) {
   const dialog = useRef<HTMLDialogElement>(null);
   const input = useRef<HTMLInputElement>(null);
   const pressTimer = useRef<number | null>(null);
@@ -70,6 +70,7 @@ export function AppTabBar({ active }: { active: Section }) {
         <div className={styles.sheetTop}><h2 id="create-sheet-title">Start or extend a plan</h2><button type="button" aria-label="Close" onClick={() => setOpen(null)}><X size={18} /></button></div>
         <ul className={styles.actions}>
           <li><Link href="/markets" onClick={() => setOpen(null)}><Search size={18} aria-hidden="true" /><span><strong>Browse markets</strong><small>Find an xStock or PreStock and add it to your draft.</small></span></Link></li>
+          {gallery && <li><Link href="/plans" onClick={() => setOpen(null)}><Users size={18} aria-hidden="true" /><span><strong>Copy a community plan</strong><small>Splits members shared, ranked by copies.</small></span></Link></li>}
           <li><button type="button" onClick={() => setOpen('link')} aria-expanded={open === 'link'}><Link2 size={18} aria-hidden="true" /><span><strong>Open a plan link</strong><small>Review someone’s shared split before applying it.</small></span></button></li>
           <li><Link href="/app?mode=example" onClick={() => setOpen(null)}><FlaskConical size={18} aria-hidden="true" /><span><strong>Try the Example</strong><small>Synthetic balances and estimates, no wallet.</small></span></Link></li>
         </ul>
