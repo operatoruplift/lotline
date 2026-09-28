@@ -23,7 +23,7 @@ async function fixture(context: BrowserContext, count = 1) {
     orders: [] as string[], executions: [] as string[], reconciliations: [] as string[],
     paused: false, unknownLeg: -1, failedLeg: -1, lostResponse: false, expireOnSubmit: false, orderLifetime: 30_000,
     cloudWrites: [] as string[], schedules: [] as Record<string, unknown>[],
-    referenceAccess: true, referenceAge: 0,
+    referenceAccess: true, referenceAge: 0, batchSigning: true, batches: [] as string[][],
   };
   await context.addInitScript(({ basket, key, walletAddress }) => {
     if (!localStorage.getItem(key)) localStorage.setItem(key, JSON.stringify(basket));
@@ -37,12 +37,13 @@ async function fixture(context: BrowserContext, count = 1) {
         'standard:connect': { version: '1.0.0', connect: async () => ({ accounts }) },
         'standard:events': { version: '1.0.0', on: (_event: string, listener: (change: { accounts: typeof accounts }) => void) => { listeners.add(listener); return () => listeners.delete(listener); } },
         'solana:signTransaction': { version: '1.0.0', supportedTransactionVersions: [0], signTransaction: async (...inputs: { account: typeof account; transaction: Uint8Array; chain: string }[]) => {
-          const input = inputs[0];
-          if (inputs.length !== 1 || Array.isArray(input) || input.account.address !== walletAddress || input.chain !== 'solana:mainnet' || !(input.transaction instanceof Uint8Array)) throw new Error('Invalid Wallet Standard signing contract.');
+          // One prompt covers every input, as Mobile Wallet Adapter does; each input is checked.
+          if (inputs.length < 1 || inputs.some(input => Array.isArray(input) || input.account.address !== walletAddress || input.chain !== 'solana:mainnet' || !(input.transaction instanceof Uint8Array))) throw new Error('Invalid Wallet Standard signing contract.');
           sessionStorage.setItem('lotline:test-sign-count', String(Number(sessionStorage.getItem('lotline:test-sign-count') ?? 0) + 1));
+          sessionStorage.setItem('lotline:test-signed-inputs', String(Number(sessionStorage.getItem('lotline:test-signed-inputs') ?? 0) + inputs.length));
           if (window.lotlineTestWallet.reject) throw new Error('Test wallet rejected the signature.');
           if (window.lotlineTestWallet.hold) await new Promise<void>(resolve => { window.lotlineTestWallet.release = resolve; });
-          return [{ signedTransaction: input.transaction }];
+          return inputs.map(input => ({ signedTransaction: input.transaction }));
         } },
       },
     };
@@ -62,13 +63,28 @@ async function fixture(context: BrowserContext, count = 1) {
   });
   await context.route('**/api/execution/**', async route => {
     const path = new URL(route.request().url()).pathname;
-    if (path.endsWith('/config')) return route.fulfill({ json: { state: state.paused ? 'configuration-required' : 'success', enabled: !state.paused, reconciliationAvailable: true, limits, policyVersion: '2026-09-14.v1', ...(state.paused ? { message: 'In-app purchases are not available in this release. You can plan a contribution and review it independently on Jupiter.' } : {}) } });
+    if (path.endsWith('/config')) return route.fulfill({ json: { state: state.paused ? 'configuration-required' : 'success', enabled: !state.paused, reconciliationAvailable: true, batchSigning: state.batchSigning, maxBatchLegs: 3, limits, policyVersion: '2026-09-14.v1', ...(state.paused ? { message: 'In-app purchases are not available in this release. You can plan a contribution and review it independently on Jupiter.' } : {}) } });
     if (path.endsWith('/runs') && route.request().method() === 'POST') {
       state.intent = route.request().postDataJSON().intent;
       state.legs = state.intent!.legs.map((leg, index) => ({ id: `leg-${index}`, leg_key: leg.id, mint: leg.mint, input_raw: leg.maximumInputRaw, state: 'planned' }));
       return route.fulfill({ json: { state: 'success', run: { id: 'fixture-run', intent: state.intent }, legs: state.legs } });
     }
     if (path === '/api/execution/runs/fixture-run') return route.fulfill({ json: { state: 'success', run: { id: 'fixture-run', intent: state.intent }, legs: state.legs, attempts: state.attempts } });
+    if (path === '/api/execution/runs/fixture-run/batch-order') {
+      const now = await route.request().frame().page().evaluate(() => Date.now());
+      const { legIds } = route.request().postDataJSON() as { legIds: string[] };
+      if (state.attempts.some(attempt => ['review-required', 'awaiting-wallet', 'signed', 'submitted', 'confirming', 'unknown'].includes(attempt.state))) return route.fulfill({ status: 409, json: { state: 'in-progress', message: 'A leg of this contribution already has an active review.' } });
+      const batchId = `batch-${state.batches.length + 1}`;
+      state.batches.push(legIds);
+      const attempts = legIds.map(legId => {
+        const leg = state.legs.find(leg => leg.id === legId)!;
+        state.orders.push(leg.id); leg.state = 'review-required';
+        const id = `00000000-0000-4000-8000-${String(state.attempts.length + 1).padStart(12, '0')}`;
+        state.attempts.push({ id, leg_id: leg.id, state: 'review-required' });
+        return { id, legId: leg.id, mint: leg.mint, requestId: id, state: 'review-required', messageHash: 'a'.repeat(64), inputRaw: leg.input_raw, outputRaw: '123000000', minimumOutputRaw: '122000000', router: 'metis', expiresAt: new Date(now + state.orderLifetime).toISOString(), prioritizationFeeLamports: '5000', signatureFeeLamports: '5000', rentFeeLamports: '2000000', totalSolCostLamports: '2010000', feeBps: 0, feeMint: state.intent!.inputMint, transaction: 'AQIDBA==' };
+      });
+      return route.fulfill({ json: { state: 'success', batchId, attempts } });
+    }
     const orderMatch = path.match(/\/legs\/(leg-\d+)\/order$/);
     if (orderMatch) {
       const now = await route.request().frame().page().evaluate(() => Date.now());
@@ -120,6 +136,63 @@ async function openReview(page: Page) {
   await expect(page.getByRole('button', { name: 'Sign this purchase', exact: true })).toBeEnabled();
 }
 async function signatures(page: Page) { return page.evaluate(() => Number(sessionStorage.getItem('lotline:test-sign-count') ?? 0)); }
+async function signedInputs(page: Page) { return page.evaluate(() => Number(sessionStorage.getItem('lotline:test-signed-inputs') ?? 0)); }
+/** A four-leg basket splits 25% each; the batch cap is three, so the button offers the next three. */
+async function openBatch(page: Page) {
+  await page.goto('/app');
+  await page.getByRole('button', { name: 'Get estimates', exact: true }).click();
+  await page.getByRole('button', { name: 'Controlled test wallet', exact: true }).click();
+  await page.getByRole('button', { name: 'Review next 3 & sign once', exact: true }).click();
+  await expect(page.getByRole('button', { name: 'Sign 3 purchases at once', exact: true })).toBeEnabled();
+}
+
+test('three legs are reviewed together, approved in one wallet prompt and sent in order', async ({ page, context }) => {
+  const state = await fixture(context, 4);
+  await openBatch(page);
+  expect(state.orders).toEqual(['leg-0', 'leg-1', 'leg-2']);
+  expect(state.batches).toEqual([['leg-0', 'leg-1', 'leg-2']]);
+  await expect(page.locator('[data-execution-batch] li')).toHaveCount(3);
+  await expect(page.locator('[data-execution-batch]')).toContainText('25.000000 USDC');
+  await page.getByRole('button', { name: 'Sign 3 purchases at once', exact: true }).click();
+  await expect(page.getByText(/3 of 4 legs confirmed/)).toBeVisible();
+  expect(state.executions).toEqual(['leg-0', 'leg-1', 'leg-2']);
+  expect(await signatures(page)).toBe(1);
+  expect(await signedInputs(page)).toBe(3);
+  await expect(page.getByRole('link', { name: 'View original transaction' })).toHaveCount(3);
+  // One leg remains, so the batch button is gone and the single-leg flow finishes the run.
+  await expect(page.getByRole('button', { name: /sign once/ })).toHaveCount(0);
+  await page.getByRole('button', { name: 'Resume remaining', exact: true }).click();
+  await page.getByRole('button', { name: 'Sign this purchase', exact: true }).click();
+  await expect(page.getByText('All reviewed contribution legs are confirmed on Solana.')).toBeVisible();
+  expect(state.executions).toEqual(['leg-0', 'leg-1', 'leg-2', 'leg-3']);
+  expect(await signatures(page)).toBe(2);
+  await page.reload();
+  await expect(page.getByText(/4 of 4 legs confirmed/)).toBeVisible();
+  expect(state.orders).toEqual(['leg-0', 'leg-1', 'leg-2', 'leg-3']);
+});
+
+test('a leg that fails on chain stops the rest of the batch from being sent', async ({ page, context }) => {
+  const state = await fixture(context, 4);
+  state.failedLeg = 1;
+  await openBatch(page);
+  await page.getByRole('button', { name: 'Sign 3 purchases at once', exact: true }).click();
+  await expect(page.getByText(/stopped after a failed or rejected leg/)).toBeVisible();
+  expect(state.executions).toEqual(['leg-0', 'leg-1']);
+  expect(await signatures(page)).toBe(1);
+  expect(await signedInputs(page)).toBe(3);
+  await expect(page.getByText(/1 of 4 legs confirmed/)).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Sign 3 purchases at once', exact: true })).toHaveCount(0);
+});
+
+test('batch approval is hidden while the server has not acknowledged the batch migration', async ({ page, context }) => {
+  const state = await fixture(context, 2);
+  state.batchSigning = false;
+  await page.goto('/app');
+  await page.getByRole('button', { name: 'Get estimates', exact: true }).click();
+  await page.getByRole('button', { name: 'Controlled test wallet', exact: true }).click();
+  await expect(page.getByRole('button', { name: 'Review purchase', exact: true })).toBeEnabled();
+  await expect(page.getByRole('button', { name: /sign once/ })).toHaveCount(0);
+});
 
 for (const availability of ['missing', 'stale'] as const) {
   test(`${availability} Pyth references block purchase review until fresh observations arrive`, async ({ page, context }) => {
@@ -325,7 +398,11 @@ test.describe('controlled execution walkthrough — fixtures only', () => {
     await page.screenshot({ path: testInfo.outputPath('fixture-partial-recovery-1440.png') });
     await page.reload();
     await expect(page.getByText(/2 of 4 legs confirmed/)).toBeVisible();
+    const checksBefore = state.reconciliations.length;
     await page.getByRole('button', { name: 'Check original receipt', exact: true }).click();
+    // The check reconciles the unknown leg through the mocked route; wait for that
+    // request before letting the fixture resolve it, or the flip races the click.
+    await expect.poll(() => state.reconciliations.length).toBeGreaterThan(checksBefore);
     expect(await signatures(page)).toBe(3); expect(state.orders).toEqual(['leg-0', 'leg-1', 'leg-2']);
     state.unknownLeg = -1;
     await page.getByRole('button', { name: 'Check original receipt', exact: true }).click();

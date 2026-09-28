@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { validateIntentShape, type ContributionIntent } from '@/lib/domain/execution';
+import { MAX_BATCH_LEGS, validateIntentShape, type ContributionIntent } from '@/lib/domain/execution';
 import { addressSchema, isBoundedRaw, MAX_USDC_RAW, USDC_MINT } from '@/lib/server/common';
 import { PLAN_MINTS } from '@/lib/supabase/plans';
 
@@ -33,6 +33,7 @@ export const intentSchema = z.object({
 });
 export const runRequestSchema = z.object({ intent: intentSchema }).strict();
 export const orderRequestSchema = z.object({ intent: intentSchema, mint: addressSchema }).strict();
+export const batchOrderRequestSchema = z.object({ intent: intentSchema, legIds: z.array(z.string().uuid()).min(1).max(MAX_BATCH_LEGS).refine(ids => new Set(ids).size === ids.length, 'Each leg may appear once.') }).strict();
 export const executeRequestSchema = z.object({ requestId: z.string().min(1).max(160), signedTransaction: z.string().min(1).max(1644), messageHash: z.string().regex(/^[a-f0-9]{64}$/), lastValidBlockHeight: raw.optional() }).strict();
 export const reconcileRequestSchema = z.object({ attemptId: z.string().uuid() }).strict();
 

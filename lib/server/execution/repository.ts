@@ -5,6 +5,7 @@ import { canTransition, type ContributionIntent, type ExecutionState } from '@/l
 import type { ExecutionOrder } from './orders';
 import { ServiceError } from '@/lib/server/common';
 import type { ExecutionOwner } from './http';
+import { batchSigningEnabled } from './config';
 
 type RunRow = {
   id: string;
@@ -52,6 +53,8 @@ type AttemptRow = {
   evidence: Record<string, unknown> | null;
   created_at: string;
   updated_at: string;
+  /** Present once the batch migration is acknowledged; null for single-leg reviews. */
+  batch_id?: string | null;
 };
 
 export type ExecutionSnapshot = { run: RunRow; legs: LegRow[]; attempts: AttemptRow[] };
@@ -75,6 +78,12 @@ function client(): SupabaseClient {
   return createClient(url, key, { auth: { autoRefreshToken: false, persistSession: false }, global: { fetch: (input, init) => fetch(input, { ...init, cache: 'no-store', signal: init?.signal ? AbortSignal.any([init.signal, AbortSignal.timeout(12_000)]) : AbortSignal.timeout(12_000) }) } });
 }
 
+const ATTEMPT_COLUMNS = 'id,leg_id,provider_request_id,transaction_message_hash,original_blockhash,original_last_valid_block_height,provider_expires_at,minimum_output_raw,signature,state,state_version,evidence,created_at,updated_at';
+/** The batch column is selected only where the additive migration has been acknowledged. */
+function attemptColumns(): string {
+  return batchSigningEnabled() ? `${ATTEMPT_COLUMNS},batch_id` : ATTEMPT_COLUMNS;
+}
+
 function check<T>(result: { data: T; error: { message: string } | null }): T {
   if (result.error) throw new ServiceError('unavailable', 'The execution journal is temporarily unavailable.');
   return result.data;
@@ -83,7 +92,7 @@ function check<T>(result: { data: T; error: { message: string } | null }): T {
 async function hydrateSnapshot(db: SupabaseClient, run: RunRow): Promise<ExecutionSnapshot> {
   const legs = check(await db.from('lotline_execution_legs').select('*').eq('run_id', run.id).order('created_at')) as LegRow[];
   const legIds = legs.map(leg => leg.id);
-  const attempts = legIds.length ? check(await db.from('lotline_execution_attempts').select('id,leg_id,provider_request_id,transaction_message_hash,original_blockhash,original_last_valid_block_height,provider_expires_at,minimum_output_raw,signature,state,state_version,evidence,created_at,updated_at').in('leg_id', legIds).order('created_at')) as AttemptRow[] : [];
+  const attempts = legIds.length ? check(await db.from('lotline_execution_attempts').select(attemptColumns()).in('leg_id', legIds).order('created_at')) as unknown as AttemptRow[] : [];
   return { run, legs, attempts };
 }
 
@@ -154,15 +163,19 @@ export async function getSnapshot(owner: ExecutionOwner, runId: string): Promise
   return hydrateSnapshot(db, run);
 }
 
-export async function createAttempt(owner: ExecutionOwner, runId: string, legId: string, order: ExecutionOrder): Promise<AttemptRow> {
+/** Attempts that block a new review unless they belong to the same approval batch. */
+export const ACTIVE_ATTEMPT_STATES: readonly ExecutionState[] = ['review-required', 'awaiting-wallet', 'signed', 'submitted', 'confirming', 'unknown'];
+
+export async function createAttempt(owner: ExecutionOwner, runId: string, legId: string, order: ExecutionOrder, batchId?: string): Promise<AttemptRow> {
   const snapshot = await getSnapshot(owner, runId);
   const leg = snapshot?.legs.find(item => item.id === legId);
   if (!snapshot || !leg) throw new ServiceError('invalid-input', 'That contribution leg is no longer available.');
   if (leg.input_raw === '0' || !['planned', 'quoting', 'expired-unbroadcast'].includes(leg.state)) throw new ServiceError('invalid-input', 'This leg is skipped, completed, or already has an execution attempt.');
-  if (snapshot.attempts.some(attempt => ['review-required', 'awaiting-wallet', 'signed', 'submitted', 'confirming', 'unknown'].includes(attempt.state))) throw new ServiceError('invalid-input', 'Finish or reconcile the current leg before reviewing another purchase.');
+  if (snapshot.attempts.some(attempt => ACTIVE_ATTEMPT_STATES.includes(attempt.state) && (!batchId || attempt.batch_id !== batchId))) throw new ServiceError('invalid-input', 'Finish or reconcile the current leg before reviewing another purchase.');
   if (order.inputMint !== snapshot.run.input_mint || order.outputMint !== leg.mint || order.inAmount !== leg.input_raw) throw new ServiceError('invalid-input', 'This order does not match the immutable contribution leg.');
+  if (batchId && !batchSigningEnabled()) throw new ServiceError('configuration-required', 'Batch approval needs the acknowledged batch journal migration.');
   const db = client();
-  const row = check(await db.from('lotline_execution_attempts').insert({ leg_id: legId, provider_request_id: order.requestId, transaction_message_hash: order.messageHash, original_blockhash: order.originalBlockhash, original_last_valid_block_height: order.lastValidBlockHeight ?? null, provider_expires_at: order.expiresAt, minimum_output_raw: order.minimumOutputRaw, state: 'review-required', evidence: { transaction: order.transaction, router: order.router, inputMint: order.inputMint, outputMint: order.outputMint, inAmount: order.inAmount, outAmount: order.outAmount, prioritizationFeeLamports: order.prioritizationFeeLamports, signatureFeeLamports: order.signatureFeeLamports, rentFeeLamports: order.rentFeeLamports, totalSolCostLamports: order.totalSolCostLamports, feeBps: order.feeBps, feeMint: order.feeMint, platformFee: order.platformFee ?? null, validation: order.validation, slippageBps: order.slippageBps, semanticProof: order.semanticProof ?? null } }).select('id,leg_id,provider_request_id,transaction_message_hash,original_blockhash,original_last_valid_block_height,provider_expires_at,minimum_output_raw,signature,state,state_version,evidence,created_at,updated_at').single()) as AttemptRow;
+  const row = check(await db.from('lotline_execution_attempts').insert({ ...(batchId ? { batch_id: batchId } : {}), leg_id: legId, provider_request_id: order.requestId, transaction_message_hash: order.messageHash, original_blockhash: order.originalBlockhash, original_last_valid_block_height: order.lastValidBlockHeight ?? null, provider_expires_at: order.expiresAt, minimum_output_raw: order.minimumOutputRaw, state: 'review-required', evidence: { transaction: order.transaction, router: order.router, inputMint: order.inputMint, outputMint: order.outputMint, inAmount: order.inAmount, outAmount: order.outAmount, prioritizationFeeLamports: order.prioritizationFeeLamports, signatureFeeLamports: order.signatureFeeLamports, rentFeeLamports: order.rentFeeLamports, totalSolCostLamports: order.totalSolCostLamports, feeBps: order.feeBps, feeMint: order.feeMint, platformFee: order.platformFee ?? null, validation: order.validation, slippageBps: order.slippageBps, semanticProof: order.semanticProof ?? null } }).select(attemptColumns()).single()) as unknown as AttemptRow;
   // The integrity migration updates leg/run projections and appends its event in
   // the same database transaction as the attempt insert.
   return row;
@@ -170,7 +183,7 @@ export async function createAttempt(owner: ExecutionOwner, runId: string, legId:
 
 export async function getAttemptByRequestId(owner: ExecutionOwner, requestId: string): Promise<{ attempt: AttemptRow; leg: LegRow; run: RunRow } | null> {
   const db = client();
-  const attempt = check(await db.from('lotline_execution_attempts').select('id,leg_id,provider_request_id,transaction_message_hash,original_blockhash,original_last_valid_block_height,provider_expires_at,minimum_output_raw,signature,state,state_version,evidence,created_at,updated_at').eq('provider_request_id', requestId).maybeSingle()) as AttemptRow | null;
+  const attempt = check(await db.from('lotline_execution_attempts').select(attemptColumns()).eq('provider_request_id', requestId).maybeSingle()) as unknown as AttemptRow | null;
   if (!attempt) return null;
   const leg = check(await db.from('lotline_execution_legs').select('*').eq('id', attempt.leg_id).maybeSingle()) as LegRow | null;
   if (!leg) return null;
@@ -186,7 +199,7 @@ export async function getAttemptByRequestId(owner: ExecutionOwner, requestId: st
 
 export async function getAttempt(owner: ExecutionOwner, attemptId: string): Promise<{ attempt: AttemptRow; leg: LegRow; run: RunRow } | null> {
   const db = client();
-  const attempt = check(await db.from('lotline_execution_attempts').select('id,leg_id,provider_request_id,transaction_message_hash,original_blockhash,original_last_valid_block_height,provider_expires_at,minimum_output_raw,signature,state,state_version,evidence,created_at,updated_at').eq('id', attemptId).maybeSingle()) as AttemptRow | null;
+  const attempt = check(await db.from('lotline_execution_attempts').select(attemptColumns()).eq('id', attemptId).maybeSingle()) as unknown as AttemptRow | null;
   if (!attempt) return null;
   const leg = check(await db.from('lotline_execution_legs').select('*').eq('id', attempt.leg_id).maybeSingle()) as LegRow | null;
   if (!leg) return null;
