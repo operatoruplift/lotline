@@ -91,6 +91,10 @@ Meteora's Dynamic Bonding Curve program lists tokenized stocks as **quote** toke
 
 Two things this is not. It is not a way to buy an xStock, since a USDC to xStock route runs through Jupiter and no bonding curve sells the xStock itself. And it is not a write path: Lotline never creates a pool, signs, or routes a purchase through DBC. PreStocks tokens carry no DBC badge and are planned from issuer identity data with Jupiter estimates. The code is `lib/domain/dbc.ts`, `lib/server/meteora-dbc.ts` and the panel in `components/dbc-pairs.tsx`.
 
+## Markets, behind an operator flag
+
+`LOTLINE_MARKETS_ENABLED=true` turns on a browsable market view of all 840 verified assets (stocks, ETFs and pre-IPO tokens) with a dated Jupiter snapshot, a per-asset sheet with a 1D/7D/30D price chart and the verified identity, one-tap adding to the device draft, a reviewed `/app?add=<mint>` link and a phone tab bar. Stock/ETF labels come from Nasdaq's public symbol directory. Every figure is labelled as a snapshot, never a quote; allocations still come only from a fresh estimate for the exact amount. The flag is off by default, so the submitted interface is unchanged. See [markets](docs/markets.md).
+
 ## Precision and freshness
 
 - Budgets use plain decimal strings with up to six fractional digits, bounded to 1,000,000 USDC. Allocation uses BigInt micro-units and integer basis points, then distributes leftover micro-units by largest remainder with stable basket-order ties.

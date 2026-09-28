@@ -17,3 +17,6 @@
 .executionPanel{padding:24px}
 .executionPanel>section{margin:0;padding:0;border:0}
 @media(max-width:600px){.executionPanel{padding:23px 21px}}
+.browseMarkets { display: inline-flex; align-items: center; gap: 6px; min-height: 40px; margin-top: 8px; font-size: 12px; font-weight: 550; color: var(--forest); }
+.browseMarkets:hover { text-decoration: underline; text-underline-offset: 3px; }
+@media (max-width: 800px) { .browseMarkets { min-height: 44px; } }

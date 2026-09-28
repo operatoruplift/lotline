@@ -1,0 +1,14 @@
+.dialog { width: min(460px, calc(100% - 32px)); padding: 22px 22px 20px; border: 0; border-radius: 16px; background: var(--white); color: var(--ink); box-shadow: 0 24px 60px #153c3430; }
+.dialog::backdrop { background: rgba(24, 33, 29, .32); }
+.top { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+.top h2 { font-size: 19px; letter-spacing: -.4px; line-height: 1.3; }
+.top button { width: 44px; min-height: 44px; flex: 0 0 auto; border: 1px solid var(--line); border-radius: 10px; background: var(--white); color: var(--ink); }
+.asset { display: flex; align-items: center; gap: 12px; margin-top: 16px; padding: 12px; border: 1px solid var(--line); border-radius: 12px; background: var(--soft); }
+.logo { display: inline-flex; width: 40px; height: 40px; border-radius: 10px; overflow: hidden; background: #ebeee7; flex: 0 0 auto; }
+.logo img { width: 100%; height: 100%; object-fit: cover; }
+.asset strong { display: block; font-size: 14px; font-weight: 600; }
+.asset span { display: block; margin-top: 2px; font-size: 12px; color: var(--muted); }
+.body { margin-top: 14px; font-size: 13px; line-height: 1.75; color: #3c4a40; }
+.safety { display: flex; align-items: center; gap: 7px; margin-top: 10px; font-size: 12px; color: var(--forest); }
+.actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 18px; }
+.actions :global(.button) { min-height: 44px; }

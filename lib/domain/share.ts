@@ -59,3 +59,13 @@ export function buildPlanLink(origin: string, basket: Basket, mode: Mode, univer
   url.hash = encodePlanHash(basket, mode, universe);
   return url.toString();
 }
+
+/** Validates a pasted Lotline plan link and returns the same-origin path to open, or null. */
+export function planLinkTarget(value: string, origin: string): string | null {
+  let url: URL;
+  try { url = new URL(value.trim(), origin); } catch { return null; }
+  // Example links keep their mode; any other query is refused rather than dropped.
+  if (url.origin !== origin || (url.pathname !== '/app' && url.pathname !== '/pre-ipo') || (url.search !== '' && url.search !== '?mode=example') ||
+      !url.hash.startsWith(PLAN_HASH_PREFIX) || url.hash.length > MAX_PLAN_HASH_LENGTH) return null;
+  return `${url.pathname}${url.search}${url.hash}`;
+}
