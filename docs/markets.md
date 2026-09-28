@@ -10,6 +10,8 @@ Added 28 September 2026 behind the server flag `LOTLINE_MARKETS_ENABLED`. With t
 - **Add link.** `/app?add=<mint>` (or `/pre-ipo?add=<mint>`) opens a review dialog before the draft changes. It states the share the asset would take and that nothing is bought or signed. Mints outside that planner's catalog are refused.
 - **Phone tab bar.** At 800px and narrower: Plan, Markets, a raised **+**, Pre-IPO and Account. The **+** opens a sheet to browse markets, open a plan link or try the Example; holding it opens the plan-link field directly. Pasted links must be same-origin `/app` or `/pre-ipo` links with a `#plan=` fragment (Example links keep `?mode=example`), and they open the existing shared-plan review.
 
+- **Balance toward your split.** With a wallet's balances loaded, the planner can read the split as the mix someone wants to hold. It values the balances at the market snapshot and suggests how to divide this contribution among the assets below their share, in proportion to how far below they are. Nothing is sold and assets at or above their share get 0%. **Use this split for this contribution** writes the suggested percentages (exact basis points summing to 100%) and keeps the original split on the device; **Restore target split** brings it back. USDC amounts and quotes still come from the planner's exact arithmetic and fresh estimates.
+
 ## Data and freshness
 
 | Figure | Source | Freshness |

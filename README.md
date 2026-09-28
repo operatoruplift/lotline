@@ -93,7 +93,7 @@ Two things this is not. It is not a way to buy an xStock, since a USDC to xStock
 
 ## Markets, behind an operator flag
 
-`LOTLINE_MARKETS_ENABLED=true` turns on a browsable market view of all 840 verified assets (stocks, ETFs and pre-IPO tokens) with a dated Jupiter snapshot, a per-asset sheet with a 1D/7D/30D price chart and the verified identity, one-tap adding to the device draft, a reviewed `/app?add=<mint>` link and a phone tab bar. Stock/ETF labels come from Nasdaq's public symbol directory. Every figure is labelled as a snapshot, never a quote; allocations still come only from a fresh estimate for the exact amount. The flag is off by default, so the submitted interface is unchanged. See [markets](docs/markets.md).
+`LOTLINE_MARKETS_ENABLED=true` turns on a browsable market view of all 840 verified assets (stocks, ETFs and pre-IPO tokens) with a dated Jupiter snapshot, a per-asset sheet with a 1D/7D/30D price chart and the verified identity, one-tap adding to the device draft, a reviewed `/app?add=<mint>` link, a phone tab bar, and **Balance toward your split**, which reads the split as a target mix and suggests a no-sell division of the next contribution from the loaded balances. Stock/ETF labels come from Nasdaq's public symbol directory. Every figure is labelled as a snapshot, never a quote; allocations still come only from a fresh estimate for the exact amount. The flag is off by default, so the submitted interface is unchanged. See [markets](docs/markets.md).
 
 ## Precision and freshness
 

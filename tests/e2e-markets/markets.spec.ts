@@ -4,6 +4,7 @@ import { MARKET_IDENTITIES, type ChartResponse, type MarketSnapshot } from '../.
 import { XSTOCK_REGISTRY } from '../../lib/domain/assets';
 import { BASKET_STORAGE_KEY } from '../../lib/domain/storage';
 import { buildPlanLink } from '../../lib/domain/share';
+import { DEFAULT_BASKET, EXAMPLE_ASSETS, getExampleHoldings } from '../../lib/demo/example';
 
 const AAPLX = MARKET_IDENTITIES.find(identity => identity.symbol === 'AAPLx')!;
 const SPYX = MARKET_IDENTITIES.find(identity => identity.symbol === 'SPYx')!;
@@ -138,3 +139,33 @@ for (const width of [320, 390]) {
     await expect(page.getByRole('navigation', { name: 'Planning sections' }).getByRole('link', { name: 'Plan' })).toHaveAttribute('aria-current', 'page');
   });
 }
+
+test('balancing toward the split suggests a no-sell contribution and restores the target on request', async ({ page }) => {
+  const [first, second, third] = DEFAULT_BASKET.items.map(item => item.mint);
+  const holdings = getExampleHoldings([first, second, third]);
+  holdings.state = 'success';
+  holdings.holdings = [{ mint: first, state: 'success', raw: '6', units: '6' }, { mint: second, state: 'success', raw: '0', units: '0' }, { mint: third, state: 'success', raw: '0', units: '0' }];
+  const prices: MarketSnapshot = { ...snapshot, stats: { [first]: { ...snapshot.stats[AAPLX.mint], price: 250 }, [second]: { ...snapshot.stats[AAPLX.mint], price: 400 }, [third]: { ...snapshot.stats[AAPLX.mint], price: 180 } } };
+  await page.addInitScript(({ key, basket }) => { if (!sessionStorage.getItem('seeded')) { localStorage.setItem(key, JSON.stringify(basket)); sessionStorage.setItem('seeded', '1'); } }, { key: BASKET_STORAGE_KEY, basket: DEFAULT_BASKET });
+  await page.route('**/api/assets', route => route.fulfill({ json: { state: 'success', assets: EXAMPLE_ASSETS, unavailable: [] } }));
+  await page.route('**/api/markets', route => route.fulfill({ json: prices }));
+  await page.route('**/api/holdings?**', route => route.fulfill({ json: holdings }));
+  await page.goto('/app');
+  await page.getByLabel('Wallet address', { exact: true }).fill('11111111111111111111111111111111');
+  await page.getByRole('button', { name: 'Load balances', exact: true }).click();
+  const panel = page.getByRole('region', { name: 'Balance toward your split' });
+  await expect(panel).toContainText('without selling anything');
+  // 1,500 held in the first asset plus 1,000 new: targets 1,250 / 750 / 500, so the first asset is already over.
+  const [a, b, c] = [EXAMPLE_ASSETS[0].symbol, EXAMPLE_ASSETS[1].symbol, EXAMPLE_ASSETS[2].symbol];
+  await expect(panel.getByRole('row', { name: new RegExp(`^${a}`) })).toContainText('100%');
+  await expect(panel.getByRole('row', { name: new RegExp(`^${b}`) }).locator('strong')).toHaveText('60%');
+  await expect(panel.getByRole('row', { name: new RegExp(`^${c}`) }).locator('strong')).toHaveText('40%');
+  await panel.getByRole('button', { name: /Use this split for this contribution/ }).click();
+  await expect(page.getByLabel(`${a} percentage`)).toHaveValue('0');
+  await expect(page.getByLabel(`${b} percentage`)).toHaveValue('60');
+  await expect(page.getByLabel(`${c} percentage`)).toHaveValue('40');
+  await expect(panel).toContainText('This contribution uses the suggested split.');
+  await panel.getByRole('button', { name: 'Restore target split (50% / 30% / 20%)' }).click();
+  await expect(page.getByLabel(`${a} percentage`)).toHaveValue('50');
+  await expect(page.getByLabel(`${b} percentage`)).toHaveValue('30');
+});
