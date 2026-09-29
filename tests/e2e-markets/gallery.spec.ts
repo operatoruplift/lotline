@@ -45,7 +45,8 @@ test('community plans rank by copies, never show a budget, and copy into the rev
   const review = page.getByRole('dialog', { name: 'Review shared plan' });
   await expect(review).toBeVisible();
   await expect(review).toContainText('75');
-  expect(copies).toEqual([plans[0].id]);
+  // The copy count is recorded asynchronously; on a cold server it can land after the dialog opens.
+  await expect.poll(() => copies).toEqual([plans[0].id]);
 });
 
 test('a shared plan has its own page with every weight, a copy link and a gone state', async ({ page, context }) => {

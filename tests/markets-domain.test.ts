@@ -1,8 +1,10 @@
 import { describe, expect, it } from 'vitest';
 import {
   addAssetToBasket, categoryCounts, filterMarkets, formatMarketChange, formatMarketPrice, formatMarketUsd, MARKET_IDENTITIES, marketDirection,
-  marketIdentity, marketRows, pageOf, sortMarkets, type MarketRow,
+  marketIdentity, marketIdentityBySymbol, marketRows, marketTypeLabel, pageOf, sortMarkets, versionRows, type MarketRow,
 } from '../lib/domain/markets';
+import { LEVERAGE_BY_SYMBOL, THEME_SYMBOLS, VERSION_GROUPS } from '../lib/domain/market-themes';
+import kinds from '../lib/domain/xstocks-kinds.json' with { type: 'json' };
 import { addToDraft, draftMints } from '../lib/client/plan-draft';
 import { buildPlanLink, planLinkTarget } from '../lib/domain/share';
 import { MAX_PLAN_ASSETS } from '../lib/domain/limits';
@@ -26,7 +28,7 @@ describe('market catalog identities', () => {
   it('covers every pinned xStock and PreStock exactly once, with official ETF flags', () => {
     expect(MARKET_IDENTITIES).toHaveLength(840);
     expect(new Set(MARKET_IDENTITIES.map(identity => identity.mint)).size).toBe(840);
-    expect(categoryCounts(MARKET_IDENTITIES)).toEqual({ all: 840, stocks: 778, etfs: 54, 'pre-ipo': 8 });
+    expect(categoryCounts(MARKET_IDENTITIES)).toEqual({ all: 840, stocks: 778, etfs: 54, metals: 5, bonds: 6, 'pre-ipo': 8 });
     expect(marketIdentity(SPYX)).toMatchObject({ category: 'etfs', underlyingSymbol: 'SPY', listing: 'US', issuer: 'xStocks' });
     expect(marketIdentity(AAPLX)).toMatchObject({ category: 'stocks', underlyingSymbol: 'AAPL' });
     expect(marketIdentity(OPENAI)).toMatchObject({ category: 'pre-ipo', universe: 'prestocks', underlyingSymbol: null, listing: null, issuer: 'PreStocks' });
@@ -136,5 +138,45 @@ describe('display formatting and plan links', () => {
     expect(planLinkTarget(`${origin}/app`, origin)).toBeNull();
     expect(planLinkTarget('javascript:alert(1)', origin)).toBeNull();
     expect(planLinkTarget(`${origin}/app#plan=${'a'.repeat(3000)}`, origin)).toBeNull();
+  });
+});
+
+describe('themes, leverage and versions', () => {
+  const etfs = new Set<string>(kinds.etf);
+  it('draws Metals and Bonds only from ETFs in the pinned registry, and keeps them under ETFs too', () => {
+    for (const symbols of Object.values(THEME_SYMBOLS)) for (const symbol of symbols) {
+      expect(etfs.has(symbol), symbol).toBe(true);
+      expect(marketIdentityBySymbol(symbol)?.category, symbol).toBe('etfs');
+    }
+    expect(filterMarkets(MARKET_IDENTITIES, 'metals', '').map(identity => identity.symbol).sort()).toEqual([...THEME_SYMBOLS.metals].sort());
+    expect(filterMarkets(MARKET_IDENTITIES, 'bonds', 'treasury').map(identity => identity.symbol)).toEqual(['SGOVx']);
+    expect(filterMarkets(MARKET_IDENTITIES, 'etfs', 'gold').map(identity => identity.symbol)).toEqual(expect.arrayContaining(['GLDx', 'FGDLx', 'GDXx']));
+    expect(marketIdentityBySymbol('GDXx')?.theme).toBeNull();
+  });
+
+  it('labels only ETFs whose names state a daily multiple', () => {
+    for (const symbol of Object.keys(LEVERAGE_BY_SYMBOL)) expect(etfs.has(symbol), symbol).toBe(true);
+    expect(marketIdentityBySymbol('TQQQx')?.leverage).toBe('3×');
+    expect(marketIdentityBySymbol('SOXSx')?.leverage).toBe('−3×');
+    expect(marketIdentityBySymbol('QQQx')?.leverage).toBeNull();
+    expect(['TQQQx', 'GLDx', 'SGOVx', 'SPYx', 'AAPLx', 'OPENAI'].map(symbol => marketTypeLabel(marketIdentityBySymbol(symbol)!)))
+      .toEqual(['3× daily ETF', 'Metal ETF', 'Bond ETF', 'ETF', 'Share', 'Pre-IPO']);
+  });
+
+  it('groups versions only among pinned assets, each asset in one group at most', () => {
+    const seen = new Set<string>();
+    for (const group of VERSION_GROUPS) {
+      expect(group.symbols.length, group.id).toBeGreaterThan(1);
+      for (const symbol of group.symbols) {
+        expect(marketIdentityBySymbol(symbol), symbol).toBeDefined();
+        expect(seen.has(symbol), symbol).toBe(false);
+        seen.add(symbol);
+      }
+    }
+    const spacex = versionRows(marketRows(null), marketIdentityBySymbol('SPACEX')!);
+    expect(spacex?.group.kind).toBe('company');
+    expect(spacex?.rows.map(row => [row.symbol, row.issuer])).toEqual([['SPCXx', 'xStocks'], ['SPACEX', 'PreStocks']]);
+    expect(versionRows(marketRows(null), marketIdentityBySymbol('SOXLx')!)?.rows.map(row => row.symbol)).toEqual(['SMHx', 'SOXXx', 'SOXLx', 'SOXSx']);
+    expect(versionRows(marketRows(null), marketIdentityBySymbol('AAPLx')!)).toBeNull();
   });
 });

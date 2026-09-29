@@ -2,6 +2,7 @@ import kinds from './xstocks-kinds.json' with { type: 'json' };
 import { XSTOCK_REGISTRY } from './assets';
 import { PRESTOCK_REGISTRY } from './prestocks';
 import { MAX_PLAN_ASSETS } from './limits';
+import { leverageForSymbol, themeForSymbol, versionGroupForSymbol, type MarketTheme, type VersionGroup } from './market-themes';
 import { parsePercent } from './math';
 import type { Basket } from './types';
 import type { PlannerUniverse } from './planner-universe';
@@ -12,10 +13,11 @@ import type { PlannerUniverse } from './planner-universe';
  * choosing assets; it is never a quote, and it never feeds an allocation.
  */
 export type MarketCategory = 'stocks' | 'etfs' | 'pre-ipo';
-export type MarketFilter = 'all' | MarketCategory;
+/** Categories, plus themes within the ETFs (an ETF with a theme appears under ETFs and under its theme). */
+export type MarketFilter = 'all' | MarketCategory | MarketTheme;
 export type MarketSort = 'volume' | 'gainers' | 'losers' | 'liquidity' | 'name' | 'price';
 export const MARKET_SORTS: readonly MarketSort[] = ['volume', 'gainers', 'losers', 'liquidity', 'name', 'price'];
-export const MARKET_FILTERS: readonly MarketFilter[] = ['all', 'stocks', 'etfs', 'pre-ipo'];
+export const MARKET_FILTERS: readonly MarketFilter[] = ['all', 'stocks', 'etfs', 'metals', 'bonds', 'pre-ipo'];
 export const MARKETS_PAGE_SIZE = 20;
 export const MARKET_SNAPSHOT_SOURCE = 'Jupiter Tokens API';
 export const CHART_RANGES = ['1d', '7d', '30d'] as const;
@@ -33,6 +35,9 @@ export interface MarketIdentity {
   /** Where the underlying trades, for xStocks. */
   listing: 'US' | 'HK' | null;
   issuer: 'xStocks' | 'PreStocks';
+  theme: MarketTheme | null;
+  /** The daily multiple a leveraged or inverse ETF states, such as "3×"; null otherwise. */
+  leverage: string | null;
 }
 
 export interface MarketStats {
@@ -71,23 +76,55 @@ export const MARKET_IDENTITIES: readonly Readonly<MarketIdentity>[] = [
     mint: asset.mint, symbol: asset.symbol, name: asset.name, universe: 'xstocks',
     category: etfs.has(asset.symbol) ? 'etfs' : 'stocks', logoUrl: asset.logoUrl,
     underlyingSymbol: asset.underlyingSymbol, listing: hongKong.has(asset.symbol) ? 'HK' : 'US', issuer: 'xStocks',
+    theme: etfs.has(asset.symbol) ? themeForSymbol(asset.symbol) : null, leverage: etfs.has(asset.symbol) ? leverageForSymbol(asset.symbol) : null,
   })),
   ...PRESTOCK_REGISTRY.map((asset): MarketIdentity => ({
     mint: asset.mint, symbol: asset.symbol, name: asset.name, universe: 'prestocks',
-    category: 'pre-ipo', logoUrl: asset.logoUrl, underlyingSymbol: null, listing: null, issuer: 'PreStocks',
+    category: 'pre-ipo', logoUrl: asset.logoUrl, underlyingSymbol: null, listing: null, issuer: 'PreStocks', theme: null, leverage: null,
   })),
 ];
 const byMint = new Map(MARKET_IDENTITIES.map(identity => [identity.mint, identity]));
+const bySymbol = new Map(MARKET_IDENTITIES.map(identity => [identity.symbol, identity]));
 export const MARKET_MINTS: readonly string[] = MARKET_IDENTITIES.map(identity => identity.mint);
 
 export function marketIdentity(mint: string): Readonly<MarketIdentity> | undefined {
   return byMint.get(mint);
 }
 
+export function marketIdentityBySymbol(symbol: string): Readonly<MarketIdentity> | undefined {
+  return bySymbol.get(symbol);
+}
+
 export function categoryCounts(rows: readonly MarketIdentity[]): Record<MarketFilter, number> {
-  const counts: Record<MarketFilter, number> = { all: rows.length, stocks: 0, etfs: 0, 'pre-ipo': 0 };
-  for (const row of rows) counts[row.category] += 1;
+  const counts: Record<MarketFilter, number> = { all: rows.length, stocks: 0, etfs: 0, metals: 0, bonds: 0, 'pre-ipo': 0 };
+  for (const row of rows) {
+    counts[row.category] += 1;
+    if (row.theme) counts[row.theme] += 1;
+  }
   return counts;
+}
+
+/** The asset's version group with every member row, in the group's own order; null when it has no other version. */
+export function versionRows<T extends MarketIdentity>(rows: readonly T[], identity: MarketIdentity): { group: VersionGroup; rows: T[] } | null {
+  const group = versionGroupForSymbol(identity.symbol);
+  if (!group) return null;
+  const members = group.symbols.map(symbol => rows.find(row => row.symbol === symbol)).filter((row): row is T => row !== undefined);
+  return members.length > 1 ? { group, rows: members } : null;
+}
+
+/** A short type label: leverage first, then theme, then category. */
+export function marketTypeLabel(identity: MarketIdentity): string {
+  if (identity.leverage) return `${identity.leverage} daily ETF`;
+  if (identity.theme === 'metals') return 'Metal ETF';
+  if (identity.theme === 'bonds') return 'Bond ETF';
+  if (identity.category === 'etfs') return 'ETF';
+  if (identity.category === 'pre-ipo') return 'Pre-IPO';
+  return identity.listing === 'HK' ? 'Hong Kong share' : 'Share';
+}
+
+function matchesFilter(row: MarketIdentity, filter: MarketFilter): boolean {
+  if (filter === 'all') return true;
+  return filter === 'metals' || filter === 'bonds' ? row.theme === filter : row.category === filter;
 }
 
 export function marketRows(snapshot: Pick<MarketSnapshot, 'stats'> | null): MarketRow[] {
@@ -101,7 +138,7 @@ export function filterMarkets<T extends MarketIdentity>(rows: readonly T[], filt
   const raw = query.trim().slice(0, 64);
   const needle = fold(raw);
   return rows.filter(row => {
-    if (filter !== 'all' && row.category !== filter) return false;
+    if (!matchesFilter(row, filter)) return false;
     if (!needle) return true;
     // Base58 mints are case-sensitive, so a mint prefix is matched exactly.
     return fold(row.name).includes(needle) || fold(row.symbol).includes(needle) ||

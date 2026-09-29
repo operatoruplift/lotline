@@ -6,15 +6,15 @@ import Link from 'next/link';
 import { Check, ChevronLeft, ChevronRight, Clock3, Info, LoaderCircle, Plus, RefreshCw, Search, X } from 'lucide-react';
 import { addToDraft, draftMints } from '@/lib/client/plan-draft';
 import {
-  categoryCounts, filterMarkets, formatMarketPrice, formatMarketUsd, MARKET_FILTERS, MARKET_IDENTITIES, MARKET_SORTS, marketRows,
-  MARKETS_PAGE_SIZE, pageOf, sortMarkets, type MarketFilter, type MarketSnapshot, type MarketSort,
+  categoryCounts, filterMarkets, formatMarketPrice, formatMarketUsd, MARKET_FILTERS, MARKET_IDENTITIES, MARKET_SORTS, marketRows, marketTypeLabel,
+  MARKETS_PAGE_SIZE, pageOf, sortMarkets, versionRows, type MarketFilter, type MarketSnapshot, type MarketSort,
 } from '@/lib/domain/markets';
 import { SiteFooter, SiteHeader } from '../site-shell';
 import { utcTime } from '../verification-receipt';
 import { AssetSheet, ChangeBadge } from './asset-sheet';
 import styles from './markets.module.css';
 
-const FILTER_LABELS: Record<MarketFilter, string> = { all: 'All', stocks: 'Stocks', etfs: 'ETFs', 'pre-ipo': 'Pre-IPO' };
+const FILTER_LABELS: Record<MarketFilter, string> = { all: 'All', stocks: 'Stocks', etfs: 'ETFs', metals: 'Metals', bonds: 'Bonds', 'pre-ipo': 'Pre-IPO' };
 const SORT_LABELS: Record<MarketSort, string> = { volume: 'Most traded, 24h', gainers: 'Top gainers, 24h', losers: 'Top losers, 24h', liquidity: 'Deepest liquidity', name: 'Name', price: 'Price' };
 type Load = { state: 'loading' } | { state: 'ready'; snapshot: MarketSnapshot } | { state: 'failed'; message: string };
 type Notice = { text: string; error?: boolean; href?: string };
@@ -103,6 +103,7 @@ export function Markets() {
   const filtered = useMemo(() => sortMarkets(filterMarkets(rows, view.filter, view.query), view.sort), [rows, view.filter, view.query, view.sort]);
   const page = pageOf(filtered, view.page);
   const selected = view.asset ? rows.find(row => row.mint === view.asset) ?? null : null;
+  const versions = useMemo(() => (selected ? versionRows(rows, selected) : null), [rows, selected]);
   const change = (patch: Partial<View>) => setView(current => ({ ...current, ...patch, page: patch.page ?? (patch.filter !== undefined || patch.sort !== undefined || patch.query !== undefined ? 1 : current.page) }));
 
   function add(mint: string) {
@@ -158,7 +159,7 @@ export function Markets() {
             <th scope="row"><button type="button" className={styles.assetButton} onClick={() => change({ asset: row.mint, page: page.page })} aria-label={`${row.symbol}, ${row.name}. Open details`}>
               <span className={styles.logo} aria-hidden="true"><Image src={row.logoUrl} alt="" width={34} height={34} unoptimized /></span>
               <span className={styles.assetText}><strong>{row.symbol}</strong><span>{row.name}</span></span>
-              {row.category !== 'stocks' && <span className={styles.tag}>{row.category === 'etfs' ? 'ETF' : 'Pre-IPO'}</span>}
+              {(row.category !== 'stocks' || row.leverage) && <span className={styles.tag} data-leverage={row.leverage ? '' : undefined}>{marketTypeLabel(row)}</span>}
             </button></th>
             <td className={styles.number}>{formatMarketPrice(row.stats?.price)}</td>
             <td><ChangeBadge value={row.stats?.change24hPct ?? null} /></td>
@@ -174,10 +175,11 @@ export function Markets() {
         </nav>}
       </section>
 
-      <p className={styles.footnote}>Market figures come from Jupiter’s token data and are rounded for display. They help you choose; they are never a quote, and they never set an allocation. Asset types use each underlying’s ETF flag in Nasdaq’s public symbol directory. <Link href="/how-it-works">How Lotline plans</Link></p>
+      <p className={styles.footnote}>Market figures come from Jupiter’s token data and are rounded for display. They help you choose; they are never a quote, and they never set an allocation. Asset types use each underlying’s ETF flag in Nasdaq’s public symbol directory; Metals and Bonds group ETFs by their issuers’ own names, and leveraged ETFs show the daily multiple their names state. <Link href="/how-it-works">How Lotline plans</Link></p>
     </main>
     <SiteFooter />
-    <AssetSheet row={selected} snapshotTime={snapshot?.fetchedAt ?? null} inPlan={selected ? inPlan.has(selected.mint) : false} onAdd={add} onClose={() => change({ asset: null, page: page.page })} />
+    <AssetSheet row={selected} versions={versions} snapshotTime={snapshot?.fetchedAt ?? null} inPlan={selected ? inPlan.has(selected.mint) : false} onAdd={add}
+      onSelect={mint => change({ asset: mint, page: page.page })} onClose={() => change({ asset: null, page: page.page })} />
     <div className={`toast${notice ? ' visible' : ''}${notice?.error ? ' toast-error' : ''}`} role="status" aria-live="polite" aria-atomic="true">{notice && <><span>{notice.text}</span>{notice.href && <Link className={styles.toastLink} href={notice.href}>Open plan</Link>}<button type="button" aria-label="Dismiss notification" onClick={() => setNotice(null)}><X size={15} /></button></>}</div>
   </>;
 }
