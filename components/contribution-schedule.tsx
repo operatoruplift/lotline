@@ -5,22 +5,10 @@ import { CalendarClock, Download, Pause, Play, ShieldCheck } from 'lucide-react'
 import type { Basket, Mode } from '@/lib/domain/types';
 import { calendarEvent, nextFutureReview, occurrenceId, scheduleDate, scheduleLocalTime, type ScheduleCadence } from '@/lib/domain/contribution-schedules';
 import { formatUsdc, parseBudget, parsePercent, validatePlan } from '@/lib/domain/math';
-import { parseSavedBasket } from '@/lib/domain/storage';
+import { readReminder, REMINDER_STORAGE_KEY, type SavedReminder } from '@/lib/client/reminder';
 
-type SavedReminder = { id: string; basket: Basket; mode: Mode; cadence: ScheduleCadence; timezone: string; nextDueAt: string; paused: boolean; planVersion: number; cloudId?: string };
 type CloudReminder = { id: string; budget_raw: string; allocations: { mint: string; bps: string }[]; cadence: ScheduleCadence; timezone: string; next_due_at: string; paused: boolean; plan_version: number };
-const storageKey = 'lotline:contribution-schedule:v2';
-
-function readReminder(raw: string | null): SavedReminder | null {
-  try {
-    const value = JSON.parse(raw ?? 'null') as SavedReminder | null;
-    if (!value || !/^[a-zA-Z0-9-]{1,64}$/.test(value.id) || !['live', 'example'].includes(value.mode) || !['weekly', 'monthly'].includes(value.cadence) || typeof value.paused !== 'boolean' || !Number.isInteger(value.planVersion) || value.planVersion < 1 || !Number.isFinite(Date.parse(value.nextDueAt))) return null;
-    const basket = parseSavedBasket(value.basket);
-    if (!basket || !validatePlan(basket).valid) return null;
-    scheduleLocalTime(new Date(value.nextDueAt), value.timezone);
-    return { ...value, basket };
-  } catch { return null; }
-}
+const storageKey = REMINDER_STORAGE_KEY;
 
 export function ContributionSchedule({ basket, mode, onReview }: { basket: Basket; mode: Mode; onReview?: (basket: Basket, mode: Mode, occurrence: string) => void }) {
   const [cadence, setCadence] = useState<ScheduleCadence>('monthly');

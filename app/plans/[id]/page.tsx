@@ -31,5 +31,5 @@ export default async function SharedPlanPage({ params }: Props) {
   const id = z.uuid().safeParse((await params).id);
   if (!galleryEnabled() || !id.success) notFound();
   const markets = marketsEnabled();
-  return <><SharedPlan id={id.data} markets={markets} />{markets && <AppTabBar gallery />}</>;
+  return <><SharedPlan id={id.data} markets={markets} />{markets && <AppTabBar active="community" gallery />}</>;
 }

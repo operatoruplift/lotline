@@ -169,7 +169,8 @@ for (const width of [320, 390]) {
     await sheet.getByLabel('Plan link').fill(link);
     await sheet.getByRole('button', { name: 'Review this plan' }).click();
     await expect(page.getByRole('dialog', { name: 'Review shared plan' })).toBeVisible();
-    await expect(page.getByRole('navigation', { name: 'Planning sections' }).getByRole('link', { name: 'Plan' })).toHaveAttribute('aria-current', 'page');
+    // The planner lives under the Portfolio tab.
+    await expect(page.getByRole('navigation', { name: 'Planning sections' }).getByRole('link', { name: 'Portfolio' })).toHaveAttribute('aria-current', 'page');
   });
 }
 

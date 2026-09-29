@@ -33,6 +33,7 @@ import { AddAssetReview } from './add-asset-review';
 import { TowardTarget } from './toward-target';
 import type { MarketReferenceResponse } from '@/lib/domain/market-reference';
 import { PLANNER_UNIVERSES, type PlannerUniverse } from '@/lib/domain/planner-universe';
+import { displayAmount } from '@/lib/domain/format';
 import onboarding from './planner-onboarding.module.css';
 
 type Notice = { text: string; error?: boolean };
@@ -45,12 +46,6 @@ const quoteReasonLabels: Record<NonNullable<Quote['reasonCode']>, string> = {
   'no-route': 'No route', 'issuer-halted': 'Issuer halt', 'unsupported-token': 'Unsupported token behavior',
   'rate-limited': 'Provider rate limit', 'stale-verification': 'Stale verification', 'provider-unavailable': 'Provider unavailable',
 };
-
-function displayAmount(value: string, minimumDecimals = 2): string {
-  const [whole, decimal = ''] = value.split('.');
-  const fraction = decimal.replace(/0+$/, '').padEnd(minimumDecimals, '0');
-  return `${whole.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}${fraction ? `.${fraction}` : ''}`;
-}
 
 function displayUnits(value: string): string {
   if (!/^\d+(\.\d+)?$/.test(value)) return value;
