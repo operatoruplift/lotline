@@ -15,6 +15,14 @@ export function marketsEnabled(): boolean {
  * (Solana) provider is enabled in Supabase Auth and this site's address
  * passes its redirect-URL check; docs/wallet-sign-in.md has the steps.
  */
+/**
+ * Crypto (SOL, bitcoin and ether with a named issuer, and staked SOL) joins
+ * Markets and the stock planner only with LOTLINE_CRYPTO_ENABLED; see docs/crypto.md.
+ */
+export function cryptoEnabled(): boolean {
+  return process.env.LOTLINE_CRYPTO_ENABLED?.trim() === 'true';
+}
+
 export function walletSignInEnabled(): boolean {
   return process.env.LOTLINE_WALLET_SIGN_IN_ENABLED?.trim() === 'true';
 }

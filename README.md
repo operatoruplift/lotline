@@ -99,7 +99,9 @@ The same flag adds **Portfolio** (`/portfolio`), the phone-first home the tab ba
 
 A separate flag, `LOTLINE_GALLERY_ENABLED`, turns on **community plans**: members share a saved plan's name and split (never its budget), anyone can copy one into the planner's review dialog with their own budget, and plans rank by copies, never by returns. See [community plans](docs/community-plans.md).
 
-A third flag, `LOTLINE_WALLET_SIGN_IN_ENABLED`, adds **Sign in with Solana** to the sign-in and sign-up pages: one signed message, never a transaction, and the first signature creates the account without an email. It needs the Web3 (Solana) provider switched on in Supabase Auth first. See [wallet sign-in](docs/wallet-sign-in.md).
+`LOTLINE_CRYPTO_ENABLED=true` adds **crypto** to Markets and the stock planner: SOL, bitcoin (cbBTC, WBTC), ether and four staked-SOL tokens, each pinned, re-verified on-chain and shown with the issuer or bridge behind it, so one plan can hold stocks and crypto. Buying in Lotline stays stocks-only. See [crypto](docs/crypto.md).
+
+Another flag, `LOTLINE_WALLET_SIGN_IN_ENABLED`, adds **Sign in with Solana** to the sign-in and sign-up pages: one signed message, never a transaction, and the first signature creates the account without an email. It needs the Web3 (Solana) provider switched on in Supabase Auth first. See [wallet sign-in](docs/wallet-sign-in.md).
 
 ## Precision and freshness
 

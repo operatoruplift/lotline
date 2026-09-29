@@ -7,9 +7,9 @@ import type { Basket } from './types';
  * the plan's own numbers (weights and the planner's exact USDC split); it
  * never estimates holdings, returns or future values.
  */
-export type MixKey = 'stocks' | 'etfs' | 'metals' | 'bonds' | 'leveraged' | 'pre-ipo';
+export type MixKey = 'stocks' | 'etfs' | 'metals' | 'bonds' | 'leveraged' | 'pre-ipo' | 'crypto';
 export const MIX_LABELS: Readonly<Record<MixKey, string>> = {
-  stocks: 'Stocks', etfs: 'ETFs', metals: 'Metals', bonds: 'Bonds', leveraged: 'Leveraged ETFs', 'pre-ipo': 'Pre-IPO',
+  stocks: 'Stocks', etfs: 'ETFs', metals: 'Metals', bonds: 'Bonds', leveraged: 'Leveraged ETFs', 'pre-ipo': 'Pre-IPO', crypto: 'Crypto',
 };
 
 export interface PortfolioLine {

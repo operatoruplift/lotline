@@ -1,6 +1,8 @@
 import 'server-only';
 import { z } from 'zod';
+import { CRYPTO_MINTS } from '../domain/crypto-assets';
 import { MARKET_MINTS, MARKET_SNAPSHOT_SOURCE, type MarketSnapshot, type MarketStats } from '../domain/markets';
+import { cryptoEnabled } from './features';
 import { fetchJson, ServiceError } from './common';
 import { reserveProviderSlot } from './provider-limits';
 
@@ -110,4 +112,5 @@ export function createMarketStore(build: () => Promise<MarketSnapshot> = () => b
   };
 }
 
-export const marketStore = createMarketStore();
+// The mints are chosen at each read, so the crypto flag never needs a new store.
+export const marketStore = createMarketStore(() => buildMarketSnapshot(cryptoEnabled() ? [...MARKET_MINTS, ...CRYPTO_MINTS] : MARKET_MINTS));

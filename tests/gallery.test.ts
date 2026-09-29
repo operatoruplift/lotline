@@ -19,7 +19,8 @@ describe('community plan shape', () => {
   it('accepts only catalog mints in a complete, unique split and nothing else', () => {
     expect(galleryPlanSchema.parse(plan())).toEqual(plan());
     for (const bad of [
-      plan({ allocations: [{ mint: 'So11111111111111111111111111111111111111112', bps: '10000' }] }),
+      // USDC is not a plan asset; the pinned crypto is (see crypto tests).
+      plan({ allocations: [{ mint: 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v', bps: '10000' }] }),
       plan({ allocations: [{ mint: AAPLX, bps: '5000' }, { mint: MSFTX, bps: '4000' }] }),
       plan({ allocations: [{ mint: AAPLX, bps: '5000' }, { mint: AAPLX, bps: '5000' }] }),
       { ...plan(), budget_raw: '250000000' },

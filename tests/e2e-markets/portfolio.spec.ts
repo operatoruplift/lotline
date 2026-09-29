@@ -24,7 +24,9 @@ test('with no plan, the portfolio home starts people off with tiles, steps and t
   await page.goto('/portfolio');
   await expect(page.getByRole('heading', { level: 1, name: 'Start with one clear split.' })).toBeVisible();
   const tiles = page.getByRole('list', { name: 'Browse markets by type' });
-  await expect(tiles.getByRole('link')).toHaveCount(5);
+  // Six types with crypto on, as this suite's server runs it.
+  await expect(tiles.getByRole('link')).toHaveCount(6);
+  await expect(tiles.getByRole('link', { name: /Crypto/ })).toHaveAttribute('href', '/markets?category=crypto');
   await expect(tiles.getByRole('link', { name: /Metals/ })).toHaveAttribute('href', '/markets?category=metals');
   await expect(tiles.getByRole('link', { name: /Bonds/ })).toContainText('6 verified');
   await expect(page.getByRole('list', { name: 'How it works' }).getByRole('listitem')).toHaveCount(3);

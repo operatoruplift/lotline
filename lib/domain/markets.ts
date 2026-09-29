@@ -1,5 +1,6 @@
 import kinds from './xstocks-kinds.json' with { type: 'json' };
 import { XSTOCK_REGISTRY } from './assets';
+import { CRYPTO_REGISTRY, type CryptoKind } from './crypto-assets';
 import { PRESTOCK_REGISTRY } from './prestocks';
 import { MAX_PLAN_ASSETS } from './limits';
 import { leverageForSymbol, themeForSymbol, versionGroupForSymbol, type MarketTheme, type VersionGroup } from './market-themes';
@@ -12,12 +13,12 @@ import type { PlannerUniverse } from './planner-universe';
  * dated market snapshot beside each asset. The snapshot is context for
  * choosing assets; it is never a quote, and it never feeds an allocation.
  */
-export type MarketCategory = 'stocks' | 'etfs' | 'pre-ipo';
+export type MarketCategory = 'stocks' | 'etfs' | 'pre-ipo' | 'crypto';
 /** Categories, plus themes within the ETFs (an ETF with a theme appears under ETFs and under its theme). */
 export type MarketFilter = 'all' | MarketCategory | MarketTheme;
 export type MarketSort = 'volume' | 'gainers' | 'losers' | 'liquidity' | 'name' | 'price';
 export const MARKET_SORTS: readonly MarketSort[] = ['volume', 'gainers', 'losers', 'liquidity', 'name', 'price'];
-export const MARKET_FILTERS: readonly MarketFilter[] = ['all', 'stocks', 'etfs', 'metals', 'bonds', 'pre-ipo'];
+export const MARKET_FILTERS: readonly MarketFilter[] = ['all', 'stocks', 'etfs', 'metals', 'bonds', 'pre-ipo', 'crypto'];
 export const MARKETS_PAGE_SIZE = 20;
 export const MARKET_SNAPSHOT_SOURCE = 'Jupiter Tokens API';
 export const CHART_RANGES = ['1d', '7d', '30d'] as const;
@@ -30,11 +31,14 @@ export interface MarketIdentity {
   universe: PlannerUniverse;
   category: MarketCategory;
   logoUrl: string;
-  /** Underlying ticker for xStocks; PreStocks track private companies and have none. */
+  /** Underlying ticker for xStocks, or what a crypto token tracks; PreStocks track private companies and have none. */
   underlyingSymbol: string | null;
   /** Where the underlying trades, for xStocks. */
   listing: 'US' | 'HK' | null;
-  issuer: 'xStocks' | 'PreStocks';
+  /** xStocks, PreStocks, or the mint, bridge or stake pool behind a crypto token. */
+  issuer: string;
+  /** For crypto: the network's coin, a bridged asset or staked SOL. */
+  cryptoKind: CryptoKind | null;
   theme: MarketTheme | null;
   /** The daily multiple a leveraged or inverse ETF states, such as "3×"; null otherwise. */
   leverage: string | null;
@@ -76,16 +80,28 @@ export const MARKET_IDENTITIES: readonly Readonly<MarketIdentity>[] = [
     mint: asset.mint, symbol: asset.symbol, name: asset.name, universe: 'xstocks',
     category: etfs.has(asset.symbol) ? 'etfs' : 'stocks', logoUrl: asset.logoUrl,
     underlyingSymbol: asset.underlyingSymbol, listing: hongKong.has(asset.symbol) ? 'HK' : 'US', issuer: 'xStocks',
-    theme: etfs.has(asset.symbol) ? themeForSymbol(asset.symbol) : null, leverage: etfs.has(asset.symbol) ? leverageForSymbol(asset.symbol) : null,
+    theme: etfs.has(asset.symbol) ? themeForSymbol(asset.symbol) : null, leverage: etfs.has(asset.symbol) ? leverageForSymbol(asset.symbol) : null, cryptoKind: null,
   })),
   ...PRESTOCK_REGISTRY.map((asset): MarketIdentity => ({
     mint: asset.mint, symbol: asset.symbol, name: asset.name, universe: 'prestocks',
-    category: 'pre-ipo', logoUrl: asset.logoUrl, underlyingSymbol: null, listing: null, issuer: 'PreStocks', theme: null, leverage: null,
+    category: 'pre-ipo', logoUrl: asset.logoUrl, underlyingSymbol: null, listing: null, issuer: 'PreStocks', theme: null, leverage: null, cryptoKind: null,
   })),
 ];
-const byMint = new Map(MARKET_IDENTITIES.map(identity => [identity.mint, identity]));
-const bySymbol = new Map(MARKET_IDENTITIES.map(identity => [identity.symbol, identity]));
+/** Crypto joins the xStocks planner, so one plan can hold stocks and crypto. Listed only when LOTLINE_CRYPTO_ENABLED is on. */
+export const CRYPTO_MARKET_IDENTITIES: readonly Readonly<MarketIdentity>[] = CRYPTO_REGISTRY.map((asset): MarketIdentity => ({
+  mint: asset.mint, symbol: asset.symbol, name: asset.name, universe: 'xstocks', category: 'crypto', logoUrl: asset.logoUrl,
+  underlyingSymbol: asset.underlying, listing: null, issuer: asset.issuer, theme: null, leverage: null, cryptoKind: asset.kind,
+}));
+// Lookups resolve every pinned identity; listings include crypto only with the flag.
+const EVERY_IDENTITY: readonly Readonly<MarketIdentity>[] = [...MARKET_IDENTITIES, ...CRYPTO_MARKET_IDENTITIES];
+const byMint = new Map(EVERY_IDENTITY.map(identity => [identity.mint, identity]));
+const bySymbol = new Map(EVERY_IDENTITY.map(identity => [identity.symbol, identity]));
 export const MARKET_MINTS: readonly string[] = MARKET_IDENTITIES.map(identity => identity.mint);
+
+/** The identities Markets lists: stocks, ETFs and pre-IPO, plus crypto when its flag is on. */
+export function marketIdentities(crypto: boolean): readonly Readonly<MarketIdentity>[] {
+  return crypto ? EVERY_IDENTITY : MARKET_IDENTITIES;
+}
 
 export function marketIdentity(mint: string): Readonly<MarketIdentity> | undefined {
   return byMint.get(mint);
@@ -96,7 +112,7 @@ export function marketIdentityBySymbol(symbol: string): Readonly<MarketIdentity>
 }
 
 export function categoryCounts(rows: readonly MarketIdentity[]): Record<MarketFilter, number> {
-  const counts: Record<MarketFilter, number> = { all: rows.length, stocks: 0, etfs: 0, metals: 0, bonds: 0, 'pre-ipo': 0 };
+  const counts: Record<MarketFilter, number> = { all: rows.length, stocks: 0, etfs: 0, metals: 0, bonds: 0, 'pre-ipo': 0, crypto: 0 };
   for (const row of rows) {
     counts[row.category] += 1;
     if (row.theme) counts[row.theme] += 1;
@@ -119,6 +135,9 @@ export function marketTypeLabel(identity: MarketIdentity): string {
   if (identity.theme === 'bonds') return 'Bond ETF';
   if (identity.category === 'etfs') return 'ETF';
   if (identity.category === 'pre-ipo') return 'Pre-IPO';
+  if (identity.cryptoKind === 'coin') return 'Coin';
+  if (identity.cryptoKind === 'staked') return `Staked ${identity.underlyingSymbol}`;
+  if (identity.cryptoKind === 'bridged') return `Bridged ${identity.underlyingSymbol}`;
   return identity.listing === 'HK' ? 'Hong Kong share' : 'Share';
 }
 
@@ -127,8 +146,8 @@ function matchesFilter(row: MarketIdentity, filter: MarketFilter): boolean {
   return filter === 'metals' || filter === 'bonds' ? row.theme === filter : row.category === filter;
 }
 
-export function marketRows(snapshot: Pick<MarketSnapshot, 'stats'> | null): MarketRow[] {
-  return MARKET_IDENTITIES.map(identity => ({ ...identity, stats: snapshot?.stats[identity.mint] ?? null }));
+export function marketRows(snapshot: Pick<MarketSnapshot, 'stats'> | null, identities: readonly Readonly<MarketIdentity>[] = MARKET_IDENTITIES): MarketRow[] {
+  return identities.map(identity => ({ ...identity, stats: snapshot?.stats[identity.mint] ?? null }));
 }
 
 const fold = (value: string) => value.normalize('NFKD').replace(/[̀-ͯ]/g, '').toLowerCase();

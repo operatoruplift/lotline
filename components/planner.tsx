@@ -34,6 +34,7 @@ import { TowardTarget } from './toward-target';
 import type { MarketReferenceResponse } from '@/lib/domain/market-reference';
 import { PLANNER_UNIVERSES, type PlannerUniverse } from '@/lib/domain/planner-universe';
 import { displayAmount } from '@/lib/domain/format';
+import { cryptoIdentity } from '@/lib/domain/crypto-assets';
 import onboarding from './planner-onboarding.module.css';
 
 type Notice = { text: string; error?: boolean };
@@ -421,7 +422,7 @@ export function Planner({ initialMode: requestedMode, cloudEnabled = true, unive
         <div className="split-label"><span className="field-label">Contribution split</span><span>{basket.items.length} / {MAX_PLAN_ASSETS} assets</span></div>
         {mode === 'live' && <div className={`${onboarding.catalog}${!catalogLoading && !catalogReady ? ` ${onboarding.catalogError}` : ''}`}>
           {catalogLoading ? <LoaderCircle size={15} className="spinning" /> : catalogReady ? <ShieldCheck size={15} /> : <Info size={15} />}
-          <div><div role="status" aria-live="polite"><strong>{catalogLoading ? 'Checking the Live catalog…' : !catalogReady ? 'Live catalog unavailable' : assets.length === 0 ? 'Catalog loaded without available assets' : `${assets.length} issuer-verified ${assets.length === 1 ? 'asset' : 'assets'}`}</strong>
+          <div><div role="status" aria-live="polite"><strong>{catalogLoading ? 'Checking the Live catalog…' : !catalogReady ? 'Live catalog unavailable' : assets.length === 0 ? 'Catalog loaded without available assets' : `${assets.length} ${assets.some(asset => cryptoIdentity(asset.mint)) ? 'verified' : 'issuer-verified'} ${assets.length === 1 ? 'asset' : 'assets'}`}</strong>
             <p>{catalogLoading ? 'Your budget and split stay here while identity checks load.' : !catalogReady ? catalog?.message ?? (xstocks ? 'The catalog could not be verified. Retry or explore the labeled Example mode.' : 'The PreStocks catalog could not be verified. Your draft is preserved; retry when available.') : assets.length === 0 ? 'The provider returned no selectable assets. Your draft is unchanged; retry later.' : 'Choose exact Solana mints. Catalog identity does not guarantee a trading route; source times are in Verify this plan.'}</p>
             {catalogReady && catalog?.state === 'partial' && <p>{catalog.unavailable.length} {catalog.unavailable.length === 1 ? 'identity is' : 'identities are'} temporarily excluded. Available entries can still be used.</p>}
           </div>{!catalogLoading && <><button type="button" onClick={refreshCatalog}>{catalogReady && assets.length ? 'Refresh catalog' : 'Retry catalog'} <RefreshCw size={12} /></button>{config.supportsExample && !assets.length && <button type="button" onClick={() => switchMode('example')}>Try Example mode <ArrowRight size={12} /></button>}</>}

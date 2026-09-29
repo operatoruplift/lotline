@@ -1,6 +1,6 @@
 import AxeBuilder from '@axe-core/playwright';
 import { expect, test, type Page } from '../e2e/test';
-import { MARKET_IDENTITIES, type ChartResponse, type MarketSnapshot } from '../../lib/domain/markets';
+import { MARKET_IDENTITIES, marketIdentities, type ChartResponse, type MarketSnapshot } from '../../lib/domain/markets';
 import { XSTOCK_REGISTRY } from '../../lib/domain/assets';
 import { BASKET_STORAGE_KEY } from '../../lib/domain/storage';
 import { buildPlanLink } from '../../lib/domain/share';
@@ -41,7 +41,8 @@ test('browsing, sorting, searching and adding keeps the snapshot labelled and th
   const rows = page.locator('tbody tr');
   await expect(rows.first()).toContainText('SPYx');
   await expect(rows.nth(1)).toContainText('NVDAx');
-  await expect(page.getByText(`1–20 of ${MARKET_IDENTITIES.length}`)).toBeVisible();
+  // This suite's server runs with crypto on, so Markets lists the pinned crypto too.
+  await expect(page.getByText(`1–20 of ${marketIdentities(true).length}`)).toBeVisible();
   await page.getByRole('button', { name: /^ETFs/ }).click();
   await expect(page).toHaveURL(/category=etfs/);
   await expect(rows.first()).toContainText('SPYx');

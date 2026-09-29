@@ -1,6 +1,7 @@
 import 'server-only';
 import { z } from 'zod';
 import type { Asset, DataFailureReason, Quote, QuotesResponse } from '../domain/types';
+import { cryptoIdentity } from '../domain/crypto-assets';
 import { getIssuerAsset, selectedAssets } from './catalog';
 import { addressSchema, BoundedCache, fetchJson, rawSchema, safeMessage, ServiceError, SpacedQueue, USDC_MINT } from './common';
 import { convertRawUnitsWithContext } from './solana';
@@ -55,6 +56,8 @@ export async function getReadOnlyQuote(mint: string, usdcRaw: string, verify: ()
 }
 async function freshQuote(asset: Asset, usdcRaw: string): Promise<Quote> {
   return getReadOnlyQuote(asset.mint, usdcRaw, async () => {
+    // Crypto has no issuer and no trading halt to recheck; its pinned mint was verified on-chain with the catalog.
+    if (cryptoIdentity(asset.mint)) return { fetchedAt: new Date().toISOString() };
     // Recheck the issuer immediately before fetching; a halt never becomes a DEX market-hours claim.
     const issuer = await getIssuerAsset(asset.symbol);
     if (issuer.mint !== asset.mint) throw new ServiceError('unavailable', 'The issuer deployment changed. Reload the catalog.', 'stale-verification');

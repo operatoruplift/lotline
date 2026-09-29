@@ -7,6 +7,7 @@ import { ArrowDownRight, ArrowUpRight, Check, Clipboard, ExternalLink, LoaderCir
 import { BACKPACK_UNDERLYINGS } from '@/lib/domain/rails';
 import { jupiterReviewUrl } from '@/lib/domain/jupiter';
 import { CHART_RANGES, formatMarketChange, formatMarketCount, formatMarketPrice, formatMarketUsd, marketDirection, marketTypeLabel, type ChartRange, type ChartResponse, type MarketRow } from '@/lib/domain/markets';
+import { cryptoIdentity } from '@/lib/domain/crypto-assets';
 import type { VersionGroup } from '@/lib/domain/market-themes';
 import { utcTime } from '../verification-receipt';
 import { PriceChart } from './price-chart';
@@ -83,7 +84,8 @@ export function AssetSheet({ row, versions, snapshotTime, inPlan, onAdd, onSelec
   const stats = row.stats;
   const planPath = row.universe === 'prestocks' ? '/pre-ipo' : '/app';
   const jupiter = jupiterReviewUrl(row.mint);
-  const onBackpack = row.underlyingSymbol !== null && (BACKPACK_UNDERLYINGS as readonly string[]).includes(row.underlyingSymbol);
+  const onBackpack = row.issuer === 'xStocks' && row.underlyingSymbol !== null && (BACKPACK_UNDERLYINGS as readonly string[]).includes(row.underlyingSymbol);
+  const coin = row.category === 'crypto' ? cryptoIdentity(row.mint) : undefined;
   const charted = chart.data?.state === 'success' && chart.data.mint === row.mint && chart.data.range === range ? chart.data.points : [];
   // A pool whose latest close is far from the market snapshot is not drawn: the two would contradict each other.
   const lastClose = charted.at(-1)?.c;
@@ -129,8 +131,9 @@ export function AssetSheet({ row, versions, snapshotTime, inPlan, onAdd, onSelec
 
         <dl className={styles.identity}>
           <div><dt>Solana mint</dt><dd><code>{row.mint}</code><button type="button" className={styles.copyButton} onClick={copyMint} aria-label={`Copy the ${row.symbol} mint address`}>{copied ? <Check size={14} /> : <Clipboard size={14} />}{copied ? 'Copied' : 'Copy'}</button></dd></div>
-          <div><dt>Issuer</dt><dd>{row.issuer === 'xStocks' ? 'xStocks (Backed), pinned issuer identity' : 'PreStocks, pinned issuer identity'}</dd></div>
-          {row.underlyingSymbol && <div><dt>Underlying</dt><dd>{row.underlyingSymbol} · {row.listing === 'HK' ? 'Hong Kong listing' : 'US listing'}{row.category === 'etfs' ? ' · ETF per Nasdaq’s symbol directory' : ''}</dd></div>}
+          <div><dt>Issuer</dt><dd>{coin ? `${coin.issuer}, pinned mint checked on-chain${coin.freezable ? ' · the issuer can freeze balances' : ''}` : row.issuer === 'xStocks' ? 'xStocks (Backed), pinned issuer identity' : 'PreStocks, pinned issuer identity'}</dd></div>
+          {coin ? <div><dt>Backed by</dt><dd>{coin.backing}</dd></div>
+            : row.underlyingSymbol && <div><dt>Underlying</dt><dd>{row.underlyingSymbol} · {row.listing === 'HK' ? 'Hong Kong listing' : 'US listing'}{row.category === 'etfs' ? ' · ETF per Nasdaq’s symbol directory' : ''}</dd></div>}
           {onBackpack && <div><dt>Also trades</dt><dd>On Backpack as {row.underlyingSymbol}; the planner shows that venue’s price beside Jupiter’s estimate.</dd></div>}
         </dl>
 

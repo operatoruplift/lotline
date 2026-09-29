@@ -7,7 +7,7 @@ import { planLinkTarget } from '@/lib/domain/share';
 import styles from './app-tab-bar.module.css';
 
 /** 'plan' is the planner itself, which lives under the Portfolio tab. */
-type Section = 'portfolio' | 'plan' | 'markets' | 'community' | 'pre-ipo';
+type Section = 'portfolio' | 'plan' | 'markets' | 'community' | 'pre-ipo' | 'account';
 const LONG_PRESS_MS = 450;
 
 /**
@@ -65,7 +65,7 @@ export function AppTabBar({ active, gallery = false }: { active?: Section; galle
         <Plus size={24} aria-hidden="true" />
       </button>
       {gallery ? tab('community', '/plans', 'Community', Users) : tab('pre-ipo', '/pre-ipo', 'Pre-IPO', Rocket)}
-      <Link href="/sign-in" className={styles.tab}><UserRound size={20} aria-hidden="true" /><span>Account</span></Link>
+      <Link href="/sign-in" className={styles.tab} aria-current={active === 'account' ? 'page' : undefined}><UserRound size={20} aria-hidden="true" /><span>Account</span></Link>
     </nav>
     <dialog ref={dialog} className={styles.sheet} aria-labelledby="create-sheet-title" onClose={() => { setOpen(null); setError(''); }} onClick={event => { if (event.target === event.currentTarget) setOpen(null); }}>
       <div className={styles.sheetBody}>

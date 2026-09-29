@@ -88,6 +88,7 @@
   .tiles strong { font-size: 12px; }
   .tiles small { font-size: 10.5px; }
   .tiles small span { display: none; }
+  .tiles[data-count='6'] { grid-template-columns: repeat(3, minmax(0, 1fr)); }
   .lines li { grid-template-columns: 4px 32px minmax(0, 1fr) auto; }
   .lineMarket { grid-column: 3 / -1; grid-auto-flow: column; justify-content: start; align-items: center; gap: 8px; margin-top: -6px; }
 }

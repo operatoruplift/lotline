@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { Search, X } from 'lucide-react';
+import { cryptoIdentity } from '@/lib/domain/crypto-assets';
 import type { Asset } from '@/lib/domain/types';
 import styles from './asset-picker.module.css';
 
@@ -9,10 +10,12 @@ export function AssetPicker({ assets, example = false, assetNoun = 'xStock', aut
   const [query, setQuery] = useState('');
   const search = query.trim().toLowerCase();
   const filtered = assets.filter(asset => [asset.symbol, asset.name, asset.underlyingSymbol ?? '', asset.mint].some(value => value.toLowerCase().includes(search)));
-  const selectLabel = example ? `Choose an example ${assetNoun}` : `Choose a verified ${assetNoun}`;
+  // Crypto appears only when its operator flag is on; the wording follows what the catalog holds.
+  const withCrypto = assets.some(asset => cryptoIdentity(asset.mint));
+  const selectLabel = example ? `Choose an example ${assetNoun}` : `Choose a verified ${withCrypto ? 'asset' : assetNoun}`;
   return <div className={styles.picker} onKeyDown={event => { if (event.key === 'Escape') { event.stopPropagation(); onClose(); } }}>
     <div className={styles.heading}><strong>Find your next asset</strong><button type="button" className="icon-button" aria-label="Close asset picker" onClick={onClose}><X size={16} /></button></div>
-    <label htmlFor="asset-search" className={styles.label}>{assetNoun === 'PreStock' ? 'Search PreStocks' : 'Search stocks and ETFs'}</label>
+    <label htmlFor="asset-search" className={styles.label}>{assetNoun === 'PreStock' ? 'Search PreStocks' : withCrypto ? 'Search stocks, ETFs and crypto' : 'Search stocks and ETFs'}</label>
     <div className={styles.search}><Search size={16} aria-hidden="true" /><input id="asset-search" type="search" autoFocus={autoFocus} value={query} onChange={event => setQuery(event.target.value)} placeholder="Company, ticker, or mint" autoComplete="off" /></div>
     <label htmlFor="asset-picker" className={styles.label}>{selectLabel}</label>
     <select id="asset-picker" value="" disabled={!filtered.length} onChange={event => { if (event.target.value) onSelect(event.target.value); }}>
