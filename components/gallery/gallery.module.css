@@ -11,28 +11,46 @@
 .privacy svg { color: var(--forest); flex: 0 0 auto; }
 .state { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 26px; font-size: 13px; color: var(--muted); }
 .state button { min-height: 36px; padding: 6px 12px; border: 1px solid var(--line); border-radius: 8px; background: var(--white); font-size: 12px; gap: 6px; }
-.grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; margin-top: 24px; }
-.card { display: flex; flex-direction: column; gap: 14px; padding: 20px; border: 1px solid var(--line); border-radius: var(--radius); background: var(--white); transition: border-color .16s, box-shadow .16s, transform .16s; }
-.card:hover { border-color: #c9d5c4; box-shadow: 0 10px 28px #153c3410; transform: translateY(-1px); }
-.cardHeader { display: flex; gap: 12px; align-items: flex-start; }
 .rank { display: inline-grid; place-items: center; width: 28px; height: 28px; flex: 0 0 auto; border-radius: 8px; background: var(--soft); color: var(--forest); font-size: 12px; font-weight: 650; font-variant-numeric: tabular-nums; }
-.cardHeader h3 { font-size: 16px; letter-spacing: -.3px; line-height: 1.3; overflow-wrap: anywhere; }
-.cardHeader h3 a:hover { color: var(--forest); text-decoration: underline; text-underline-offset: 3px; }
-.cardHeader p { margin-top: 4px; font-size: 11.5px; color: var(--muted); }
 .bar { display: flex; height: 8px; border-radius: 99px; overflow: hidden; background: var(--soft); }
 .bar span { display: block; height: 100%; }
-.weights { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
-.weights li { display: flex; align-items: center; gap: 9px; font-size: 13px; }
-.weights li > span:last-child { margin-left: auto; font-variant-numeric: tabular-nums; color: #3c4a40; }
-.weights .more { color: var(--muted); font-size: 12px; }
 .logo { display: inline-flex; width: 24px; height: 24px; flex: 0 0 auto; border-radius: 7px; overflow: hidden; background: #ebeee7; }
 .logo img { width: 100%; height: 100%; object-fit: cover; }
-.cardFooter { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-top: auto; padding-top: 12px; border-top: 1px solid #edf0ea; }
-.copies { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums; }
 .moreButton { margin: 24px auto 0; display: flex; }
 .empty { margin-top: 30px; padding: 42px 24px; border: 1px dashed #cfd9ca; border-radius: var(--radius); text-align: center; background: var(--white); }
 .empty h1, .empty h2 { font-size: 22px; letter-spacing: -.4px; }
 .empty p { margin: 10px auto 20px; max-width: 460px; font-size: 13px; line-height: 1.7; color: var(--muted); }
+/* The leaderboard: one compact row per plan. The row opens the full split; Copy goes straight to review. */
+.board { list-style: none; display: grid; gap: 10px; max-width: 760px; margin: 22px 0 0; padding: 0; }
+.row { position: relative; display: grid; grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: 'head copy' 'weights weights' 'bar bar'; align-items: start; gap: 6px 12px; padding: 14px 16px 12px; border: 1px solid var(--line); border-radius: 14px; background: var(--white); transition: border-color .16s, box-shadow .16s; }
+.row[data-ranked] { grid-template-columns: auto minmax(0, 1fr) auto; grid-template-areas: 'rank head copy' 'rank weights weights' 'bar bar bar'; }
+.row:hover { border-color: #c9d5c4; box-shadow: 0 8px 22px #153c340d; }
+.row .rank { grid-area: rank; }
+.rowHead { grid-area: head; display: grid; gap: 2px; min-width: 0; }
+/* Block, not the global centred flex button: the name reads left-aligned, and the whole card is the tap target. */
+.rowMain { display: block; width: 100%; min-height: 0; padding: 0; border: 0; background: transparent; color: var(--ink); font: inherit; font-size: 15px; font-weight: 650; letter-spacing: -.2px; line-height: 1.35; text-align: left; overflow-wrap: anywhere; cursor: pointer; }
+.rowMain::after { content: ''; position: absolute; inset: 0; border-radius: 14px; }
+.rowMain:focus-visible { outline: none; }
+.rowMain:focus-visible::after { outline: 2px solid var(--forest); outline-offset: 2px; }
+.row:hover .rowMain { color: var(--forest); }
+.rowMeta { font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.rowWeights { grid-area: weights; overflow: hidden; font-size: 12.5px; color: #3c4a40; font-variant-numeric: tabular-nums; text-overflow: ellipsis; white-space: nowrap; }
+.rowCopy { grid-area: copy; position: relative; z-index: 1; min-height: 40px; padding-inline: 14px; gap: 6px; }
+.rowBar { grid-area: bar; height: 5px; margin-top: 4px; }
+.detailBy { margin-top: 8px; font-size: 13px; color: var(--muted); }
+/* Sheet over the leaderboard: a side panel on wide screens, a bottom sheet on phones. */
+.sheet { position: fixed; inset: 0 0 0 auto; width: min(460px, 100%); height: 100%; max-height: none; max-width: none; margin: 0; padding: 0; border: 0; background: var(--paper); color: var(--ink); box-shadow: -18px 0 50px #153c3422; }
+.sheet::backdrop { background: rgba(24, 33, 29, .32); }
+.sheet[open] { animation: sheet-in-side .24s cubic-bezier(.16, 1, .3, 1); }
+.sheetBody { height: 100%; overflow-y: auto; padding: 24px 26px 32px; overscroll-behavior: contain; }
+.sheetGrip { display: none; }
+.sheetHeader { display: flex; align-items: flex-start; justify-content: space-between; gap: 14px; }
+.sheetEyebrow { font-size: 12px; color: var(--muted); }
+.sheetHeader h2 { margin-top: 4px; font-size: 24px; letter-spacing: -.6px; line-height: 1.2; overflow-wrap: anywhere; }
+.closeButton { flex: 0 0 auto; width: 40px; min-height: 40px; border: 1px solid var(--line); border-radius: 10px; background: var(--white); color: var(--ink); }
+.closeButton:hover { background: var(--soft); }
+@keyframes sheet-in-side { from { transform: translateX(28px); opacity: 0; } to { transform: none; opacity: 1; } }
+@keyframes sheet-in-bottom { from { transform: translateY(40px); opacity: 0; } to { transform: none; opacity: 1; } }
 .footnote { margin-top: 22px; font-size: 12px; line-height: 1.8; color: var(--muted); max-width: 760px; }
 .back { display: inline-flex; align-items: center; gap: 6px; min-height: 40px; font-size: 12px; font-weight: 550; color: var(--forest); }
 .detail { max-width: 720px; margin-top: 10px; }
@@ -47,11 +65,18 @@
 .detailList div span { font-size: 11.5px; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .detailList b { margin-left: auto; font-size: 15px; font-weight: 600; font-variant-numeric: tabular-nums; }
 .detailActions { display: flex; flex-wrap: wrap; gap: 10px; margin: 22px 0 14px; }
-@media (max-width: 1050px) { .grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 @media (max-width: 800px) {
   .page { padding-block: 32px 40px; }
-  .grid { grid-template-columns: minmax(0, 1fr); }
   .sorts button, .state button, .back { min-height: 44px; }
-  .cardFooter :global(.button), .detailActions :global(.button) { min-height: 44px; }
+  .detailActions :global(.button) { min-height: 44px; }
+  /* Content first on phones: the privacy line and footnote keep the intro's promises. */
+  .heading h1 { margin-top: 10px; font-size: 27px; letter-spacing: -.9px; }
+  .heading > p:last-child { display: none; }
+  .toolbar { margin-top: 18px; }
+  .sheet { inset: auto 0 0 0; width: 100%; height: auto; max-height: 90dvh; border-radius: 18px 18px 0 0; box-shadow: 0 -18px 50px #153c3422; }
+  .sheet[open] { animation-name: sheet-in-bottom; }
+  .sheetBody { max-height: 90dvh; padding: 10px 20px calc(24px + env(safe-area-inset-bottom)); }
+  .sheetGrip { display: block; width: 38px; height: 4px; margin: 0 auto 14px; border-radius: 4px; background: var(--line); }
+  .closeButton { width: 44px; min-height: 44px; }
 }
-@media (prefers-reduced-motion: reduce) { .card, .card:hover { transition: none; transform: none; } }
+@media (prefers-reduced-motion: reduce) { .row { transition: none; } .sheet[open] { animation: none; } }

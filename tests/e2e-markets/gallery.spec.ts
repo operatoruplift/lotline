@@ -35,7 +35,8 @@ test('community plans rank by copies, never show a budget, and copy into the rev
   await expect(cards.first()).toContainText('by Alice');
   await expect(cards.first()).toContainText('12 copies');
   await expect(cards.nth(1)).toContainText('by a Lotline member');
-  await expect(page.getByRole('article').first().getByLabel('Rank 1')).toBeVisible();
+  await expect(cards.first()).toContainText('Rank 1');
+  await expect(cards.first()).toContainText('AAPLx 50% · MSFTx 30% · NVDAx 20%');
   const accessibility = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21aa']).analyze();
   expect(accessibility.violations).toEqual([]);
   await page.getByRole('button', { name: 'Newest' }).click();
@@ -69,4 +70,44 @@ test('the gallery fits a 320px screen and the add sheet offers community plans',
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1)).toBe(true);
   await page.getByRole('navigation', { name: 'Planning sections' }).getByRole('button', { name: /Start or extend a plan/ }).click();
   await expect(page.getByRole('dialog', { name: 'Start or extend a plan' }).getByRole('link', { name: /Copy a community plan/ })).toHaveAttribute('href', '/plans');
+});
+
+test('a leaderboard row opens the full split in a sheet that lives in the URL, and copies from there', async ({ page }) => {
+  const copies = await mockGallery(page);
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto('/plans');
+  await page.getByRole('article').first().getByRole('button', { name: 'Big tech core', exact: true }).click();
+  const sheet = page.getByRole('dialog', { name: 'Big tech core' });
+  await expect(sheet).toBeVisible();
+  await expect(sheet).toContainText('by Alice');
+  await expect(sheet.getByRole('list', { name: 'Every weight' }).getByRole('listitem')).toHaveCount(3);
+  await expect(page).toHaveURL(new RegExp(`/plans\\?plan=${plans[0].id}$`));
+  const accessibility = await new AxeBuilder({ page }).include('dialog[open]').withTags(['wcag2a', 'wcag2aa', 'wcag21aa']).analyze();
+  expect(accessibility.violations).toEqual([]);
+  await sheet.getByRole('button', { name: 'Close' }).click();
+  await expect(sheet).toHaveCount(0);
+  await expect(page).toHaveURL(/\/plans$/);
+
+  // A reopened link opens the same sheet, and copying from it goes to the review with a counted copy.
+  await page.goto(`/plans?plan=${plans[0].id}`);
+  await expect(page.getByRole('dialog', { name: 'Big tech core' })).toBeVisible();
+  await page.getByRole('dialog', { name: 'Big tech core' }).getByRole('button', { name: 'Copy into my plan' }).click();
+  await expect(page.getByRole('dialog', { name: 'Review shared plan' })).toBeVisible();
+  await expect.poll(() => copies).toEqual([plans[0].id]);
+});
+
+test('on phones the app screens keep only the brand in the header and shrink the footer', async ({ page }) => {
+  await mockGallery(page);
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto('/plans');
+  const header = page.getByRole('navigation', { name: 'Main navigation' });
+  await expect(header.getByRole('link', { name: 'Markets', exact: true })).toBeHidden();
+  await expect(header.getByText('Solana mainnet')).toBeVisible();
+  await expect(page.getByRole('navigation', { name: 'Planning sections' }).getByRole('link', { name: 'Markets' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: /A clearer/ })).toBeHidden();
+  await expect(page.getByRole('navigation', { name: 'Footer navigation' }).getByRole('link', { name: 'Privacy & storage' })).toBeVisible();
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1)).toBe(true);
+  await page.setViewportSize({ width: 1280, height: 900 });
+  await expect(header.getByRole('link', { name: 'Markets', exact: true })).toBeVisible();
+  await expect(page.getByRole('heading', { name: /A clearer/ })).toBeVisible();
 });

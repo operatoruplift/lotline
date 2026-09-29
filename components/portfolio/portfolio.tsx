@@ -116,7 +116,7 @@ function Welcome({ gallery }: { gallery: boolean }) {
         <Link className={styles.textLink} href="/app?mode=example">Try the Example</Link>
       </div>
       <ul className={styles.tiles} aria-label="Browse markets by type">
-        {TILES.map(({ filter, label, Icon }) => <li key={filter}><Link href={`/markets?category=${filter}`}><Icon size={22} aria-hidden="true" /><strong>{label}</strong><small>{COUNTS[filter]} verified</small></Link></li>)}
+        {TILES.map(({ filter, label, Icon }) => <li key={filter}><Link href={`/markets?category=${filter}`}><Icon size={22} aria-hidden="true" /><strong>{label}</strong><small>{COUNTS[filter]}<span> verified</span></small></Link></li>)}
       </ul>
       <ol className={styles.steps} aria-label="How it works">
         <li><span aria-hidden="true">1</span><div><strong>Pick up to ten assets and set your split</strong><p>Stocks, ETFs, metals, bonds and pre-IPO names, each with a verified Solana mint.</p></div></li>
@@ -158,7 +158,7 @@ export function Portfolio({ gallery }: { gallery: boolean }) {
     <main id="main" className={`page-width ${styles.page}`}>
       <div className={styles.heading}>
         <p className="eyebrow">PORTFOLIO · ON THIS DEVICE</p>
-        <h1>{hasPlan ? 'Your plan at a glance.' : 'One plan. More markets.'}</h1>
+        <h1>{hasPlan ? 'Your plan at a glance.' : 'Start with one clear split.'}</h1>
         <p>{hasPlan ? 'Your split, what it holds by type and how each asset moved today. Estimates and purchases stay in the planner, where you review every one.' : 'Build one contribution plan across stocks, ETFs, metals, bonds and pre-IPO names, with your own split and every mint verified.'}</p>
       </div>
       {plans === null ? <p className={styles.loading} role="status">Reading the plan saved on this device…</p>

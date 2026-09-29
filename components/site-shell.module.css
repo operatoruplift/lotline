@@ -10,3 +10,22 @@
 .footer .footerCopy p{color:#354B3C}
 
 @media(max-width:380px){.headerInner nav{gap:8px}.header :global(.header-cta){padding-inline:8px;gap:5px}.header :global(.network-badge){padding-left:6px;font-size:8px}}
+
+/* App screens on phones. The tab bar carries the navigation, so the header keeps
+   only the brand and the network badge, and the footer shrinks to a row of links.
+   The tab bar renders only with LOTLINE_MARKETS_ENABLED, so without it nothing here applies. */
+@media (max-width: 800px) {
+  :global(body:has([data-app-tab-bar])) .header { min-height: 0; }
+  :global(body:has([data-app-tab-bar])) .headerInner { min-height: 60px; flex-wrap: nowrap; gap: 12px; padding: 10px 0; }
+  :global(body:has([data-app-tab-bar])) .headerInner nav { order: 0; flex-basis: auto; margin-left: auto; }
+  :global(body:has([data-app-tab-bar])) .header :global(.nav-link),
+  :global(body:has([data-app-tab-bar])) .header :global(.header-cta) { display: none; }
+  :global(body:has([data-app-tab-bar])) .footer { min-height: 0; }
+  :global(body:has([data-app-tab-bar])) .footerMedia,
+  :global(body:has([data-app-tab-bar])) .footerCopy > div:first-child,
+  :global(body:has([data-app-tab-bar])) .footerRight p { display: none; }
+  :global(body:has([data-app-tab-bar])) .footerCopy { padding: 12px 0 8px; }
+  :global(body:has([data-app-tab-bar])) .footerRight { max-width: none; padding-top: 0; }
+  :global(body:has([data-app-tab-bar])) .footerRight nav { display: flex; flex-wrap: wrap; gap: 0 18px; margin-bottom: 0; }
+  :global(body:has([data-app-tab-bar])) .footerRight a { min-height: 40px; font-size: 12px; }
+}
