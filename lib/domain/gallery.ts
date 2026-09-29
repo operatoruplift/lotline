@@ -23,6 +23,8 @@ export const galleryPlanSchema = z.object({
     .refine(items => items.reduce((sum, item) => sum + Number(item.bps), 0) === 10_000),
   copy_count: z.number().int().min(0),
   published_at: z.string().refine(value => Number.isFinite(Date.parse(value))),
+  // When the author last pointed the share at a newer split; absent or null until then.
+  split_updated_at: z.string().refine(value => Number.isFinite(Date.parse(value))).nullable().optional(),
 }).strict();
 export type GalleryPlan = z.infer<typeof galleryPlanSchema>;
 export type GalleryResponse = { state: 'success'; plans: GalleryPlan[]; sort: GallerySort; page: number; hasMore: boolean } | { state: 'unavailable' | 'configuration-required'; message: string };

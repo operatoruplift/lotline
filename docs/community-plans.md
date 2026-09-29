@@ -9,6 +9,12 @@ Added 28 September 2026 behind `LOTLINE_GALLERY_ENABLED` (off by default). With 
 - **Copy**: opens the planner's existing shared-plan review dialog with the reader's own draft budget (1,000 USDC when there is none). Nothing changes until they apply it, and nothing is bought. A signed-in member's copy is counted in the background, once per member and never for the author; a guest's copy opens but is not counted.
 - **Share to community**: beside each saved cloud plan, with an optional display name (2–32 letters, numbers, spaces, dots, dashes or underscores, no links). Members can share up to five plans, see each one's copy count, and **Stop sharing** at any time. Deleting the saved plan removes the shared copy.
 
+### Following (copy trading for plans)
+
+- **Copying follows.** Copying a plan also follows it on this device; **Follow updates** in a plan's sheet or page follows without copying. The leaderboard marks followed plans. Follows live in this browser only (up to 12) and are never sent anywhere.
+- **Portfolio → Following.** Each followed plan reads "Up to date", or "<author> changed the split on <date>" with every weight that moved, largest first (equal moves keep the author's order). **Review the new split** opens the planner's review dialog with the member's own budget; **Keep my split** accepts the change without applying it; **Stop following** removes it. A plan that stops being shared says so. Nothing in a member's plan changes on its own.
+- **Authors update a shared plan** from their saved plans: on a saved plan that isn't shared, **Update a shared plan** points one of their shared plans at this plan's name and split. The link, display name and copy count stay, and the leaderboard and plan pages show "updated <date>".
+
 Public pages never show a budget, an owner identity, an email, a wallet, a balance or anyone's activity. Plans are ranked by copies or recency, never by returns, and the gallery says that percentages are each member's own choice, not advice.
 
 ## Data
@@ -21,10 +27,11 @@ Public pages never show a budget, an owner identity, an email, a wallet, a balan
 | `lotline_published_plan(id)` | anyone | One shared plan, same columns |
 | `lotline_publish_plan(plan_id, display_name)` | the saved plan's owner | Share or rename; five per member |
 | `lotline_unpublish_plan(plan_id)` | the owner | Stop sharing |
+| `lotline_update_published_plan(published_id, plan_id)` | the owner of both | Point a shared plan at another of their saved plans; keeps the id, display name and copy count and sets `split_updated_at` |
 | `lotline_record_plan_copy(id)` | signed-in members | Count once per member; never the author |
 | `lotline_my_published_plans()` | signed-in members | Their own shares and counts |
 
-Saved plans cannot be edited, so a shared plan can't change silently; its content always matches the saved plan it points to.
+Saved plans cannot be edited. A shared plan changes only when its author points it at another saved plan (`supabase/migrations/20260929150000_plan_gallery_updates.sql`), which sets `split_updated_at`; both public views return it, so a change is never silent.
 
 ## Turning it on
 

@@ -11,3 +11,5 @@
 .form div { display: flex; gap: 14px; }
 .form button[type='submit'] { color: #285238; }
 @media (max-width: 800px) { .open, .shared button, .form button { min-height: 44px; } .form input { min-height: 44px; } }
+.choices { display: flex; flex-wrap: wrap; gap: 0 14px; }
+.form select { min-height: 38px; padding: 6px 10px; border: 1px solid #d6dfd1; border-radius: 8px; font-size: 13px; background: #fff; color: var(--ink); }

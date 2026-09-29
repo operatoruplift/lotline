@@ -15,6 +15,7 @@ import { buildPlanLink } from '@/lib/domain/share';
 import type { Basket } from '@/lib/domain/types';
 import { fetchMarketSnapshot } from '@/lib/client/market-snapshot';
 import { ChangeBadge } from '../markets/asset-sheet';
+import { Following } from './following';
 import { SiteFooter, SiteHeader } from '../site-shell';
 import { utcTime } from '../verification-receipt';
 import styles from './portfolio.module.css';
@@ -168,6 +169,7 @@ export function Portfolio({ gallery }: { gallery: boolean }) {
           {gallery && <Link className={styles.community} href="/plans"><Users size={20} aria-hidden="true" /><span><strong>Compare with community plans</strong><small>Splits members shared, ranked by copies, never by returns.</small></span><ArrowRight size={16} aria-hidden="true" /></Link>}
         </div>
           : <Welcome gallery={gallery} />}
+      {gallery && <Following />}
       <p className={styles.privacy}><ShieldCheck size={14} aria-hidden="true" />Read from this browser only. Lotline sees your plan only if you save it to an account or share its link.</p>
     </main>
     <SiteFooter />
