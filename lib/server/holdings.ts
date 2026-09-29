@@ -2,7 +2,8 @@ import 'server-only';
 import type { Asset, Holding, HoldingsResponse, ProjectionResponse } from '../domain/types';
 import { selectedAssets } from './catalog';
 import { addressSchema, BoundedCache, safeMessage, ServiceError, USDC_MINT } from './common';
-import { convertRawUnitsBatch, loadRawBalanceWithContext } from './solana';
+import { WRAPPED_SOL_MINT } from '../domain/crypto-assets';
+import { convertRawUnitsBatch, loadNativeLamports, loadRawBalanceWithContext } from './solana';
 
 const holdingsCache = new BoundedCache<HoldingsResponse>(100);
 export function unavailableHolding(mint: string, message: string): Holding {
@@ -32,7 +33,11 @@ export async function getHoldingsForVerifiedAssets(owner: string, assets: readon
   const ordered = [...mints, USDC_MINT];
   const balances = new Map<string, { raw: string; slot?: number; frozenRaw: string } | ServiceError>();
   for (const mint of ordered) {
-    try { balances.set(mint, await loadRawBalanceWithContext(owner, mint)); }
+    try {
+      const balance = await loadRawBalanceWithContext(owner, mint);
+      // SOL counts the wallet's native lamports as well as any wrapped SOL in token accounts.
+      balances.set(mint, mint === WRAPPED_SOL_MINT ? { ...balance, raw: (BigInt(balance.raw) + await loadNativeLamports(owner)).toString() } : balance);
+    }
     catch (error) { balances.set(mint, error instanceof ServiceError ? error : new ServiceError('unavailable', safeMessage(error))); }
   }
   const convertible = ordered.flatMap(mint => {

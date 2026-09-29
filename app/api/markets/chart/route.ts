@@ -1,6 +1,6 @@
-import { CHART_RANGES, marketIdentity, type ChartRange } from '@/lib/domain/markets';
+import { CHART_RANGES, marketIdentities, type ChartRange } from '@/lib/domain/markets';
 import { safeMessage, ServiceError } from '@/lib/server/common';
-import { marketsEnabled } from '@/lib/server/features';
+import { cryptoEnabled, marketsEnabled } from '@/lib/server/features';
 import { readChart } from '@/lib/server/market-chart';
 import { enforceReadRateLimit } from '@/lib/server/read-limits';
 import { noStore } from '@/lib/server/requests';
@@ -16,7 +16,8 @@ export async function GET(request: Request) {
   const mint = params.get('mint') ?? '';
   const range = (params.get('range') ?? '1d') as ChartRange;
   if ([...params.keys()].some(key => key !== 'mint' && key !== 'range') || params.getAll('mint').length !== 1 || params.getAll('range').length > 1 ||
-      !marketIdentity(mint) || !CHART_RANGES.includes(range)) {
+      // Only what Markets lists: crypto charts need the crypto flag too.
+      !marketIdentities(cryptoEnabled()).some(identity => identity.mint === mint) || !CHART_RANGES.includes(range)) {
     return Response.json({ state: 'invalid-input', message: 'Choose one catalog asset and a range of 1d, 7d or 30d.' }, { status: 400, headers: noStore });
   }
   try {

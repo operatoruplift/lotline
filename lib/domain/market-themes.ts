@@ -29,6 +29,8 @@ export type VersionGroup = {
 /** Kept deliberately small: only pairings a reader can confirm from the issuers' own names. */
 export const VERSION_GROUPS: readonly VersionGroup[] = [
   { id: 'spacex', label: 'SpaceX', kind: 'company', symbols: ['SPCXx', 'SPACEX'] },
+  { id: 'bitcoin', label: 'Bitcoin', kind: 'exposure', symbols: ['cbBTC', 'WBTC', 'BITXx'] },
+  { id: 'solana', label: 'Solana', kind: 'exposure', symbols: ['SOL', 'JitoSOL', 'mSOL', 'JupSOL', 'INF'] },
   { id: 'micron', label: 'Micron', kind: 'company', symbols: ['MUx', 'MUUx'] },
   { id: 'marvell', label: 'Marvell', kind: 'company', symbols: ['MRVLx', 'MVLLx'] },
   { id: 'intel', label: 'Intel', kind: 'company', symbols: ['INTCx', 'INTWx'] },

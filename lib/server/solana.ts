@@ -331,6 +331,13 @@ export async function loadRawBalanceWithContext(owner: string, mint: string): Pr
   const result = await rpcRequest('getTokenAccountsByOwner', [owner, { mint }, { encoding: 'base64', commitment: 'confirmed' }]);
   return sumBinaryTokenAccounts(result, owner, mint, info);
 }
+/** Native SOL, which a wallet holds as lamports rather than in a wrapped-SOL token account. */
+export async function loadNativeLamports(owner: string): Promise<bigint> {
+  if (!addressSchema.safeParse(owner).success) throw new ServiceError('invalid-input', 'The wallet address is invalid.');
+  const parsed = z.object({ value: z.number().int().nonnegative() }).safeParse(await rpcRequest('getBalance', [owner, { commitment: 'confirmed' }]));
+  if (!parsed.success) throw new ServiceError('unavailable', 'The SOL balance could not be read.');
+  return BigInt(parsed.data.value);
+}
 export async function loadRawBalance(owner: string, mint: string): Promise<string> {
   return (await loadRawBalanceWithContext(owner, mint)).raw;
 }

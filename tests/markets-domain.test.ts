@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
-  addAssetToBasket, categoryCounts, filterMarkets, formatMarketChange, formatMarketPrice, formatMarketUsd, MARKET_IDENTITIES, marketDirection,
+  addAssetToBasket, categoryCounts, CRYPTO_MARKET_IDENTITIES, filterMarkets, formatMarketChange, formatMarketPrice, formatMarketUsd, MARKET_IDENTITIES, marketDirection, marketIdentities,
   marketIdentity, marketIdentityBySymbol, marketRows, marketTypeLabel, pageOf, sortMarkets, versionRows, type MarketRow,
 } from '../lib/domain/markets';
 import { LEVERAGE_BY_SYMBOL, THEME_SYMBOLS, VERSION_GROUPS } from '../lib/domain/market-themes';
@@ -9,6 +9,8 @@ import { addToDraft, draftMints } from '../lib/client/plan-draft';
 import { buildPlanLink, planLinkTarget } from '../lib/domain/share';
 import { MAX_PLAN_ASSETS } from '../lib/domain/limits';
 import type { Basket } from '../lib/domain/types';
+import { CRYPTO_REGISTRY, cryptoIdentity, SPL_TOKEN_PROGRAM, WRAPPED_SOL_MINT } from '../lib/domain/crypto-assets';
+import { existsSync } from 'node:fs';
 
 const AAPLX = 'XsbEhLAtcf6HdfpFZ5xEMdqW8nfAvcsP5bdudRLJzJp';
 const SPYX = MARKET_IDENTITIES.find(identity => identity.symbol === 'SPYx')!.mint;
@@ -28,7 +30,10 @@ describe('market catalog identities', () => {
   it('covers every pinned xStock and PreStock exactly once, with official ETF flags', () => {
     expect(MARKET_IDENTITIES).toHaveLength(840);
     expect(new Set(MARKET_IDENTITIES.map(identity => identity.mint)).size).toBe(840);
-    expect(categoryCounts(MARKET_IDENTITIES)).toEqual({ all: 840, stocks: 778, etfs: 54, metals: 5, bonds: 6, 'pre-ipo': 8 });
+    expect(categoryCounts(MARKET_IDENTITIES)).toEqual({ all: 840, stocks: 778, etfs: 54, metals: 5, bonds: 6, 'pre-ipo': 8, crypto: 0 });
+    // Crypto is listed only with its flag; lookups always resolve it.
+    expect(categoryCounts(marketIdentities(true))).toMatchObject({ all: 848, crypto: 8 });
+    expect(marketIdentities(false)).toBe(MARKET_IDENTITIES);
     expect(marketIdentity(SPYX)).toMatchObject({ category: 'etfs', underlyingSymbol: 'SPY', listing: 'US', issuer: 'xStocks' });
     expect(marketIdentity(AAPLX)).toMatchObject({ category: 'stocks', underlyingSymbol: 'AAPL' });
     expect(marketIdentity(OPENAI)).toMatchObject({ category: 'pre-ipo', universe: 'prestocks', underlyingSymbol: null, listing: null, issuer: 'PreStocks' });
@@ -100,7 +105,10 @@ describe('adding an asset to a plan', () => {
     expect(addAssetToBasket(basket([[AAPLX, '100']]), AAPLX, 'xstocks')).toEqual({ ok: false, reason: 'duplicate' });
     expect(addAssetToBasket(basket(others.slice(0, MAX_PLAN_ASSETS).map(mint => [mint, '10'])), AAPLX, 'xstocks')).toEqual({ ok: false, reason: 'full' });
     expect(addAssetToBasket(basket([]), OPENAI, 'xstocks')).toEqual({ ok: false, reason: 'unknown' });
-    expect(addAssetToBasket(basket([]), 'So11111111111111111111111111111111111111112', 'xstocks')).toEqual({ ok: false, reason: 'unknown' });
+    expect(addAssetToBasket(basket([]), 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v', 'xstocks')).toEqual({ ok: false, reason: 'unknown' });
+    // Crypto joins the stock planner, never the PreStocks one.
+    expect(addAssetToBasket(basket([]), 'So11111111111111111111111111111111111111112', 'xstocks')).toMatchObject({ ok: true });
+    expect(addAssetToBasket(basket([]), 'So11111111111111111111111111111111111111112', 'prestocks')).toEqual({ ok: false, reason: 'unknown' });
   });
 
   it('writes to the matching device draft and reports what is already planned', () => {
@@ -178,5 +186,34 @@ describe('themes, leverage and versions', () => {
     expect(spacex?.rows.map(row => [row.symbol, row.issuer])).toEqual([['SPCXx', 'xStocks'], ['SPACEX', 'PreStocks']]);
     expect(versionRows(marketRows(null), marketIdentityBySymbol('SOXLx')!)?.rows.map(row => row.symbol)).toEqual(['SMHx', 'SOXXx', 'SOXLx', 'SOXSx']);
     expect(versionRows(marketRows(null), marketIdentityBySymbol('AAPLx')!)).toBeNull();
+  });
+});
+
+describe('crypto behind its flag', () => {
+  it('pins eight tokens with a named issuer, bundled logos and no overlap with the stock catalogs', () => {
+    expect(CRYPTO_REGISTRY.map(asset => asset.symbol)).toEqual(['SOL', 'cbBTC', 'WBTC', 'ETH', 'JitoSOL', 'mSOL', 'JupSOL', 'INF']);
+    expect(new Set(CRYPTO_REGISTRY.map(asset => asset.mint)).size).toBe(8);
+    for (const asset of CRYPTO_REGISTRY) {
+      expect(MARKET_IDENTITIES.some(identity => identity.mint === asset.mint || identity.symbol === asset.symbol), asset.symbol).toBe(false);
+      expect(existsSync(new URL(`../public${asset.logoUrl}`, import.meta.url)), asset.logoUrl).toBe(true);
+      expect(asset.issuer.length).toBeGreaterThan(2);
+      expect(asset.backing.length).toBeGreaterThan(10);
+    }
+    expect(cryptoIdentity(WRAPPED_SOL_MINT)).toMatchObject({ symbol: 'SOL', decimals: 9, kind: 'coin' });
+    expect(CRYPTO_REGISTRY.filter(asset => asset.freezable).map(asset => asset.symbol)).toEqual(['cbBTC']);
+    expect(SPL_TOKEN_PROGRAM).toBe('TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA');
+  });
+
+  it('joins the stock planner, labels each kind and filters, searches and groups like any market', () => {
+    const rows = marketRows(null, marketIdentities(true));
+    expect(CRYPTO_MARKET_IDENTITIES.every(identity => identity.universe === 'xstocks' && identity.category === 'crypto')).toBe(true);
+    expect(['SOL', 'cbBTC', 'ETH', 'JitoSOL'].map(symbol => marketTypeLabel(marketIdentityBySymbol(symbol)!))).toEqual(['Coin', 'Bridged BTC', 'Bridged ETH', 'Staked SOL']);
+    expect(filterMarkets(rows, 'crypto', '').map(row => row.symbol)).toEqual(CRYPTO_REGISTRY.map(asset => asset.symbol));
+    expect(filterMarkets(rows, 'crypto', 'btc').map(row => row.symbol)).toEqual(['cbBTC', 'WBTC']);
+    expect(filterMarkets(marketRows(null), 'all', 'cbBTC')).toEqual([]);
+    const bitcoin = versionRows(rows, marketIdentityBySymbol('cbBTC')!);
+    expect(bitcoin?.group.label).toBe('Bitcoin');
+    expect(bitcoin?.rows.map(row => row.symbol)).toEqual(['cbBTC', 'WBTC', 'BITXx']);
+    expect(versionRows(marketRows(null), marketIdentityBySymbol('BITXx')!)).toBeNull();
   });
 });

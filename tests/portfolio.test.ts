@@ -34,6 +34,12 @@ describe('portfolio summary', () => {
     expect(mixKey(MARKET_IDENTITIES.find(identity => identity.symbol === 'OPENAI')!)).toBe('pre-ipo');
   });
 
+  it('groups pinned crypto as its own type', () => {
+    const summary = summarizePlan({ version: 1, budget: '100', items: [{ mint: mint('AAPLx'), percent: '70' }, { mint: 'So11111111111111111111111111111111111111112', percent: '30' }] });
+    expect(summary.mix).toEqual([{ key: 'stocks', label: 'Stocks', bps: 7000 }, { key: 'crypto', label: 'Crypto', bps: 3000 }]);
+    expect(summary.lines[1].identity?.symbol).toBe('SOL');
+  });
+
   it('formats basis points and decimal text for reading', () => {
     expect([formatBps(10_000), formatBps(2550), formatBps(1), formatBps(0)]).toEqual(['100%', '25.5%', '0.01%', '0%']);
     expect([displayAmount('1000.000000'), displayAmount('1234567.5', 0), displayAmount('0.100000', 2)]).toEqual(['1,000.00', '1,234,567.5', '0.10']);

@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { XSTOCK_MINTS } from './assets';
+import { CRYPTO_MINTS } from './crypto-assets';
 import type { Basket } from './types';
 
 /**
@@ -12,7 +13,7 @@ export type GallerySort = (typeof GALLERY_SORTS)[number];
 export const GALLERY_PAGE_SIZE = 24;
 export const DISPLAY_NAME_PATTERN = /^[A-Za-z0-9][A-Za-z0-9 ._-]*[A-Za-z0-9.]$/;
 
-const knownMints = new Set<string>(XSTOCK_MINTS);
+const knownMints = new Set<string>([...XSTOCK_MINTS, ...CRYPTO_MINTS]);
 const allocation = z.object({ mint: z.string().refine(value => knownMints.has(value)), bps: z.string().regex(/^(0|[1-9]\d{0,4})$/) }).strict();
 export const galleryPlanSchema = z.object({
   id: z.uuid(),

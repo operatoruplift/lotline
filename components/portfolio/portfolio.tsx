@@ -3,11 +3,11 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { ArrowRight, Building2, CalendarClock, Check, Clipboard, Gem, Landmark, Layers, Rocket, ShieldCheck, Users, type LucideIcon } from 'lucide-react';
+import { ArrowRight, Building2, CalendarClock, Check, Clipboard, Coins, Gem, Landmark, Layers, Rocket, ShieldCheck, Users, type LucideIcon } from 'lucide-react';
 import { readDevicePlans, sameSplit, type DevicePlans } from '@/lib/client/device-plans';
 import type { SavedReminder } from '@/lib/client/reminder';
 import { displayAmount } from '@/lib/domain/format';
-import { categoryCounts, formatMarketPrice, MARKET_IDENTITIES, marketIdentity, marketTypeLabel, type MarketFilter, type MarketSnapshot } from '@/lib/domain/markets';
+import { categoryCounts, formatMarketPrice, marketIdentities, marketIdentity, marketTypeLabel, type MarketFilter, type MarketSnapshot } from '@/lib/domain/markets';
 import { formatUsdc } from '@/lib/domain/math';
 import { PLANNER_UNIVERSES, type PlannerUniverse } from '@/lib/domain/planner-universe';
 import { formatBps, summarizePlan } from '@/lib/domain/portfolio';
@@ -29,7 +29,7 @@ const TILES: { filter: MarketFilter; label: string; Icon: LucideIcon }[] = [
   { filter: 'bonds', label: 'Bonds', Icon: Landmark },
   { filter: 'pre-ipo', label: 'Pre-IPO', Icon: Rocket },
 ];
-const COUNTS = categoryCounts(MARKET_IDENTITIES);
+const CRYPTO_TILE = { filter: 'crypto' as const, label: 'Crypto', Icon: Coins };
 
 function reviewTime(reminder: SavedReminder): string {
   try {
@@ -107,7 +107,9 @@ function PlanCard({ universe, basket, reminder, snapshot }: { universe: PlannerU
   );
 }
 
-function Welcome({ gallery }: { gallery: boolean }) {
+function Welcome({ gallery, crypto }: { gallery: boolean; crypto: boolean }) {
+  const tiles = crypto ? [...TILES, CRYPTO_TILE] : TILES;
+  const counts = categoryCounts(marketIdentities(crypto));
   return (
     <section className={styles.welcome} aria-labelledby="welcome-title">
       <h2 id="welcome-title" className="sr-only">Start a plan</h2>
@@ -116,8 +118,8 @@ function Welcome({ gallery }: { gallery: boolean }) {
         <Link className="button secondary" href="/markets">Explore markets</Link>
         <Link className={styles.textLink} href="/app?mode=example">Try the Example</Link>
       </div>
-      <ul className={styles.tiles} aria-label="Browse markets by type">
-        {TILES.map(({ filter, label, Icon }) => <li key={filter}><Link href={`/markets?category=${filter}`}><Icon size={22} aria-hidden="true" /><strong>{label}</strong><small>{COUNTS[filter]}<span> verified</span></small></Link></li>)}
+      <ul className={styles.tiles} aria-label="Browse markets by type" data-count={tiles.length}>
+        {tiles.map(({ filter, label, Icon }) => <li key={filter}><Link href={`/markets?category=${filter}`}><Icon size={22} aria-hidden="true" /><strong>{label}</strong><small>{counts[filter]}<span> verified</span></small></Link></li>)}
       </ul>
       <ol className={styles.steps} aria-label="How it works">
         <li><span aria-hidden="true">1</span><div><strong>Pick up to ten assets and set your split</strong><p>Stocks, ETFs, metals, bonds and pre-IPO names, each with a verified Solana mint.</p></div></li>
@@ -130,7 +132,7 @@ function Welcome({ gallery }: { gallery: boolean }) {
 }
 
 /** The phone-first home: this device's plans at a glance, or a start when there are none. */
-export function Portfolio({ gallery }: { gallery: boolean }) {
+export function Portfolio({ gallery, crypto = false }: { gallery: boolean; crypto?: boolean }) {
   const [plans, setPlans] = useState<DevicePlans | null>(null);
   const [snapshot, setSnapshot] = useState<MarketSnapshot | null>(null);
   const read = useCallback(() => {
@@ -168,7 +170,7 @@ export function Portfolio({ gallery }: { gallery: boolean }) {
           {plans.drafts.prestocks && <PlanCard universe="prestocks" basket={plans.drafts.prestocks} reminder={reminderFor('prestocks')} snapshot={snapshot} />}
           {gallery && <Link className={styles.community} href="/plans"><Users size={20} aria-hidden="true" /><span><strong>Compare with community plans</strong><small>Splits members shared, ranked by copies, never by returns.</small></span><ArrowRight size={16} aria-hidden="true" /></Link>}
         </div>
-          : <Welcome gallery={gallery} />}
+          : <Welcome gallery={gallery} crypto={crypto} />}
       {gallery && <Following />}
       <p className={styles.privacy}><ShieldCheck size={14} aria-hidden="true" />Read from this browser only. Lotline sees your plan only if you save it to an account or share its link.</p>
     </main>

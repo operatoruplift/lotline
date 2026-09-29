@@ -34,6 +34,25 @@ beforeAll(async () => {
 }, 120_000);
 afterAll(async () => { await db.close(); });
 
+describe('saved plan mints', () => {
+  it('accept the pinned crypto beside xStocks, and still refuse anything else', async () => {
+    const SOL = 'So11111111111111111111111111111111111111112';
+    const CBBTC = 'cbbtcf3aa214zXHbiAZQwf4122FBYbraNdFqgw4iMij';
+    const mixed = JSON.stringify([{ mint: AAPLX, bps: '5000' }, { mint: SOL, bps: '3000' }, { mint: CBBTC, bps: '2000' }]);
+    expect(await savePlan(chen, 'Stocks and crypto', mixed)).toBeTruthy();
+    const usdc = JSON.stringify([{ mint: 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v', bps: '10000' }]);
+    await expect(savePlan(chen, 'Not a plan asset', usdc)).rejects.toMatchObject({ code: '23514' });
+    expect(await as<boolean>(null, `select lotline_private.valid_plan_allocations($1::jsonb) as result`, [JSON.stringify([{ mint: SOL, bps: '10000' }])]).catch(() => 'no access')).toBe('no access');
+    // The migration appends to the reviewed list in place: all 832 xStocks stay, the eight crypto mints join, and a rerun changes nothing.
+    const definition = async () => (await db.query<{ def: string }>(`select pg_get_functiondef('lotline_private.valid_plan_allocations(jsonb)'::regprocedure) as def`)).rows[0].def;
+    const before = await definition();
+    expect(before.match(/'Xs[1-9A-HJ-NP-Za-km-z]{30,42}'/g)).toHaveLength(832);
+    expect(['So11111111111111111111111111111111111111112', 'cbbtcf3aa214zXHbiAZQwf4122FBYbraNdFqgw4iMij', '5oVNBeEEQvYi1cX3ir8Dx5n1P7pdxydbGF2X4TxVusJm'].every(mint => before.includes(`'${mint}'`))).toBe(true);
+    await db.exec(await readFile(new URL('../supabase/migrations/20260929160000_crypto_plan_mints.sql', import.meta.url), 'utf8'));
+    expect(await definition()).toBe(before);
+  });
+});
+
 describe('community plan gallery', () => {
   it('publishes only the name and split, never the budget or the owner', async () => {
     const planId = await savePlan(alice, 'Big tech core');

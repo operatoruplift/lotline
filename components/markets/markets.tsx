@@ -7,7 +7,7 @@ import { Check, ChevronLeft, ChevronRight, Clock3, Info, LoaderCircle, Plus, Ref
 import { fetchMarketSnapshot, type SnapshotLoad } from '@/lib/client/market-snapshot';
 import { addToDraft, draftMints } from '@/lib/client/plan-draft';
 import {
-  categoryCounts, filterMarkets, formatMarketPrice, formatMarketUsd, MARKET_FILTERS, MARKET_IDENTITIES, MARKET_SORTS, marketRows, marketTypeLabel,
+  categoryCounts, filterMarkets, formatMarketPrice, formatMarketUsd, MARKET_FILTERS, marketIdentities, MARKET_SORTS, marketRows, marketTypeLabel,
   MARKETS_PAGE_SIZE, pageOf, sortMarkets, versionRows, type MarketFilter, type MarketSort,
 } from '@/lib/domain/markets';
 import { SiteFooter, SiteHeader } from '../site-shell';
@@ -15,25 +15,25 @@ import { utcTime } from '../verification-receipt';
 import { AssetSheet, ChangeBadge } from './asset-sheet';
 import styles from './markets.module.css';
 
-const FILTER_LABELS: Record<MarketFilter, string> = { all: 'All', stocks: 'Stocks', etfs: 'ETFs', metals: 'Metals', bonds: 'Bonds', 'pre-ipo': 'Pre-IPO' };
+const FILTER_LABELS: Record<MarketFilter, string> = { all: 'All', stocks: 'Stocks', etfs: 'ETFs', metals: 'Metals', bonds: 'Bonds', 'pre-ipo': 'Pre-IPO', crypto: 'Crypto' };
 const SORT_LABELS: Record<MarketSort, string> = { volume: 'Most traded, 24h', gainers: 'Top gainers, 24h', losers: 'Top losers, 24h', liquidity: 'Deepest liquidity', name: 'Name', price: 'Price' };
 type Load = { state: 'loading' } | SnapshotLoad;
 type Notice = { text: string; error?: boolean; href?: string };
 type View = { filter: MarketFilter; sort: MarketSort; query: string; page: number; asset: string | null };
 const DEFAULT_VIEW: View = { filter: 'all', sort: 'volume', query: '', page: 1, asset: null };
 
-function readView(search: string): View {
+function readView(search: string, crypto: boolean): View {
   const params = new URLSearchParams(search);
   const filter = params.get('category') as MarketFilter | null;
   const sort = params.get('sort') as MarketSort | null;
   const page = Number(params.get('page'));
   const asset = params.get('asset');
   return {
-    filter: filter && MARKET_FILTERS.includes(filter) ? filter : 'all',
+    filter: filter && MARKET_FILTERS.includes(filter) && (crypto || filter !== 'crypto') ? filter : 'all',
     sort: sort && MARKET_SORTS.includes(sort) ? sort : 'volume',
     query: (params.get('q') ?? '').slice(0, 64),
     page: Number.isInteger(page) && page > 0 ? page : 1,
-    asset: asset && MARKET_IDENTITIES.some(identity => identity.mint === asset) ? asset : null,
+    asset: asset && marketIdentities(crypto).some(identity => identity.mint === asset) ? asset : null,
   };
 }
 
@@ -49,7 +49,7 @@ function writeView(view: View) {
 }
 
 /** Browse the verified catalog with a dated market snapshot, open an asset, add it to a device draft. */
-export function Markets() {
+export function Markets({ crypto = false }: { crypto?: boolean }) {
   const [load, setLoad] = useState<Load>({ state: 'loading' });
   const [reload, setReload] = useState(0);
   const [view, setView] = useState<View>(DEFAULT_VIEW);
@@ -62,11 +62,11 @@ export function Markets() {
   }, []);
 
   useEffect(() => {
-    queueMicrotask(() => { setView(readView(window.location.search)); setRestored(true); refreshDrafts(); });
+    queueMicrotask(() => { setView(readView(window.location.search, crypto)); setRestored(true); refreshDrafts(); });
     const onStorage = (event: StorageEvent) => { if (event.key === null || event.key.startsWith('lotline:')) refreshDrafts(); };
     window.addEventListener('storage', onStorage);
     return () => window.removeEventListener('storage', onStorage);
-  }, [refreshDrafts]);
+  }, [refreshDrafts, crypto]);
 
   useEffect(() => { if (restored) writeView(view); }, [restored, view]);
 
@@ -83,8 +83,10 @@ export function Markets() {
   }, [notice]);
 
   const snapshot = load.state === 'ready' ? load.snapshot : null;
-  const rows = useMemo(() => marketRows(snapshot), [snapshot]);
-  const counts = useMemo(() => categoryCounts(MARKET_IDENTITIES), []);
+  const identities = marketIdentities(crypto);
+  const rows = useMemo(() => marketRows(snapshot, identities), [snapshot, identities]);
+  const counts = useMemo(() => categoryCounts(identities), [identities]);
+  const filters = crypto ? MARKET_FILTERS : MARKET_FILTERS.filter(filter => filter !== 'crypto');
   const filtered = useMemo(() => sortMarkets(filterMarkets(rows, view.filter, view.query), view.sort), [rows, view.filter, view.query, view.sort]);
   const page = pageOf(filtered, view.page);
   const selected = view.asset ? rows.find(row => row.mint === view.asset) ?? null : null;
@@ -116,7 +118,7 @@ export function Markets() {
 
       <div className={styles.toolbar}>
         <div className={styles.filters} role="group" aria-label="Asset type">
-          {MARKET_FILTERS.map(filter => <button key={filter} type="button" aria-pressed={view.filter === filter} onClick={() => change({ filter })}>{FILTER_LABELS[filter]}<span>{counts[filter]}</span></button>)}
+          {filters.map(filter => <button key={filter} type="button" aria-pressed={view.filter === filter} onClick={() => change({ filter })}>{FILTER_LABELS[filter]}<span>{counts[filter]}</span></button>)}
         </div>
         <div className={styles.controls}>
           <label className={styles.search}><span className="sr-only">Search markets</span><Search size={16} aria-hidden="true" />

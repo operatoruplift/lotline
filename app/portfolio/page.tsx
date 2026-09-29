@@ -4,7 +4,7 @@ import { connection } from 'next/server';
 import { AppTabBar } from '@/components/app-tab-bar';
 import { Portfolio } from '@/components/portfolio/portfolio';
 import { galleryEnabled } from '@/lib/server/gallery';
-import { marketsEnabled } from '@/lib/server/features';
+import { cryptoEnabled, marketsEnabled } from '@/lib/server/features';
 
 export const metadata: Metadata = {
   title: 'Portfolio',
@@ -17,5 +17,5 @@ export default async function PortfolioPage() {
   await connection();
   if (!marketsEnabled()) notFound();
   const gallery = galleryEnabled();
-  return <><Portfolio gallery={gallery} /><AppTabBar active="portfolio" gallery={gallery} /></>;
+  return <><Portfolio gallery={gallery} crypto={cryptoEnabled()} /><AppTabBar active="portfolio" gallery={gallery} /></>;
 }

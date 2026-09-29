@@ -58,6 +58,13 @@ describe('markets API routes', () => {
       expect((await GET(new Request(`https://lotline.dev/api/markets/chart?${query}`))).status).toBe(400);
     }
     expect(mocks.chart).not.toHaveBeenCalled();
+    // Crypto charts only with the crypto flag, like the Crypto tab itself.
+    vi.stubEnv('LOTLINE_CRYPTO_ENABLED', 'true');
+    mocks.chart.mockResolvedValueOnce({ state: 'unavailable', mint: 'So11111111111111111111111111111111111111112', range: '1d', points: [], source: 'GeckoTerminal', pool: null, fetchedAt: new Date(NOW).toISOString(), message: 'fixture' });
+    await GET(new Request('https://lotline.dev/api/markets/chart?mint=So11111111111111111111111111111111111111112'));
+    expect(mocks.chart).toHaveBeenCalledWith('So11111111111111111111111111111111111111112', '1d');
+    vi.stubEnv('LOTLINE_CRYPTO_ENABLED', '');
+    mocks.chart.mockClear();
     mocks.chart.mockResolvedValueOnce({ state: 'success', mint: AAPLX, range: '1d', points: [{ t: 1, c: 2 }, { t: 2, c: 3 }], source: 'GeckoTerminal', pool: null, fetchedAt: new Date(NOW).toISOString() });
     const charted = await GET(new Request(`https://lotline.dev/api/markets/chart?mint=${AAPLX}`));
     expect(charted.status).toBe(200);

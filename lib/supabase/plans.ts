@@ -3,9 +3,11 @@ import type { Basket } from '@/lib/domain/types';
 import { formatUsdc, MAX_BUDGET_RAW, parseBudget, parsePercent, validatePlan } from '@/lib/domain/math';
 import { MAX_PLAN_ASSETS } from '@/lib/domain/limits';
 import { XSTOCK_MINTS } from '@/lib/domain/assets';
+import { CRYPTO_MINTS } from '@/lib/domain/crypto-assets';
 
-// Issuer-confirmed Solana deployments. Live execution estimates still reverify the catalog.
-export const PLAN_MINTS = XSTOCK_MINTS;
+// Issuer-confirmed xStocks and the pinned crypto (the database allowlist matches,
+// supabase/migrations/20260929160000_crypto_plan_mints.sql). Live estimates still reverify the catalog.
+export const PLAN_MINTS: readonly string[] = [...XSTOCK_MINTS, ...CRYPTO_MINTS];
 const rawBudget = z.string().regex(/^[1-9]\d{0,12}$/).refine(value => /^[1-9]\d{0,12}$/.test(value) && BigInt(value) <= MAX_BUDGET_RAW);
 const bps = z.string().regex(/^(0|[1-9]\d{0,4})$/).refine(value => /^(0|[1-9]\d{0,4})$/.test(value) && Number(value) <= 10_000);
 const allocations = z.array(z.object({ mint: z.string().refine(value => (PLAN_MINTS as readonly string[]).includes(value)), bps }).strict()).min(1).max(MAX_PLAN_ASSETS)

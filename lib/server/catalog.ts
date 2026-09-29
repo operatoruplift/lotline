@@ -2,6 +2,8 @@ import 'server-only';
 import { z } from 'zod';
 import type { Asset, CatalogResponse } from '../domain/types';
 import { identityForSymbol, logoPathForSymbol, officialLogoUrlForSymbol, XSTOCK_LOGO_HOST, XSTOCK_SYMBOLS } from '../domain/assets';
+import { CRYPTO_REGISTRY, SPL_TOKEN_PROGRAM } from '../domain/crypto-assets';
+import { cryptoEnabled } from './features';
 import { addressSchema, BoundedCache, fetchJson, safeMessage, ServiceError } from './common';
 import { loadMints, rpcConfigured } from './solana';
 
@@ -23,6 +25,7 @@ const issuerPageSchema = z.object({
 type IssuerAsset = { symbol: string; name: string; mint: string; halted: boolean; fetchedAt: string; logoSourceUrl?: string; issuerIsin?: string; underlyingSymbol?: string; underlyingIsin?: string };
 const issuerCache = new BoundedCache<IssuerAsset>(2_000);
 const catalogCache = new BoundedCache<CatalogResponse>(1);
+const cryptoCache = new BoundedCache<Pick<CatalogResponse, 'assets' | 'unavailable'>>(1);
 let pendingCatalog: Promise<CatalogResponse> | undefined;
 
 function verifiedLogoUrl(value: string | undefined, symbol: string): string | undefined {
@@ -130,9 +133,42 @@ async function fetchCatalog(): Promise<CatalogResponse> {
 export async function getCatalog(): Promise<CatalogResponse> {
   if (!rpcConfigured()) return { state: 'configuration-required', assets: [], unavailable: [], message: 'Live needs SOLANA_RPC_URL on the server. Example mode is ready to use.' };
   const cached = catalogCache.get('catalog');
+  const stocks = cached ?? await (pendingCatalog ??= fetchCatalog().finally(() => { pendingCatalog = undefined; }));
+  return cryptoEnabled() ? withCrypto(stocks, await cryptoCatalog()) : stocks;
+}
+
+/**
+ * Pinned crypto, re-verified against the chain: each mint must still be an SPL
+ * Token mint with its pinned decimals. Crypto has no issuer halt flag, so
+ * `halted` is false, meaning no halt exists, never that one went unchecked.
+ */
+export async function cryptoCatalog(load: typeof loadMints = loadMints): Promise<Pick<CatalogResponse, 'assets' | 'unavailable'>> {
+  const cached = cryptoCache.get('crypto');
   if (cached) return cached;
-  pendingCatalog ??= fetchCatalog().finally(() => { pendingCatalog = undefined; });
-  return pendingCatalog;
+  const verifiedAt = new Date().toISOString();
+  let mints: Awaited<ReturnType<typeof loadMints>>;
+  try { mints = await load(CRYPTO_REGISTRY.map(asset => asset.mint)); }
+  catch (error) { return { assets: [], unavailable: CRYPTO_REGISTRY.map(asset => ({ symbol: asset.symbol, message: safeMessage(error) })) }; }
+  const assets: Asset[] = [];
+  const unavailable: CatalogResponse['unavailable'] = [];
+  for (const asset of CRYPTO_REGISTRY) {
+    const mint = mints.get(asset.mint);
+    if (!mint || mint instanceof ServiceError) { unavailable.push({ symbol: asset.symbol, message: mint ? safeMessage(mint) : 'The chain account could not be verified.' }); continue; }
+    if (mint.decimals !== asset.decimals || mint.tokenProgram !== SPL_TOKEN_PROGRAM) { unavailable.push({ symbol: asset.symbol, message: 'This mint no longer matches its pinned identity and needs review.' }); continue; }
+    assets.push({ symbol: asset.symbol, name: asset.name, mint: asset.mint, decimals: mint.decimals, tokenProgram: mint.tokenProgram, halted: false, verifiedAt, logoUrl: asset.logoUrl, underlyingSymbol: asset.underlying });
+  }
+  const result = { assets, unavailable };
+  cryptoCache.set('crypto', result, unavailable.length ? 15_000 : 60 * 60_000);
+  return result;
+}
+
+/** The stock catalog with verified crypto appended; its state reflects both. */
+export function withCrypto(stocks: CatalogResponse, crypto: Pick<CatalogResponse, 'assets' | 'unavailable'>): CatalogResponse {
+  if (stocks.state === 'configuration-required') return stocks;
+  const assets = [...stocks.assets, ...crypto.assets];
+  const unavailable = [...stocks.unavailable, ...crypto.unavailable];
+  const state = unavailable.length === 0 ? 'success' : assets.length ? 'partial' : 'unavailable';
+  return { state, assets, unavailable, ...(state === 'success' ? {} : { message: stocks.message ?? (assets.length ? 'Some assets are temporarily unavailable.' : 'Issuer or chain verification is unavailable. Try Example mode or retry Live.') }) };
 }
 export async function selectedAssets(mints: string[]): Promise<Asset[]> {
   const catalog = await getCatalog();
