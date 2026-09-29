@@ -36,3 +36,12 @@
   .button { width: 100%; }
   .install:has(+ .banner) { padding-bottom: 120px; }
 }
+
+/* App screens on phones: one slim row above the tab bar instead of a full section. */
+@media (max-width: 800px) {
+  :global(body:has([data-app-tab-bar])) .install { padding: 10px 16px; }
+  :global(body:has([data-app-tab-bar])) .inner { flex-direction: row; align-items: center; gap: 12px; }
+  :global(body:has([data-app-tab-bar])) .copy strong { font-size: 13px; }
+  :global(body:has([data-app-tab-bar])) .copy span { display: none; }
+  :global(body:has([data-app-tab-bar])) .button { width: auto; min-height: 44px; padding: 8px 14px; font-size: 12px; }
+}

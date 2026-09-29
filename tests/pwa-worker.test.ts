@@ -113,6 +113,17 @@ describe('public offline cache boundary', () => {
   });
 });
 
+it('opens the installed app on Portfolio, with a Markets shortcut, only when the markets flag is on', () => {
+  vi.stubEnv('LOTLINE_MARKETS_ENABLED', 'true');
+  try {
+    const value = manifest();
+    expect(value.start_url).toBe('/portfolio');
+    expect(value.shortcuts?.map(shortcut => shortcut.url)).toEqual(['/markets', '/app', '/offline']);
+  } finally { vi.unstubAllEnvs(); }
+  expect(manifest().start_url).toBe('/app');
+  expect(manifest().shortcuts?.map(shortcut => shortcut.url)).toEqual(['/app', '/offline']);
+});
+
 it('provides installable manifest dimensions and a maskable icon with a stable app identity', () => {
   const value = manifest();
   expect(value.id).toBe('/');

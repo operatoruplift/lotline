@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import { ArrowRight, ArrowUpRight, Check, CheckCheck, CircleDollarSign, ClipboardList, Gauge, LockKeyhole, Play, ScanLine, ShieldCheck } from 'lucide-react';
+import { AppTabBar } from '@/components/app-tab-bar';
 import { SiteHeader, SiteFooter } from '@/components/site-shell';
 import { DecorativeVideo } from '@/components/decorative-video';
 import { Reveal } from '@/components/reveal';
@@ -83,5 +84,5 @@ export default function Home() {
       <Reveal delay={150}><p className={styles.kicker}>WHEREVER YOUR NEXT STEP TAKES YOU</p><h2>At home on<br />your home screen.</h2><p>Install Lotline on your phone or desktop. Explore the labeled Example offline; reconnect for fresh estimates and account sync.</p><div className={styles.devices} aria-hidden="true"><span /><span /><span /></div><a href="#install-lotline" className="text-button">Install Lotline <ArrowRight size={16} /></a></Reveal>
     </section>
     <Reveal className={styles.intent}><span className={styles.intentSymbol} aria-hidden="true">↗</span><div><p className={styles.kicker}><ShieldCheck size={13} /> YOUR KEYS. YOUR CALL.</p><h2>A plan, with you in control.</h2><p>Lotline splits your next contribution using percentages you choose. Your existing holdings stay in context. Every trading decision stays with you.</p></div><Link href="/app?mode=example" className="text-button">Try the example <ArrowRight size={16} /></Link></Reveal>
-  </main><SiteFooter /></>;
+  </main><SiteFooter />{header.markets && <AppTabBar gallery={header.community} />}</>;
 }

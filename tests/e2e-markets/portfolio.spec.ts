@@ -22,7 +22,7 @@ async function seed(page: Page, entries: Record<string, unknown>) {
 test('with no plan, the portfolio home starts people off with tiles, steps and the community', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto('/portfolio');
-  await expect(page.getByRole('heading', { level: 1, name: 'One plan. More markets.' })).toBeVisible();
+  await expect(page.getByRole('heading', { level: 1, name: 'Start with one clear split.' })).toBeVisible();
   const tiles = page.getByRole('list', { name: 'Browse markets by type' });
   await expect(tiles.getByRole('link')).toHaveCount(5);
   await expect(tiles.getByRole('link', { name: /Metals/ })).toHaveAttribute('href', '/markets?category=metals');

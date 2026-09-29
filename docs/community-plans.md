@@ -4,8 +4,8 @@ Added 28 September 2026 behind `LOTLINE_GALLERY_ENABLED` (off by default). With 
 
 ## What members see
 
-- **`/plans`**: plans members chose to share, ordered by **Most copied** (ranked) or **Newest**, 24 at a time. Each card shows the plan name, "by <display name>" or "by a Lotline member", an allocation bar, the three largest weights with "+N more", the copy count and the share date.
-- **`/plans/<id>`**: a shareable page with every weight, **Copy into my plan** and **Copy link**. Link previews carry the plan name and its largest weights only.
+- **`/plans`**: a leaderboard of plans members chose to share, ordered by **Most copied** (ranked) or **Newest**, 24 at a time. Each compact row shows the rank, the plan name, "by <display name>" or "by a Lotline member", the copy count, the three largest weights on one line with "+N", a split bar and a **Copy** button. Tapping a row opens the full split in a sheet (a bottom sheet on phones, a side panel on wide screens) with **Copy into my plan** and **Copy link**; the open plan is kept in the URL as `?plan=<id>`, so the view can be reopened.
+- **`/plans/<id>`**: the shareable page, with the same detail as the sheet. **Copy link** always copies this address. Link previews carry the plan name and its largest weights only.
 - **Copy**: opens the planner's existing shared-plan review dialog with the reader's own draft budget (1,000 USDC when there is none). Nothing changes until they apply it, and nothing is bought. A signed-in member's copy is counted in the background, once per member and never for the author; a guest's copy opens but is not counted.
 - **Share to community**: beside each saved cloud plan, with an optional display name (2–32 letters, numbers, spaces, dots, dashes or underscores, no links). Members can share up to five plans, see each one's copy count, and **Stop sharing** at any time. Deleting the saved plan removes the shared copy.
 
