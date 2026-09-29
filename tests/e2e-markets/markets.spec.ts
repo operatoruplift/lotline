@@ -87,6 +87,39 @@ test('the asset sheet shows dated context and identity, charts each range, and a
   await expect(page.getByRole('dialog', { name: 'SP500 xStock' })).toContainText('ETF per Nasdaq’s symbol directory');
 });
 
+test('metals and bonds filters, leverage notes, and switching versions keep the sheet open', async ({ page }) => {
+  const bySymbol = (symbol: string) => MARKET_IDENTITIES.find(identity => identity.symbol === symbol)!;
+  await mockMarkets(page);
+  await page.goto('/markets');
+  const rows = page.locator('tbody tr');
+  await page.getByRole('button', { name: /^Metals/ }).click();
+  await expect(page).toHaveURL(/category=metals/);
+  await expect(rows).toHaveCount(5);
+  await expect(rows.filter({ hasText: 'GLDx' })).toContainText('Metal ETF');
+  await page.getByRole('button', { name: /^Bonds/ }).click();
+  await expect(rows).toHaveCount(6);
+  await expect(rows.filter({ hasText: 'SGOVx' })).toContainText('Bond ETF');
+
+  await page.goto(`/markets?asset=${bySymbol('TQQQx').mint}`);
+  const leveraged = page.getByRole('dialog', { name: 'TQQQ xStock' });
+  await expect(leveraged).toContainText('xStocks · 3× daily ETF');
+  await expect(leveraged.getByRole('note')).toContainText('Seeks 3× of one day’s move');
+  await expect(leveraged.getByRole('heading', { name: 'Similar exposure · Nasdaq-100' })).toBeVisible();
+  await leveraged.getByRole('button', { name: /^Open QQQx/ }).click();
+  await expect(page.getByRole('dialog', { name: 'Nasdaq xStock' })).toBeVisible();
+  await expect(page).toHaveURL(new RegExp(`asset=${bySymbol('QQQx').mint}`));
+
+  await page.goto(`/markets?asset=${bySymbol('SPACEX').mint}`);
+  const company = page.getByRole('dialog', { name: 'SpaceX PreStocks' });
+  await expect(company.getByRole('heading', { name: 'Other ways to hold SpaceX' })).toBeVisible();
+  await company.getByRole('button', { name: /^Open SPCXx/ }).click();
+  const xstock = page.getByRole('dialog', { name: 'SpaceX xStock' });
+  await expect(xstock).toBeVisible();
+  await expect(xstock.getByRole('button', { name: /^Open SPACEX/ })).toBeVisible();
+  const accessibility = await new AxeBuilder({ page }).include('dialog[open]').withTags(['wcag2a', 'wcag2aa', 'wcag21aa']).analyze();
+  expect(accessibility.violations).toEqual([]);
+});
+
 test('an unavailable snapshot still lets people browse identities and add assets', async ({ page }) => {
   await mockMarkets(page, { status: 503, json: { state: 'unavailable', message: 'Market data is temporarily unavailable.' } });
   await page.goto('/markets?category=pre-ipo');

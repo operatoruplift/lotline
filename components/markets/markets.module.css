@@ -158,3 +158,17 @@
   .table thead th:nth-child(3), .table tbody td:nth-child(3) { display: none; }
 }
 @media (prefers-reduced-motion: reduce) { .sheet[open] { animation: none; } }
+
+.tag[data-leverage] { background: var(--warning-bg); color: var(--warning); }
+.leverageNote { margin-top: 10px; padding: 10px 12px; border-left: 3px solid var(--warning); border-radius: 6px; background: var(--warning-bg); color: var(--warning); font-size: 12px; line-height: 1.6; }
+.versions { margin-top: 18px; padding-top: 16px; border-top: 1px solid var(--line); }
+.versions h3 { font-size: 13px; letter-spacing: -.1px; }
+.versions ul { display: grid; gap: 6px; margin-top: 10px; list-style: none; padding: 0; }
+.versions li button { display: grid; grid-template-columns: auto minmax(0, 1fr) auto auto; align-items: center; gap: 10px; width: 100%; min-height: 52px; padding: 8px 10px; border: 1px solid var(--line); border-radius: 10px; background: #fff; text-align: left; transition: border-color .15s, background .15s; }
+.versions li button:hover { border-color: var(--forest); background: var(--soft); }
+.versions li button:focus-visible { outline: 2px solid var(--forest); outline-offset: 2px; }
+.versionText { display: grid; min-width: 0; }
+.versionText strong { font-size: 13px; }
+.versionText small { font-size: 11px; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.versionPrice { font-size: 12px; font-variant-numeric: tabular-nums; }
+.versions > p { margin-top: 8px; font-size: 11px; line-height: 1.6; color: var(--muted); }

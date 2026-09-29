@@ -2,7 +2,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import { MARKET_MINTS, type MarketSnapshot } from '../lib/domain/markets';
 import { ServiceError } from '../lib/server/common';
 import { buildMarketSnapshot, createMarketStore, normalizeTokens, SNAPSHOT_FRESH_MS, SNAPSHOT_MAX_AGE_MS } from '../lib/server/markets';
-import { choosePool, MIN_CHART_POOL_USD, normalizeCandles, readChart } from '../lib/server/market-chart';
+import { choosePool, MIN_CHART_POOL_USD, normalizeCandles, readChart, toDisplayPrices } from '../lib/server/market-chart';
 
 const AAPLX = 'XsbEhLAtcf6HdfpFZ5xEMdqW8nfAvcsP5bdudRLJzJp';
 const NVDAX = 'Xsc9qvGR1efVDFGLrVsmkzv3qi45LTBjeUKSPmx9qEh';
@@ -99,6 +99,35 @@ describe('price history', () => {
     expect(choosePool({ data: [pool('bad address!', AAPLX, USDC, '1000000'), pool(DEEP, AAPLX, USDC, null)] }, AAPLX)).toBeNull();
     expect(() => choosePool({ pools: [] }, AAPLX)).toThrow(ServiceError);
   });
+  it('prefers a pool priced against USDC, USDT or SOL when it is at least a fifth as deep as the deepest pool', () => {
+    const SPYX = 'XsoCS1TfEyfFhfvj8EtZ528L3CaKBDBRqRapnBbDF2W';
+    const SOL = 'So11111111111111111111111111111111111111112';
+    const CROSS = 'ApniVWuZbZoruTAJdyJcLBA4AVw4DKGdV5fHxo6qrAZT';
+    const comparable = [pool(CROSS, AAPLX, SPYX, '87788'), pool(DEEP, AAPLX, USDC, '30000'), pool('4dLtt8WQEjkZCiRrNJA5XRqqDBsoymdBxN54dz7pbDie', SOL, AAPLX, '4021')];
+    expect(choosePool({ data: comparable }, AAPLX)).toEqual({ address: DEEP, name: 'AAPLx / USDC' });
+    // A reference pool under a fifth of the depth trades too rarely to chart, so the deepest pool wins.
+    const thin = [pool(CROSS, AAPLX, SPYX, '87788'), pool(DEEP, AAPLX, USDC, '6939')];
+    expect(choosePool({ data: thin }, AAPLX)?.address).toBe(CROSS);
+    expect(choosePool({ data: [pool(CROSS, AAPLX, SPYX, '87788')] }, AAPLX)?.address).toBe(CROSS);
+  });
+  it('divides raw-unit prices by the display multiplier in force at each time', () => {
+    const scale = { multiplier: 2, newMultiplier: 2.5, effectiveAtMs: 2_000 };
+    expect(toDisplayPrices([{ t: 1_000, c: 150 }, { t: 2_000, c: 150 }, { t: 3_000, c: 200 }], scale)).toEqual([{ t: 1_000, c: 75 }, { t: 2_000, c: 60 }, { t: 3_000, c: 80 }]);
+    expect(toDisplayPrices([{ t: 1, c: 5 }], null)).toEqual([{ t: 1, c: 5 }]);
+  });
+  it('charts displayed units, and refuses to chart when the display units cannot be verified', async () => {
+    const at = (hoursAgo: number) => Math.floor(NOW / 1000) - hoursAgo * 3_600;
+    const poolFor = (url: string) => pool(DEEP, url.split('/tokens/')[1].split('/')[0], USDC, '291288.30');
+    const fetch = vi.fn(async (url: string) => url.includes('/tokens/') ? { data: [poolFor(url)] } : { data: { attributes: { ohlcv_list: [[at(8), 1, 1, 1, 155.5, 1], [at(4), 1, 1, 1, 161.7, 1]] } } });
+    const TQQQX = 'XsjQP3iMAaQ3kQScQKthQpx9ALRbjKAjQtHg6TFomoc';
+    const scaled = await readChart(TQQQX, '7d', { fetch, now: () => NOW, run: operation => operation(), scale: async () => ({ multiplier: 2.0117, newMultiplier: 2.0117, effectiveAtMs: 0 }) });
+    expect(scaled.state).toBe('success');
+    expect(scaled.points.map(point => Math.round(point.c * 100) / 100)).toEqual([77.3, 80.38]);
+    // A mint no other test charts: the pool and chart caches are module-level.
+    const SPYX_MINT = 'XsoCS1TfEyfFhfvj8EtZ528L3CaKBDBRqRapnBbDF2W';
+    const unverified = await readChart(SPYX_MINT, '30d', { fetch, now: () => NOW, run: operation => operation(), scale: async () => { throw new Error('rpc down'); } });
+    expect(unverified).toMatchObject({ state: 'unavailable', points: [], message: expect.stringMatching(/display units could not be verified/) });
+  });
   it('turns candles into ascending closes inside the window and drops bad ones', () => {
     const hour = 3_600;
     const at = (hoursAgo: number) => Math.floor(NOW / 1000) - hoursAgo * hour;
@@ -109,7 +138,7 @@ describe('price history', () => {
   it('asks GeckoTerminal for the chosen pool with the range settings, caches the result and explains gaps', async () => {
     const at = (hoursAgo: number) => Math.floor(NOW / 1000) - hoursAgo * 3_600;
     const fetch = vi.fn(async (url: string) => url.includes('/tokens/') ? { data: [pool(DEEP, AAPLX, USDC, '291288.30')] } : { data: { attributes: { ohlcv_list: [[at(8), 1, 1, 1, 340, 1], [at(4), 1, 1, 1, 342, 1]] } } });
-    const deps = { fetch, now: () => NOW, run: <T,>(operation: () => Promise<T>) => operation() };
+    const deps = { fetch, now: () => NOW, run: <T,>(operation: () => Promise<T>) => operation(), scale: async () => null };
     const chart = await readChart(AAPLX, '7d', deps);
     expect(chart).toMatchObject({ state: 'success', mint: AAPLX, range: '7d', pool: { address: DEEP }, source: 'GeckoTerminal' });
     expect(fetch.mock.calls.map(call => call[0])).toEqual([
@@ -126,6 +155,6 @@ describe('price history', () => {
   it('says when the chart source is rate limited', async () => {
     const limited = vi.fn(async () => { throw new ServiceError('unavailable', 'rate limited', 'rate-limited', 429); });
     const MSFTX = 'XspzcW1PRtgf6Wj92HCiZdjzKCyFekVD8P5Ueh3dRMX';
-    expect(await readChart(MSFTX, '1d', { fetch: limited, now: () => NOW, run: operation => operation() })).toMatchObject({ state: 'unavailable', message: 'The chart source is busy. Try again in a minute.' });
+    expect(await readChart(MSFTX, '1d', { fetch: limited, now: () => NOW, run: operation => operation(), scale: async () => null })).toMatchObject({ state: 'unavailable', message: 'The chart source is busy. Try again in a minute.' });
   });
 });

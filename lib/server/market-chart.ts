@@ -1,7 +1,9 @@
 import 'server-only';
+import { unwrapOption } from '@solana/kit';
 import { z } from 'zod';
 import type { ChartPoint, ChartRange, ChartResponse } from '../domain/markets';
 import { BoundedCache, fetchJson, ServiceError, SpacedQueue } from './common';
+import { loadMintSnapshot } from './solana';
 
 const API = 'https://api.geckoterminal.com/api/v2';
 const RANGES: Record<ChartRange, { timeframe: 'hour' | 'day'; aggregate: number; limit: number; spanMs: number }> = {
@@ -24,19 +26,61 @@ const poolsSchema = z.object({ data: z.array(z.object({
 })).max(100) });
 const ohlcvSchema = z.object({ data: z.object({ attributes: z.object({ ohlcv_list: z.array(z.array(z.number()).min(5).max(6)).max(1_000) }) }) });
 
-/** The deepest pool that actually contains the mint, above the value floor. */
+/** Pools priced directly against a dollar stablecoin or SOL; other pairs price the asset through a second token. */
+const REFERENCE_TOKENS = new Set([
+  'solana_EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v', 'solana_Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB', 'solana_So11111111111111111111111111111111111111112',
+]);
+
+/** A reference pool this deep relative to the deepest pool is preferred; a thinner one trades too rarely to chart. */
+export const REFERENCE_DEPTH_SHARE = 0.2;
+
+/**
+ * The deepest pool that contains the mint and clears the value floor. A pool
+ * priced directly against a reference token wins when it is at least a fifth
+ * as deep as the deepest pool, since its price needs no second conversion.
+ */
 export function choosePool(payload: unknown, mint: string): { address: string; name: string } | null {
   const parsed = poolsSchema.safeParse(payload);
   if (!parsed.success) throw new ServiceError('unavailable', 'Chart pools could not be read.');
   const id = `solana_${mint}`;
-  let best: { address: string; name: string; reserve: number } | null = null;
+  type Candidate = { address: string; name: string; reserve: number };
+  let deepest: Candidate | null = null;
+  let reference: Candidate | null = null;
   for (const pool of parsed.data.data) {
-    if (pool.relationships.base_token.data.id !== id && pool.relationships.quote_token.data.id !== id) continue;
+    const { base_token: base, quote_token: quote } = pool.relationships;
+    if (base.data.id !== id && quote.data.id !== id) continue;
     const reserve = Number(pool.attributes.reserve_in_usd ?? 'NaN');
     if (!Number.isFinite(reserve) || reserve < MIN_CHART_POOL_USD || !/^[1-9A-HJ-NP-Za-km-z]{32,44}$/.test(pool.attributes.address)) continue;
-    if (!best || reserve > best.reserve) best = { address: pool.attributes.address, name: pool.attributes.name, reserve };
+    const candidate = { address: pool.attributes.address, name: pool.attributes.name, reserve };
+    if (!deepest || reserve > deepest.reserve) deepest = candidate;
+    if (REFERENCE_TOKENS.has(base.data.id === id ? quote.data.id : base.data.id) && (!reference || reserve > reference.reserve)) reference = candidate;
   }
+  const best = reference && deepest && reference.reserve >= deepest.reserve * REFERENCE_DEPTH_SHARE ? reference : deepest;
   return best ? { address: best.address, name: best.name } : null;
+}
+
+/**
+ * Token-2022 scaled UI amounts: a displayed unit is a raw unit times the
+ * multiplier, which switches to the new multiplier at its effective time.
+ */
+export type DisplayScale = { multiplier: number; newMultiplier: number; effectiveAtMs: number };
+
+/**
+ * GeckoTerminal prices raw token units; Lotline's market figures and planner
+ * show displayed units. Each close is divided by the multiplier in force at
+ * that time, so a split or dividend adjustment does not misstate the chart.
+ */
+export function toDisplayPrices(points: readonly ChartPoint[], scale: DisplayScale | null): ChartPoint[] {
+  if (!scale) return [...points];
+  return points.map(point => ({ t: point.t, c: point.c / (point.t >= scale.effectiveAtMs ? scale.newMultiplier : scale.multiplier) }));
+}
+
+async function readDisplayScale(mint: string): Promise<DisplayScale | null> {
+  const { mint: decoded } = await loadMintSnapshot(mint, false);
+  const config = (unwrapOption(decoded.extensions) ?? []).find(extension => extension.__kind === 'ScaledUiAmountConfig');
+  if (!config) return null;
+  if (!(config.multiplier > 0) || !(config.newMultiplier > 0)) throw new ServiceError('unavailable', 'Display scaling is invalid.');
+  return { multiplier: config.multiplier, newMultiplier: config.newMultiplier, effectiveAtMs: Number(config.newMultiplierEffectiveTimestamp) * 1000 };
 }
 
 /** Closing prices, oldest first, inside the requested window; malformed candles are dropped. */
@@ -56,8 +100,8 @@ export function normalizeCandles(payload: unknown, range: ChartRange, now: numbe
   return points.sort((a, b) => a.t - b.t);
 }
 
-type Dependencies = { fetch: typeof fetchJson; now: () => number; run: <T>(operation: () => Promise<T>) => Promise<T> };
-const defaults: Dependencies = { fetch: fetchJson, now: Date.now, run: operation => queue.run(operation) };
+type Dependencies = { fetch: typeof fetchJson; now: () => number; run: <T>(operation: () => Promise<T>) => Promise<T>; scale: (mint: string) => Promise<DisplayScale | null> };
+const defaults: Dependencies = { fetch: fetchJson, now: Date.now, run: operation => queue.run(operation), scale: readDisplayScale };
 const headers = { Accept: 'application/json' };
 
 /** Mints are checked against Lotline's catalogs by the caller; no other address reaches GeckoTerminal. */
@@ -74,9 +118,13 @@ export async function readChart(mint: string, range: ChartRange, deps: Dependenc
       poolCache.set(mint, pool, POOL_TTL_MS);
     }
     if (!pool) return unavailable('No pool with enough liquidity reports a price history for this asset.');
+    let scale: DisplayScale | null;
+    try { scale = await deps.scale(mint); }
+    catch { return unavailable('This asset’s display units could not be verified, so no price history is shown.'); }
     const { timeframe, aggregate, limit } = RANGES[range];
-    const points = normalizeCandles(await deps.run(() => deps.fetch(`${API}/networks/solana/pools/${pool.address}/ohlcv/${timeframe}?aggregate=${aggregate}&limit=${limit}&currency=usd&token=${mint}`, { headers })), range, deps.now());
-    if (points.length < 2) return unavailable('Not enough recent trades to draw this range.');
+    const raw = normalizeCandles(await deps.run(() => deps.fetch(`${API}/networks/solana/pools/${pool.address}/ohlcv/${timeframe}?aggregate=${aggregate}&limit=${limit}&currency=usd&token=${mint}`, { headers })), range, deps.now());
+    if (raw.length < 2) return unavailable('Not enough recent trades to draw this range.');
+    const points = toDisplayPrices(raw, scale);
     const result: ChartResponse = { state: 'success', mint, range, points, source: 'GeckoTerminal', pool, fetchedAt };
     chartCache.set(key, result, CHART_TTL_MS);
     return result;
