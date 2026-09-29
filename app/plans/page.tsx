@@ -16,5 +16,5 @@ export default async function PlansPage() {
   await connection();
   if (!galleryEnabled()) notFound();
   const markets = marketsEnabled();
-  return <><Gallery markets={markets} />{markets && <AppTabBar gallery />}</>;
+  return <><Gallery markets={markets} />{markets && <AppTabBar active="community" gallery />}</>;
 }

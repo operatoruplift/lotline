@@ -2,11 +2,12 @@
 
 import { useEffect, useRef, useState, type FormEvent } from 'react';
 import Link from 'next/link';
-import { ChartNoAxesCombined, FlaskConical, Link2, ListChecks, Plus, Rocket, Search, UserRound, Users, X } from 'lucide-react';
+import { ChartNoAxesCombined, ChartPie, FlaskConical, Link2, ListChecks, Plus, Rocket, Search, UserRound, Users, X } from 'lucide-react';
 import { planLinkTarget } from '@/lib/domain/share';
 import styles from './app-tab-bar.module.css';
 
-type Section = 'plan' | 'markets' | 'pre-ipo';
+/** 'plan' is the planner itself, which lives under the Portfolio tab. */
+type Section = 'portfolio' | 'plan' | 'markets' | 'community' | 'pre-ipo';
 const LONG_PRESS_MS = 450;
 
 /**
@@ -49,28 +50,31 @@ export function AppTabBar({ active, gallery = false }: { active?: Section; galle
     window.location.assign(target);
   }
 
+  const current = (section: Section) => active === section || (section === 'portfolio' && active === 'plan');
   const tab = (section: Section, href: string, label: string, Icon: typeof ListChecks) =>
-    <Link href={href} className={styles.tab} aria-current={active === section ? 'page' : undefined}><Icon size={20} aria-hidden="true" /><span>{label}</span></Link>;
+    <Link href={href} className={styles.tab} aria-current={current(section) ? 'page' : undefined}><Icon size={20} aria-hidden="true" /><span>{label}</span></Link>;
 
   return <>
     <div className={styles.spacer} aria-hidden="true" />
     <nav className={styles.bar} aria-label="Planning sections" data-app-tab-bar="">
-      {tab('plan', '/app', 'Plan', ListChecks)}
+      {tab('portfolio', '/portfolio', 'Portfolio', ChartPie)}
       {tab('markets', '/markets', 'Markets', ChartNoAxesCombined)}
       <button type="button" className={styles.create} aria-label="Start or extend a plan (hold for plan link)" aria-haspopup="dialog"
         onPointerDown={startPress} onPointerUp={endPress} onPointerLeave={endPress} onPointerCancel={endPress} onContextMenu={event => event.preventDefault()}
         onClick={() => { if (longPressed.current) { longPressed.current = false; return; } setOpen('menu'); }}>
         <Plus size={24} aria-hidden="true" />
       </button>
-      {tab('pre-ipo', '/pre-ipo', 'Pre-IPO', Rocket)}
+      {gallery ? tab('community', '/plans', 'Community', Users) : tab('pre-ipo', '/pre-ipo', 'Pre-IPO', Rocket)}
       <Link href="/sign-in" className={styles.tab}><UserRound size={20} aria-hidden="true" /><span>Account</span></Link>
     </nav>
     <dialog ref={dialog} className={styles.sheet} aria-labelledby="create-sheet-title" onClose={() => { setOpen(null); setError(''); }} onClick={event => { if (event.target === event.currentTarget) setOpen(null); }}>
       <div className={styles.sheetBody}>
         <div className={styles.sheetTop}><h2 id="create-sheet-title">Start or extend a plan</h2><button type="button" aria-label="Close" onClick={() => setOpen(null)}><X size={18} /></button></div>
         <ul className={styles.actions}>
+          <li><Link href="/app" onClick={() => setOpen(null)}><ListChecks size={18} aria-hidden="true" /><span><strong>Open your planner</strong><small>Budget, split, estimates and reminders.</small></span></Link></li>
           <li><Link href="/markets" onClick={() => setOpen(null)}><Search size={18} aria-hidden="true" /><span><strong>Browse markets</strong><small>Find an xStock or PreStock and add it to your draft.</small></span></Link></li>
           {gallery && <li><Link href="/plans" onClick={() => setOpen(null)}><Users size={18} aria-hidden="true" /><span><strong>Copy a community plan</strong><small>Splits members shared, ranked by copies.</small></span></Link></li>}
+          {gallery && <li><Link href="/pre-ipo" onClick={() => setOpen(null)}><Rocket size={18} aria-hidden="true" /><span><strong>Plan with PreStocks</strong><small>A separate plan for pre-IPO tokens.</small></span></Link></li>}
           <li><button type="button" onClick={() => setOpen('link')} aria-expanded={open === 'link'}><Link2 size={18} aria-hidden="true" /><span><strong>Open a plan link</strong><small>Review someone’s shared split before applying it.</small></span></button></li>
           <li><Link href="/app?mode=example" onClick={() => setOpen(null)}><FlaskConical size={18} aria-hidden="true" /><span><strong>Try the Example</strong><small>Synthetic balances and estimates, no wallet.</small></span></Link></li>
         </ul>

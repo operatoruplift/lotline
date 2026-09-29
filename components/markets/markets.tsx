@@ -4,10 +4,11 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { Check, ChevronLeft, ChevronRight, Clock3, Info, LoaderCircle, Plus, RefreshCw, Search, X } from 'lucide-react';
+import { fetchMarketSnapshot, type SnapshotLoad } from '@/lib/client/market-snapshot';
 import { addToDraft, draftMints } from '@/lib/client/plan-draft';
 import {
   categoryCounts, filterMarkets, formatMarketPrice, formatMarketUsd, MARKET_FILTERS, MARKET_IDENTITIES, MARKET_SORTS, marketRows, marketTypeLabel,
-  MARKETS_PAGE_SIZE, pageOf, sortMarkets, versionRows, type MarketFilter, type MarketSnapshot, type MarketSort,
+  MARKETS_PAGE_SIZE, pageOf, sortMarkets, versionRows, type MarketFilter, type MarketSort,
 } from '@/lib/domain/markets';
 import { SiteFooter, SiteHeader } from '../site-shell';
 import { utcTime } from '../verification-receipt';
@@ -16,7 +17,7 @@ import styles from './markets.module.css';
 
 const FILTER_LABELS: Record<MarketFilter, string> = { all: 'All', stocks: 'Stocks', etfs: 'ETFs', metals: 'Metals', bonds: 'Bonds', 'pre-ipo': 'Pre-IPO' };
 const SORT_LABELS: Record<MarketSort, string> = { volume: 'Most traded, 24h', gainers: 'Top gainers, 24h', losers: 'Top losers, 24h', liquidity: 'Deepest liquidity', name: 'Name', price: 'Price' };
-type Load = { state: 'loading' } | { state: 'ready'; snapshot: MarketSnapshot } | { state: 'failed'; message: string };
+type Load = { state: 'loading' } | SnapshotLoad;
 type Notice = { text: string; error?: boolean; href?: string };
 type View = { filter: MarketFilter; sort: MarketSort; query: string; page: number; asset: string | null };
 const DEFAULT_VIEW: View = { filter: 'all', sort: 'volume', query: '', page: 1, asset: null };
@@ -47,15 +48,6 @@ function writeView(view: View) {
   window.history.replaceState(null, '', search ? `/markets?${search}` : '/markets');
 }
 
-function validSnapshot(value: unknown): value is MarketSnapshot {
-  if (!value || typeof value !== 'object') return false;
-  const candidate = value as Partial<MarketSnapshot>;
-  const number = (item: unknown) => item === null || (typeof item === 'number' && Number.isFinite(item));
-  return (candidate.state === 'success' || candidate.state === 'partial') && typeof candidate.fetchedAt === 'string' && Number.isFinite(Date.parse(candidate.fetchedAt)) &&
-    !!candidate.stats && typeof candidate.stats === 'object' && Object.values(candidate.stats).every(stats => !!stats && typeof stats === 'object' &&
-      number(stats.price) && number(stats.change24hPct) && number(stats.volume24hUsd) && number(stats.liquidityUsd) && number(stats.marketCapUsd) && number(stats.holders));
-}
-
 /** Browse the verified catalog with a dated market snapshot, open an asset, add it to a device draft. */
 export function Markets() {
   const [load, setLoad] = useState<Load>({ state: 'loading' });
@@ -80,14 +72,7 @@ export function Markets() {
 
   useEffect(() => {
     const controller = new AbortController();
-    fetch('/api/markets', { signal: AbortSignal.any([controller.signal, AbortSignal.timeout(45_000)]) })
-      .then(async response => {
-        const body: unknown = await response.json().catch(() => null);
-        if (controller.signal.aborted) return;
-        if (response.ok && validSnapshot(body)) setLoad({ state: 'ready', snapshot: body });
-        else setLoad({ state: 'failed', message: body && typeof body === 'object' && typeof (body as { message?: unknown }).message === 'string' ? (body as { message: string }).message : 'Market data is temporarily unavailable.' });
-      })
-      .catch(() => { if (!controller.signal.aborted) setLoad({ state: 'failed', message: 'Market data could not be loaded. Check your connection and retry.' }); });
+    void fetchMarketSnapshot(controller.signal).then(result => { if (!controller.signal.aborted) setLoad(result); });
     return () => controller.abort();
   }, [reload]);
 
