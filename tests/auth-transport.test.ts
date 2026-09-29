@@ -107,6 +107,21 @@ describe('real Supabase SDK account cancellation', () => {
     expect(context.identities).toEqual([]);
   });
 
+  it('scopes a wallet sign-in like a password one, so an abandoned attempt saves no session', async () => {
+    const body = delayedBody(session('w'));
+    const controller = new AbortController();
+    const requested: string[] = [];
+    const context = await fixture(async input => { requested.push(String(input)); return body.response; });
+    const result = context.transport.run(controller.signal, () => context.client.auth.signInWithWeb3({ chain: 'solana', message: 'fixture message', signature: new Uint8Array(64) }));
+    await body.reading;
+    controller.abort();
+    expect((await result).error).toBeTruthy();
+    expect(requested).toEqual([`${projectUrl}/auth/v1/token?grant_type=web3`]);
+    expect(body.cancelled).toBe(true);
+    expect(context.cookies.size).toBe(0);
+    expect(context.identities).toEqual([]);
+  });
+
   it('cannot restore account A from a cancelled password-update response after B signs in', async () => {
     const body = delayedBody(session('a').user);
     const context = await fixture(async (_input, init) => {

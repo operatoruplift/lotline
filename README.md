@@ -99,6 +99,8 @@ The same flag adds **Portfolio** (`/portfolio`), the phone-first home the tab ba
 
 A separate flag, `LOTLINE_GALLERY_ENABLED`, turns on **community plans**: members share a saved plan's name and split (never its budget), anyone can copy one into the planner's review dialog with their own budget, and plans rank by copies, never by returns. See [community plans](docs/community-plans.md).
 
+A third flag, `LOTLINE_WALLET_SIGN_IN_ENABLED`, adds **Sign in with Solana** to the sign-in and sign-up pages: one signed message, never a transaction, and the first signature creates the account without an email. It needs the Web3 (Solana) provider switched on in Supabase Auth first. See [wallet sign-in](docs/wallet-sign-in.md).
+
 ## Precision and freshness
 
 - Budgets use plain decimal strings with up to six fractional digits, bounded to 1,000,000 USDC. Allocation uses BigInt micro-units and integer basis points, then distributes leftover micro-units by largest remainder with stable basket-order ties.
@@ -111,7 +113,7 @@ A separate flag, `LOTLINE_GALLERY_ENABLED`, turns on **community plans**: member
 
 ## Storage and services
 
-Guest basket settings, budget, and the manual review cadence are saved in versioned localStorage on the current browser/device, with safe recovery from corrupt values. Supabase handles optional email/password authentication and session cookies. An explicit cloud save stores a plan name, verified mints, basis-point weights, and exact budget under the signed-in owner. Wallet addresses, balances, quotes, and projections are excluded. The database enforces owner access with forced row-level security, validates plan content, and limits each account to 20 plans. Users can load or delete their saved plans. See [accounts](docs/accounts.md) and [privacy and storage](https://lotline.dev/privacy).
+Guest basket settings, budget, and the manual review cadence are saved in versioned localStorage on the current browser/device, with safe recovery from corrupt values. Supabase handles optional email/password authentication (and, when its flag is on, Sign in with Solana) and session cookies. An explicit cloud save stores a plan name, verified mints, basis-point weights, and exact budget under the signed-in owner. Wallet addresses, balances, quotes, and projections are excluded. The database enforces owner access with forced row-level security, validates plan content, and limits each account to 20 plans. Users can load or delete their saved plans. See [accounts](docs/accounts.md) and [privacy and storage](https://lotline.dev/privacy).
 
 Live provider requests use narrow same-origin handlers; authentication uses the official Supabase browser client. Server adapters validate issuer, Solana RPC, and Jupiter response data and expose normalized fields. RPC URLs, API keys, and raw provider errors are not returned. Catalog caching is approximately one hour; holdings approximately 15 seconds; identical quotes only briefly within freshness. Requests have timeouts, queue bounds, and a user-driven retry path.
 

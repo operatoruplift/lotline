@@ -1,9 +1,10 @@
 import { defineConfig, devices } from '@playwright/test';
 
 /**
- * Markets ship behind LOTLINE_MARKETS_ENABLED. This suite runs against a
- * separate production server started with the flag on, so the main suite keeps
- * proving the judged interface is unchanged with the flag off. Build first.
+ * Markets ship behind LOTLINE_MARKETS_ENABLED, and community plans and wallet
+ * sign-in behind their own flags. This suite runs against a separate production
+ * server started with all of them on, so the main suite keeps proving the judged
+ * interface is unchanged with them off. Build first.
  */
 export default defineConfig({
   testDir: './tests/e2e-markets',
@@ -16,6 +17,6 @@ export default defineConfig({
   reporter: [['list']],
   webServer: process.env.E2E_MARKETS_BASE_URL ? undefined : {
     command: 'npm run start -- --port 3102 --hostname 127.0.0.1', url: 'http://127.0.0.1:3102', reuseExistingServer: false, timeout: 120_000,
-    env: { LOTLINE_MARKETS_ENABLED: 'true', LOTLINE_GALLERY_ENABLED: 'true' },
+    env: { LOTLINE_MARKETS_ENABLED: 'true', LOTLINE_GALLERY_ENABLED: 'true', LOTLINE_WALLET_SIGN_IN_ENABLED: 'true' },
   },
 });

@@ -8,3 +8,12 @@ import 'server-only';
 export function marketsEnabled(): boolean {
   return process.env.LOTLINE_MARKETS_ENABLED?.trim() === 'true';
 }
+
+/**
+ * Solana wallet sign-in ships dark too. Turn it on only after the Web3
+ * (Solana) provider is enabled in Supabase Auth and this site's address
+ * passes its redirect-URL check; docs/wallet-sign-in.md has the steps.
+ */
+export function walletSignInEnabled(): boolean {
+  return process.env.LOTLINE_WALLET_SIGN_IN_ENABLED?.trim() === 'true';
+}

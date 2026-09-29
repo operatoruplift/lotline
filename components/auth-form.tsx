@@ -8,6 +8,7 @@ import { runBrowserAuth } from '@/lib/supabase/client';
 import { authEmailEnabled, supabaseConfig } from '@/lib/supabase/config';
 import { BrandMark } from './brand-mark';
 import { LiquidGlass } from './liquid-glass';
+import { WalletSignIn } from './wallet-sign-in';
 import styles from './auth.module.css';
 
 export type AuthMode = 'sign-in' | 'sign-up' | 'reset-password' | 'update-password';
@@ -28,12 +29,14 @@ export function authErrorMessage(code?: string, status?: number) {
   return 'The account service could not complete this request. Please try again. You can continue planning as a guest.';
 }
 
-export function AuthForm({ mode, confirmationError = false }: { mode: AuthMode; confirmationError?: boolean }) {
+export function AuthForm({ mode, confirmationError = false, walletSignIn = false }: { mode: AuthMode; confirmationError?: boolean; walletSignIn?: boolean }) {
   const router = useRouter();
   const copy = content[mode];
   const configured = Boolean(supabaseConfig());
   const emailEnabled = authEmailEnabled();
   const emailUnavailable = !emailEnabled && (mode === 'sign-up' || mode === 'reset-password');
+  // Operator-flagged; without it the forms below render exactly as before.
+  const wallet = walletSignIn && configured && (mode === 'sign-in' || mode === 'sign-up');
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState(confirmationError ? 'That confirmation or reset link expired, was already used, or was opened in a different browser. Sign in or request a fresh reset link in this browser.' : '');
   const [failed, setFailed] = useState(confirmationError);
@@ -106,23 +109,24 @@ export function AuthForm({ mode, confirmationError = false }: { mode: AuthMode; 
       <Link className={styles.brand} href="/" aria-label="Lotline home"><BrandMark /><span>Lotline</span></Link>
       <span className={styles.eyebrow}>{copy.eyebrow}</span>
       <h1 id="auth-title">{copy.title}</h1>
-      <p className={styles.intro}>{emailUnavailable ? 'The full guest planner is ready. Account email delivery is still being set up.' : copy.description}</p>
+      <p className={styles.intro}>{emailUnavailable && !wallet ? 'The full guest planner is ready. Account email delivery is still being set up.' : copy.description}</p>
       </header>
       {!configured ? <div className={styles.notice} role="status" data-auth-reveal="1"><strong>Accounts aren’t available on this deployment yet.</strong><p>You can use the full guest planner and save your draft on this device.</p><Link href="/app?mode=example">Continue with Example <ArrowRight size={16} /></Link></div>
+        : emailUnavailable && wallet ? <><WalletSignIn mode="sign-up" /><p className={styles.walletNote}>Email sign-up opens once delivery is set up. Existing email accounts can still sign in.</p></>
         : emailUnavailable ? <div className={`${styles.notice} ${styles.readiness}`} role="status" data-auth-reveal="1"><ShieldCheck size={23} aria-hidden="true" /><strong>Signup and recovery emails aren’t available yet.</strong><p>You can build, save, and export a plan on this device. Existing users can still sign in.</p><Link href="/app?mode=example">Open the guest planner <ArrowRight size={16} /></Link></div>
           : checking ? <p role="status"><LoaderCircle className={styles.spin} size={18} /> Checking your reset link…</p>
           : mode === 'update-password' && !canUpdate ? <div className={styles.notice} role="status"><strong>Open a fresh password reset link.</strong><p>This page needs the session created by your email link.</p><Link href="/auth/reset-password">Request a reset link <ArrowRight size={16} /></Link></div>
-            : <form method="post" onSubmit={submit} className={styles.form}>
+            : <>{wallet && <><WalletSignIn mode={mode === 'sign-up' ? 'sign-up' : 'sign-in'} /><p className={styles.divider}>{mode === 'sign-up' ? 'or use email' : 'or sign in with email'}</p></>}<form method="post" onSubmit={submit} className={styles.form}>
               {mode !== 'update-password' && <label htmlFor="auth-email" data-auth-reveal="1">Email address<input required id="auth-email" name="email" type="email" autoComplete="email" placeholder="you@example.com" maxLength={254} disabled={busy || done} /></label>}
               {mode !== 'reset-password' && <label htmlFor="auth-password" data-auth-reveal="2">{mode === 'update-password' ? 'New password' : 'Password'}<input required id="auth-password" name="password" type="password" autoComplete={mode === 'sign-in' ? 'current-password' : 'new-password'} minLength={mode === 'sign-in' ? 1 : 12} maxLength={128} aria-describedby={mode === 'sign-in' ? undefined : 'password-help'} disabled={busy || done} />{mode !== 'sign-in' && <small id="password-help">At least 12 characters. A memorable phrase works well.</small>}</label>}
               {(mode === 'sign-up' || mode === 'update-password') && <label htmlFor="auth-confirm" data-auth-reveal="3">Confirm password<input required id="auth-confirm" name="confirm-password" type="password" autoComplete="new-password" minLength={12} maxLength={128} disabled={busy || done} /></label>}
               {mode === 'sign-in' && <Link className={styles.forgot} href="/auth/reset-password" data-auth-reveal="3">Forgot password?</Link>}
               {!done && <button className={styles.primary} type="submit" disabled={busy} data-auth-reveal="4">{busy ? <><LoaderCircle className={styles.spin} size={17} /> One moment…</> : <>{copy.action}<ArrowRight size={17} /></>}</button>}
-            </form>}
+            </form></>}
       {message && <div className={failed ? styles.error : styles.success} role={failed ? 'alert' : 'status'}>{!failed && <Check size={18} />}{message}</div>}
       <div className={styles.switchLink} data-auth-reveal="5">{mode === 'sign-in' ? emailEnabled ? <>New to Lotline? <Link href="/sign-up">Create an account</Link></> : <>New to Lotline? <Link href="/app?mode=example">Try the guest planner</Link></> : <>Already have an account? <Link href="/sign-in">Sign in</Link></>}</div>
       <Link className={styles.guest} href="/app?mode=example" data-auth-reveal="6">Continue without an account <ArrowRight size={15} /></Link>
-      <p className={styles.privacy} data-auth-reveal="last"><ShieldCheck size={14} aria-hidden="true" /><span>An account saves only the amounts and splits you choose to upload. It never connects to or controls your wallet.</span></p>
+      <p className={styles.privacy} data-auth-reveal="last"><ShieldCheck size={14} aria-hidden="true" /><span>{wallet ? 'An account saves only the amounts and splits you choose to upload. Wallet sign-in reads your address and one signed message; it never sends a transaction or controls your wallet.' : 'An account saves only the amounts and splits you choose to upload. It never connects to or controls your wallet.'}</span></p>
     </section>
   </LiquidGlass>;
 }

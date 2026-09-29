@@ -76,6 +76,11 @@ describe('verified session and email callbacks', () => {
     mock.getUser.mockResolvedValue({ data: { user: { id: userId, email: 'reader@example.test', user_metadata: { role: 'admin' }, identities: ['private'] } }, error: null });
     expect(await (await session()).json()).toEqual({ state: 'signed-in', user: { id: userId, email: 'reader@example.test' } });
   });
+  it('adds the wallet address for an account that signed in with Solana', async () => {
+    const address = '7xKXtg2CW87d97TXJSDpbD5jBkheTqA83TZRuJosgAsU';
+    mock.getUser.mockResolvedValue({ data: { user: { id: userId, user_metadata: { custom_claims: { address } }, identities: [{ id: `web3:solana:${address}`, provider: 'web3', identity_data: { sub: `web3:solana:${address}` } }] } }, error: null });
+    expect(await (await session()).json()).toEqual({ state: 'signed-in', user: { id: userId, wallet: address } });
+  });
   it('distinguishes unavailable Auth from a guest', async () => {
     mock.getUser.mockRejectedValue(new Error('network'));
     expect((await session()).status).toBe(503);

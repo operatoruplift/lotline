@@ -8,12 +8,13 @@ import { formatUsdc } from '@/lib/domain/math';
 import { MAX_PLAN_ASSETS } from '@/lib/domain/limits';
 import { authEmailEnabled } from '@/lib/supabase/config';
 import type { CloudPlan } from '@/lib/supabase/plans';
+import { shortAddress } from '@/lib/supabase/wallet-identity';
 import { SharePlanControl, type SharedState } from './gallery/share-plan-control';
 
 type PlansModule = typeof import('@/lib/supabase/plans');
 import styles from './auth.module.css';
 
-type Session = { state: 'loading' | 'signed-in' | 'guest' | 'configuration-required' | 'unavailable'; user?: { id: string; email?: string } | null };
+type Session = { state: 'loading' | 'signed-in' | 'guest' | 'configuration-required' | 'unavailable'; user?: { id: string; email?: string; wallet?: string } | null };
 export function CloudPlans({ basket, onLoad, galleryEnabled = false }: { basket: Basket; onLoad: (basket: Basket) => void; galleryEnabled?: boolean }) {
   const [session, setSession] = useState<Session>({ state: 'loading' });
   // Which saved plans are shared to community plans; loaded only when the gallery is on.
@@ -170,7 +171,7 @@ export function CloudPlans({ basket, onLoad, galleryEnabled = false }: { basket:
         : session.state === 'unavailable' ? <><p>Cloud plans are temporarily unavailable. You can keep planning locally.</p><button className={styles.textButton} disabled={busy || refreshing} onClick={() => void refresh()}>Retry account connection</button></>
           : session.state === 'guest' ? <div className={styles.cloudLinks}><Link href="/sign-in">Sign in to save plans</Link>{authEmailEnabled() ? <Link href="/sign-up">Create an account</Link> : <span className={styles.emailPending}>New account email is being set up.</span>}</div>
             : <>
-              <div className={styles.cloudHeading}><p className={styles.accountEmail}>Signed in as {session.user?.email ?? 'your account'}</p><button className={styles.textButton} onClick={signOut} disabled={busy || refreshing}>Sign out</button></div>
+              <div className={styles.cloudHeading}><p className={styles.accountEmail}>Signed in as {session.user?.email ?? (session.user?.wallet ? `wallet ${shortAddress(session.user.wallet)}` : 'your account')}</p><button className={styles.textButton} onClick={signOut} disabled={busy || refreshing}>Sign out</button></div>
               <form onSubmit={save} className={styles.saveForm}><label htmlFor="cloud-plan-name">Plan name<input id="cloud-plan-name" value={name} onChange={event => setName(event.target.value)} maxLength={60} required disabled={busy || refreshing} /></label><button className={styles.primary} type="submit" disabled={busy || refreshing || !body || plans.length >= 20}>{busy || refreshing ? <LoaderCircle size={16} className={styles.spin} /> : <Plus size={16} />}Save this plan</button></form>
               {!body && <p>Choose one to {MAX_PLAN_ASSETS} supported assets, a positive budget, and a split totaling 100% before saving.</p>}
               <ul className={styles.planList}>{plans.map(plan => <li key={plan.id}><div><strong>{plan.name}</strong><span>{formatUsdc(plan.budget_raw).replace(/0+$/, '').replace(/\.$/, '')} USDC · {plan.allocations.length} {plan.allocations.length === 1 ? 'asset' : 'assets'}</span>{galleryEnabled && <SharePlanControl planId={plan.id} planName={plan.name} shared={shared[plan.id]} disabled={busy || refreshing} onChange={(next, text, error) => { setShared(current => { const copy = { ...current }; if (next) copy[plan.id] = next; else delete copy[plan.id]; return copy; }); setFailed(Boolean(error)); setMessage(text); }} />}</div><div className={styles.planActions}><button className={styles.textButton} disabled={busy || refreshing} aria-label={`Load ${plan.name}`} onClick={() => { if (busy || refreshing) return; if (!plansModule) return; onLoad(plansModule.cloudPlanToBasket({ name: plan.name, budget_raw: plan.budget_raw, allocations: plan.allocations })); setFailed(false); setMessage(`Loaded ${plan.name}. Get fresh estimates when you’re ready.`); }}>Load</button><button className={styles.textButton} disabled={busy || refreshing} aria-label={`Delete ${plan.name}`} onClick={() => void remove(plan.id)}>Delete</button></div></li>)}</ul>
