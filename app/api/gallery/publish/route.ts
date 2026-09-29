@@ -8,6 +8,7 @@ import { serverSupabase } from '@/lib/supabase/server';
 
 export const dynamic = 'force-dynamic';
 const publishBody = z.object({ planId, displayName: z.string().trim().max(32).refine(value => value === '' || (value.length >= 2 && DISPLAY_NAME_PATTERN.test(value))).optional() }).strict();
+const updateBody = z.object({ publishedId: z.uuid(), planId }).strict();
 const reply = (body: unknown, status = 200) => Response.json(body, { status, headers: noStore });
 
 async function member() {
@@ -34,6 +35,26 @@ export async function POST(request: Request) {
     if (error || typeof data !== 'string') return reply({ state: 'unavailable', message: 'The plan could not be shared. Please retry.' }, 503);
     return reply({ state: 'success', id: data }, 201);
   } catch { return reply({ state: 'unavailable', message: 'The plan could not be shared. Please retry.' }, 503); }
+}
+
+/**
+ * Point one of your shared plans at another of your saved plans. Its link, copy
+ * count and display name stay; members who follow it see what changed.
+ */
+export async function PATCH(request: Request) {
+  if (!galleryEnabled()) return reply({ state: 'unavailable', message: 'Community plans are not enabled on this deployment.' }, 404);
+  if (!isSameOriginMutation(request)) return reply({ state: 'forbidden', message: 'Reload Lotline before changing a shared plan.' }, 403);
+  try {
+    const parsed = updateBody.safeParse(await readSmallJson(request));
+    if (!parsed.success) return reply({ state: 'invalid-input', message: 'Choose one of your shared plans and one of your saved plans.' }, 400);
+    const auth = await member();
+    if (auth.error) return auth.error;
+    const { data, error } = await auth.supabase.rpc('lotline_update_published_plan', { p_published_id: parsed.data.publishedId, p_plan_id: parsed.data.planId });
+    if (error?.code === 'P0002') return reply({ state: 'not-found', message: 'That shared plan or saved plan is no longer available.' }, 404);
+    if (error?.code === 'P0001') return reply({ state: 'conflict', message: 'That saved plan is already shared on its own. Stop sharing it first.' }, 409);
+    if (error || typeof data !== 'string') return reply({ state: 'unavailable', message: 'The shared plan could not be updated. Please retry.' }, 503);
+    return reply({ state: 'success', id: data });
+  } catch { return reply({ state: 'unavailable', message: 'The shared plan could not be updated. Please retry.' }, 503); }
 }
 
 export async function DELETE(request: Request) {

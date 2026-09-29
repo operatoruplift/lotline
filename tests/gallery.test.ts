@@ -114,6 +114,34 @@ describe('community plan routes', () => {
     expect(mocks.rpc).toHaveBeenLastCalledWith('lotline_unpublish_plan', { p_plan_id: PLAN_ID });
   });
 
+  it('points a shared plan at another saved split only for its author, from this site', async () => {
+    const { PATCH } = await import('../app/api/gallery/publish/route');
+    const patch = (body: unknown, init: RequestInit = {}) => PATCH(same('/api/gallery/publish', { method: 'PATCH', body: JSON.stringify(body), ...init }));
+    mocks.rpc.mockResolvedValueOnce({ data: ID, error: null });
+    const updated = await patch({ publishedId: ID, planId: PLAN_ID });
+    expect(updated.status).toBe(200);
+    expect(await updated.json()).toEqual({ state: 'success', id: ID });
+    expect(mocks.rpc).toHaveBeenCalledWith('lotline_update_published_plan', { p_published_id: ID, p_plan_id: PLAN_ID });
+    for (const body of [{ publishedId: ID }, { publishedId: 'nope', planId: PLAN_ID }, { publishedId: ID, planId: PLAN_ID, extra: true }]) expect((await patch(body)).status).toBe(400);
+    for (const [code, status] of [['P0002', 404], ['P0001', 409], ['XX000', 503]] as const) {
+      mocks.rpc.mockResolvedValueOnce({ data: null, error: { code } });
+      expect((await patch({ publishedId: ID, planId: PLAN_ID })).status).toBe(status);
+    }
+    mocks.getUser.mockResolvedValueOnce({ data: { user: null }, error: { status: 401 } });
+    expect((await patch({ publishedId: ID, planId: PLAN_ID })).status).toBe(401);
+    const foreign = await PATCH(new Request('https://lotline.dev/api/gallery/publish', { method: 'PATCH', headers: { origin: 'https://attacker.test', 'content-type': 'application/json' }, body: JSON.stringify({ publishedId: ID, planId: PLAN_ID }) }));
+    expect(foreign.status).toBe(403);
+    vi.stubEnv('LOTLINE_GALLERY_ENABLED', 'false');
+    expect((await patch({ publishedId: ID, planId: PLAN_ID })).status).toBe(404);
+    expect(mocks.rpc).toHaveBeenCalledTimes(4);
+  });
+
+  it('accepts when a split was last updated, and nothing else new', () => {
+    expect(galleryPlanSchema.parse(plan({ split_updated_at: '2026-09-30T10:00:00.000Z' })).split_updated_at).toBe('2026-09-30T10:00:00.000Z');
+    expect(galleryPlanSchema.parse(plan({ split_updated_at: null })).split_updated_at).toBeNull();
+    expect(galleryPlanSchema.safeParse(plan({ split_updated_at: 'yesterday' })).success).toBe(false);
+  });
+
   it('lists the member’s own shares and nothing for a guest', async () => {
     const { GET } = await import('../app/api/gallery/mine/route');
     mocks.rpc.mockResolvedValueOnce({ data: [{ id: ID, plan_id: PLAN_ID, display_name: null, copy_count: 2, published_at: '2026-09-28T12:00:00.000Z' }], error: null });

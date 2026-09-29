@@ -39,7 +39,8 @@ describe('community plan gallery', () => {
     const planId = await savePlan(alice, 'Big tech core');
     const id = await publish(alice, planId, 'Alice P.');
     const [entry] = await gallery();
-    expect(Object.keys(entry).sort()).toEqual(['allocations', 'copy_count', 'display_name', 'id', 'name', 'published_at']);
+    expect(Object.keys(entry).sort()).toEqual(['allocations', 'copy_count', 'display_name', 'id', 'name', 'published_at', 'split_updated_at']);
+    expect(entry.split_updated_at).toBeNull();
     expect(entry).toMatchObject({ id, name: 'Big tech core', display_name: 'Alice P.', copy_count: 0, allocations: [{ mint: AAPLX, bps: '6000' }, { mint: MSFTX, bps: '4000' }] });
     expect(JSON.stringify(entry)).not.toContain('250000000');
     expect(JSON.stringify(entry)).not.toContain(alice);
@@ -56,6 +57,27 @@ describe('community plan gallery', () => {
     expect(await as<boolean>(alice, 'select public.lotline_unpublish_plan($1) as result', [planId])).toBe(false);
     expect(await as<boolean>(bruno, 'select public.lotline_unpublish_plan($1) as result', [planId])).toBe(true);
     expect((await gallery()).some(entry => entry.id === id)).toBe(false);
+  });
+
+  it('lets only the author point a shared plan at a newer split, keeping its link and copies', async () => {
+    const update = (user: string | null, published: string, planId: string) => as<string>(user, 'select public.lotline_update_published_plan($1, $2) as result', [published, planId]);
+    const first = await savePlan(alice, 'Steady core', split('7000', '3000'));
+    const id = await publish(alice, first, 'Alice');
+    expect(await copy(bruno, id)).toBe(1);
+    const second = await savePlan(alice, 'Steady core v2', split('5000', '5000'));
+    await expect(update(null, id, second)).rejects.toMatchObject({ code: '42501' });
+    await expect(update(bruno, id, second)).rejects.toMatchObject({ code: 'P0002' });
+    await expect(update(alice, id, await savePlan(bruno, 'Not yours'))).rejects.toMatchObject({ code: 'P0002' });
+    const sharedAlready = await savePlan(alice, 'Shared on its own');
+    await publish(alice, sharedAlready);
+    await expect(update(alice, id, sharedAlready)).rejects.toMatchObject({ code: 'P0001' });
+    expect(await update(alice, id, second)).toBe(id);
+    const entry = await as<Record<string, unknown>>(null, 'select public.lotline_published_plan($1) as result', [id]);
+    expect(entry).toMatchObject({ id, name: 'Steady core v2', display_name: 'Alice', copy_count: 1, allocations: [{ mint: AAPLX, bps: '5000' }, { mint: MSFTX, bps: '5000' }] });
+    expect(Number.isFinite(Date.parse(String(entry.split_updated_at)))).toBe(true);
+    expect((await gallery()).find(row => row.id === id)?.split_updated_at).toBe(entry.split_updated_at);
+    // The earlier saved plan is no longer shared, so it can be shared again on its own.
+    expect(await publish(alice, first)).not.toBe(id);
   });
 
   it('rejects display names that are links, too short or carry odd characters', async () => {

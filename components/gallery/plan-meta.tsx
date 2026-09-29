@@ -8,6 +8,10 @@ const date = new Intl.DateTimeFormat('en-GB', { day: 'numeric', month: 'short', 
 export const byline = (plan: Pick<GalleryPlan, 'display_name'>) => plan.display_name ? `by ${plan.display_name}` : 'by a Lotline member';
 export const copiesLabel = (count: number) => `${count} ${count === 1 ? 'copy' : 'copies'}`;
 export const sharedOn = (plan: Pick<GalleryPlan, 'published_at'>) => date.format(new Date(plan.published_at));
+/** When the author last changed the split, if they ever did. */
+export const updatedOn = (plan: Pick<GalleryPlan, 'split_updated_at'>) => plan.split_updated_at ? date.format(new Date(plan.split_updated_at)) : null;
+/** The author as a subject: "Alice" or "its member". */
+export const authorName = (plan: Pick<GalleryPlan, 'display_name'>) => plan.display_name ?? 'its member';
 
 /** A shared plan's weights as one bar, decorative: the same weights are always listed as text. */
 export function SplitBar({ plan, className = '' }: { plan: Pick<GalleryPlan, 'allocations'>; className?: string }) {
