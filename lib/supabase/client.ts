@@ -60,7 +60,7 @@ export function createAuthTransport(projectUrl: string, fetcher: typeof fetch) {
     if (!url.pathname.startsWith(authUrl.pathname)) return false;
     return method === 'PUT' && path === 'user' || method === 'POST' && (
       path === 'signup' || path === 'recover' || path === 'logout' ||
-      path === 'token' && url.searchParams.get('grant_type') === 'password'
+      path === 'token' && ['password', 'web3'].includes(url.searchParams.get('grant_type') ?? '')
     );
   }
 

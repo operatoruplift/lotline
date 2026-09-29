@@ -61,3 +61,23 @@
 @media (max-width:780px) { .formCard { padding:34px 32px 25px; } }
 @media (max-width:420px) { .formCard { padding:29px 24px 23px; } .formCard h1 { font-size:31px; } .brand { margin-bottom:20px; } .cloud { padding:19px; } .saveForm { align-items:stretch; flex-direction:column; } .planList li { align-items:flex-start; } }
 @media (prefers-reduced-motion:reduce) { .spin { animation:none; } }
+/* Wallet sign-in: the wallet buttons share the fields' warm surface so the two routes read as one form. */
+.wallet { display:grid; gap:12px; margin-top:28px; text-align:left; }
+.wallet h2 { margin:0; color:#15291b; font-size:14px; font-weight:650; letter-spacing:-.01em; }
+.wallet > p { margin:0; color:#354438; font-size:12px; line-height:1.7; }
+.wallets { display:grid; gap:10px; margin:4px 0 0; padding:0; list-style:none; }
+.walletButton { display:flex; align-items:center; gap:12px; width:100%; min-height:54px; padding:0 16px; border:1px solid #576b4940; border-radius:12px; background:#fdf5ebd9; color:#08150c; font:inherit; font-size:14px; font-weight:600; text-align:left; cursor:pointer; transition:border-color .15s, background-color .15s, transform .15s; }
+.walletButton img { flex-shrink:0; width:28px; height:28px; border-radius:7px; }
+.walletButton > svg:last-child { margin-left:auto; flex-shrink:0; color:#3a503c; transition:transform .15s; }
+.walletButton:hover:not(:disabled) { border-color:#08150c; background:#fffaf2; }
+.walletButton:hover:not(:disabled) > svg:last-child { transform:translateX(3px); }
+.walletButton:active:not(:disabled) { transform:scale(.99); }
+.walletButton:disabled { opacity:.55; cursor:not-allowed; }
+.walletButton[aria-busy='true'] { opacity:1; border-color:#08150c; }
+.walletEmpty { margin:0; padding:14px 15px; border:1px dashed #576b4955; border-radius:12px; color:#354438; font-size:12px; line-height:1.7; }
+.walletStatus { display:flex; align-items:center; gap:8px; margin:0; color:#355b3b; font-size:12px; }
+.wallet .error { margin-top:4px; }
+.divider { display:flex; align-items:center; gap:12px; margin:26px 0 -8px; color:#5d685b; font-size:10px; font-weight:700; letter-spacing:.14em; text-transform:uppercase; }
+.divider::before,.divider::after { content:''; flex:1; height:1px; background:#30463129; }
+.walletNote { margin:18px 0 0; color:#3b4c3d; font-size:12px; line-height:1.7; text-align:center; }
+@media (prefers-reduced-motion:reduce) { .walletButton,.walletButton > svg:last-child { transition:none; } .walletButton:active:not(:disabled) { transform:none; } }
