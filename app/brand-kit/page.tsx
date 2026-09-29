@@ -3,6 +3,7 @@ import Image from 'next/image';
 import { ArrowDownToLine, ArrowUpRight, Check, FileText, Smartphone } from 'lucide-react';
 import { SiteFooter, SiteHeader } from '@/components/site-shell';
 import styles from './page.module.css';
+import { headerSections } from '@/lib/server/features';
 
 export const metadata: Metadata = {
   title: 'Brand kit',
@@ -97,7 +98,7 @@ function AssetCard({ asset }: { asset: Asset }) {
 }
 
 export default function BrandKitPage() {
-  return <><SiteHeader /><main id="main" className={styles.page}>
+  return <><SiteHeader {...headerSections()} /><main id="main" className={styles.page}>
     <section className={styles.hero}>
       <div className={styles.heroCopy}>
         <p className="eyebrow"><span className="eyebrow-rule" /> THE LOTLINE BRAND KIT</p>

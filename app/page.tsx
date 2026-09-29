@@ -6,8 +6,7 @@ import { DecorativeVideo } from '@/components/decorative-video';
 import { Reveal } from '@/components/reveal';
 import { DEFAULT_BASKET, EXAMPLE_ASSETS } from '@/lib/demo/example';
 import { formatUsdc, validatePlan } from '@/lib/domain/math';
-import { marketsEnabled } from '@/lib/server/features';
-import { galleryEnabled } from '@/lib/server/gallery';
+import { headerSections } from '@/lib/server/features';
 import styles from './home.module.css';
 
 const rows = validatePlan(DEFAULT_BASKET).allocations.map(allocation => ({ ...allocation, asset: EXAMPLE_ASSETS.find(asset => asset.mint === allocation.mint)!, amount: formatUsdc(allocation.usdcRaw).replace(/0000$/, '') }));
@@ -26,8 +25,8 @@ const steps = [
 
 export default function Home() {
   // Read at build time: this page is static, and flipping a flag redeploys it. Unset, the judged page is unchanged.
-  const markets = marketsEnabled();
-  return <><SiteHeader markets={markets} community={markets && galleryEnabled()} /><main id="main" className={styles.home} data-design="kova">
+  const header = headerSections();
+  return <><SiteHeader {...header} /><main id="main" className={styles.home} data-design="kova">
     <section className={styles.hero} aria-labelledby="hero-heading">
       <DecorativeVideo className={styles.heroFilm} src="/media/design/hero-boomerang.mp4" mobileSrc="/media/design/hero-boomerang-mobile.mp4" poster="/media/design/hero-poster.jpg" label="Hero boomerang" priority />
       <div className={styles.ambient} aria-hidden="true"><i /><i /><span /></div>
@@ -72,7 +71,7 @@ export default function Home() {
         <DecorativeVideo className={styles.featureFilm} src={`/media/design/${feature.media}.mp4`} poster={`/media/design/${feature.media}-poster.jpg`} label={feature.title} />
         <p className={styles.featureKicker}>{feature.kicker}</p><h3>{feature.title}</h3><p>{feature.text}</p>
         {index === 1 && <SplitBar />}{index === 2 && <div className={styles.route} aria-hidden="true"><span>YOUR PLAN</span><i /><span>ANY SCREEN</span></div>}
-        <Link href={markets && index === 0 ? '/markets' : feature.href} className="text-button">{feature.link} <ArrowRight size={16} /></Link>
+        <Link href={header.markets && index === 0 ? '/markets' : feature.href} className="text-button">{feature.link} <ArrowRight size={16} /></Link>
       </article></Reveal>)}</div>
     </section>
     <section className={styles.how} aria-labelledby="how-heading">

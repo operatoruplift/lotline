@@ -1,11 +1,12 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { SiteHeader, SiteFooter } from '@/components/site-shell';
+import { headerSections } from '@/lib/server/features';
 
 export const metadata: Metadata = { title: 'Privacy & storage' };
 
 export default function PrivacyPage() {
-  return <><SiteHeader /><main id="main" className="privacy-page page-width">
+  return <><SiteHeader {...headerSections()} /><main id="main" className="privacy-page page-width">
     <p className="eyebrow">YOUR PLAN. CLEAR BOUNDARIES.</p>
     <h1>What Lotline stores.</h1>
     <p className="privacy-intro">You can plan without an account. Cloud saving is an optional action you choose.</p>

@@ -2,11 +2,12 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { ArrowRight, ArrowUpRight, Check, Fingerprint, Layers3, ShieldCheck } from 'lucide-react';
 import { SiteHeader, SiteFooter } from '@/components/site-shell';
+import { headerSections } from '@/lib/server/features';
 
 export const metadata: Metadata = { title: 'How it works' };
 
 export default function HowItWorks() {
-  return <><SiteHeader active="how" /><main id="main" className="how-page page-width">
+  return <><SiteHeader active="how" {...headerSections()} /><main id="main" className="how-page page-width">
     <div className="how-intro"><p className="eyebrow">A LITTLE CONTEXT GOES A LONG WAY</p><h1>Know what goes in.<br /><span>See what could come out.</span></h1><p>Lotline helps you plan a new USDC contribution across up to 10 xStocks. You choose the assets and percentages. We handle the arithmetic and request estimates.</p></div>
     <div className="how-layout"><div className="how-main">
       <section className="how-step"><span className="step-number">01</span><div><h2>Make the plan yours.</h2><p>Choose from the catalog verified against the xStocks issuer and Solana. Enter percentages totaling 100% and a USDC budget. The split applies only to this new contribution.</p><p>Budgets accept up to six decimal places, up to 1,000,000 USDC. Percentages accept two. Any remaining micro-USDC goes to the largest fractional remainder, with ties settled in your basket order. Every micro-USDC is accounted for.</p></div></section>

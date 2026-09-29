@@ -44,7 +44,7 @@ async function wallets(page: Page, list: { name: string; behaviour: Behaviour }[
 }
 
 /** Every account request answers from a fixture; the web3 grant is recorded. */
-async function auth(page: Page, grant: (body: Record<string, unknown>) => { status: number; json: unknown }) {
+async function auth(page: Page, grant: (body: Record<string, unknown>) => { status: number; json: unknown; headers?: Record<string, string> }) {
   const grants: Record<string, unknown>[] = [];
   await page.route('**/auth/v1/**', route => route.fulfill({ status: 401, json: { code: 'bad_jwt', msg: 'Fixture session only' } }));
   await page.route('**/auth/v1/token?grant_type=web3', route => { const body = route.request().postDataJSON() as Record<string, unknown>; grants.push(body); return route.fulfill(grant(body)); });
@@ -60,6 +60,9 @@ test('a wallet signs one message, Supabase Auth gets exactly that text, and the 
   const grants = await auth(page, () => ({ status: 200, json: fixtureSession() }));
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto('/sign-in');
+  // The header follows the operator flags here too, so the way back to Portfolio stays one tap away.
+  const header = page.getByRole('navigation', { name: 'Main navigation' });
+  for (const name of ['Portfolio', 'Markets', 'Community']) await expect(header.getByRole('link', { name, exact: true })).toBeVisible();
   const section = page.getByRole('region', { name: 'Sign in with a Solana wallet' });
   await expect(section.getByRole('list', { name: 'Wallets in this browser' }).getByRole('button')).toHaveCount(1);
   await expect(page.getByText('or sign in with email', { exact: true })).toBeVisible();
@@ -98,7 +101,9 @@ test('a wallet that can only sign messages connects and signs the Lotline text',
 test('declining, a switched-off provider and a prompt left open all leave the page usable', async ({ page }) => {
   await wallets(page, [{ name: 'Declining Wallet', behaviour: 'reject' }, { name: 'Idle Wallet', behaviour: 'hang' }, { name: 'Grove Wallet', behaviour: 'sign-in' }]);
   let disabled = true;
-  const grants = await auth(page, () => disabled ? { status: 422, json: { code: 'web3_provider_disabled', msg: 'Solana Web3 provider is disabled' } } : { status: 200, json: fixtureSession() });
+  // As Supabase Auth answers: its client reads `code` only from a response that states its API version.
+  const switchedOff = { status: 422, headers: { 'x-supabase-api-version': '2024-01-01', 'access-control-expose-headers': 'X-Supabase-Api-Version' }, json: { code: 'web3_provider_disabled', message: 'Solana Web3 provider is disabled' } };
+  const grants = await auth(page, () => disabled ? switchedOff : { status: 200, json: fixtureSession() });
   await page.goto('/sign-in');
   const section = page.getByRole('region', { name: 'Sign in with a Solana wallet' });
 

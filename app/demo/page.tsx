@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { ArrowRight } from 'lucide-react';
 import { SiteHeader, SiteFooter } from '@/components/site-shell';
 import release from '@/docs/video-release-manifest.json';
+import { headerSections } from '@/lib/server/features';
 
 export const metadata: Metadata = { title: 'See Lotline in action' };
 
@@ -13,7 +14,7 @@ function durationLabel(seconds: number) {
 
 export default function DemoPage() {
   const { product, technical } = release.films;
-  return <><SiteHeader /><main id="main" className="demo-page page-width">
+  return <><SiteHeader {...headerSections()} /><main id="main" className="demo-page page-width">
     <p className="eyebrow">A SMALL PLAN. A CLEAR NEXT STEP.</p>
     <h1>See your next contribution<br />come together.</h1>
     <p className="demo-intro">Explore 832 Example assets, choose up to ten for a plan, and return to your split with a new contribution. These narrated tours show the September 12, 2026 planner release. Example balances and estimates are synthetic; recorded Live estimates are dated observations.</p>
