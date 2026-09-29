@@ -60,9 +60,15 @@ test('a wallet signs one message, Supabase Auth gets exactly that text, and the 
   const grants = await auth(page, () => ({ status: 200, json: fixtureSession() }));
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto('/sign-in');
-  // The header follows the operator flags here too, so the way back to Portfolio stays one tap away.
+  // On phones the tab bar stays here too, with Account current, so Portfolio is one tap away;
+  // on wide screens the header carries the same links.
+  const tabs = page.getByRole('navigation', { name: 'Planning sections' });
+  await expect(tabs.getByRole('link', { name: 'Account' })).toHaveAttribute('aria-current', 'page');
+  await expect(tabs.getByRole('link', { name: 'Portfolio' })).toBeVisible();
+  await page.setViewportSize({ width: 1280, height: 900 });
   const header = page.getByRole('navigation', { name: 'Main navigation' });
   for (const name of ['Portfolio', 'Markets', 'Community']) await expect(header.getByRole('link', { name, exact: true })).toBeVisible();
+  await page.setViewportSize({ width: 390, height: 844 });
   const section = page.getByRole('region', { name: 'Sign in with a Solana wallet' });
   await expect(section.getByRole('list', { name: 'Wallets in this browser' }).getByRole('button')).toHaveCount(1);
   await expect(page.getByText('or sign in with email', { exact: true })).toBeVisible();
