@@ -192,6 +192,8 @@ test('batch approval is hidden while the server has not acknowledged the batch m
   await page.getByRole('button', { name: 'Controlled test wallet', exact: true }).click();
   await expect(page.getByRole('button', { name: 'Review purchase', exact: true })).toBeEnabled();
   await expect(page.getByRole('button', { name: /sign once/ })).toHaveCount(0);
+  await expect(page.getByText('Review and approve one leg at a time.', { exact: false })).toBeVisible();
+  await expect(page.getByText(/review up to 3 legs together/i)).toHaveCount(0);
 });
 
 for (const availability of ['missing', 'stale'] as const) {

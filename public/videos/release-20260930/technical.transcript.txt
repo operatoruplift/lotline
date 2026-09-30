@@ -1,0 +1,31 @@
+Lotline — September 30, 2026 technical tour. Caption-led, no narration. Actual local application footage; technical explanation slides are labeled. No generated UI, mocked wallet, purchase, signature or funds moved. Market observations are dated and may be unavailable. Example data is synthetic.
+
+Precision starts with the budget.
+Actual Example calculation. The extra micro-unit stays accounted for.
+
+Freshness is part of the result.
+Provider boundaries
+A price is context. A quote is specific.
+Issuer identity and on-chain mint checks come first.
+Changing the budget or split clears old estimates.
+Pyth references retain their timestamp and confidence.
+Pyth may fall back or be unavailable. Expired references stay visibly stale; an earlier successful read cannot authorize a later purchase.
+
+Pre-IPO has its own planning path.
+Actual PreStocks screen. Discovery does not promise a purchase route.
+
+Validate before the wallet signs.
+Supported xStocks routes
+The unsigned message has to match.
+Check the wallet, mints, exact amounts and allowed programs.
+Bound slippage and fees; validate the transaction instructions.
+Simulate the unsigned message, then require wallet approval.
+Current validator scope is direct Raydium CLMM through Metis for supported scaled xStocks. This slide is an explanation, not a transaction or proof that every asset can settle.
+
+Uncertain is not complete.
+Recovery
+Stop. Reconcile. Then continue.
+Persist the original signature before submission.
+Pause later approvals when the outcome is unknown.
+Confirm the original transaction and actual token movements.
+Historical unsigned simulation and mocked recovery tests are separate evidence. Neither proves a real purchase. No wallet was connected and no funds moved in this recording.

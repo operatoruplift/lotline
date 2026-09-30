@@ -16,5 +16,6 @@ export default async function MarketsPage() {
   // The flag is read per request, so an operator switch never depends on a build.
   await connection();
   if (!marketsEnabled()) notFound();
-  return <><Markets crypto={cryptoEnabled()} /><AppTabBar active="markets" gallery={galleryEnabled()} /></>;
+  const gallery = galleryEnabled();
+  return <><Markets crypto={cryptoEnabled()} gallery={gallery} /><AppTabBar active="markets" gallery={gallery} /></>;
 }

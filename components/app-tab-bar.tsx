@@ -6,7 +6,7 @@ import { ChartNoAxesCombined, ChartPie, FlaskConical, Link2, ListChecks, Plus, R
 import { planLinkTarget } from '@/lib/domain/share';
 import styles from './app-tab-bar.module.css';
 
-/** 'plan' is the planner itself, which lives under the Portfolio tab. */
+/** Both planners live under Portfolio when Community occupies the fourth tab. */
 type Section = 'portfolio' | 'plan' | 'markets' | 'community' | 'pre-ipo' | 'account';
 const LONG_PRESS_MS = 450;
 
@@ -50,7 +50,7 @@ export function AppTabBar({ active, gallery = false }: { active?: Section; galle
     window.location.assign(target);
   }
 
-  const current = (section: Section) => active === section || (section === 'portfolio' && active === 'plan');
+  const current = (section: Section) => active === section || (section === 'portfolio' && (active === 'plan' || (active === 'pre-ipo' && gallery)));
   const tab = (section: Section, href: string, label: string, Icon: typeof ListChecks) =>
     <Link href={href} className={styles.tab} aria-current={current(section) ? 'page' : undefined}><Icon size={20} aria-hidden="true" /><span>{label}</span></Link>;
 
@@ -59,15 +59,15 @@ export function AppTabBar({ active, gallery = false }: { active?: Section; galle
     <nav className={styles.bar} aria-label="Planning sections" data-app-tab-bar="">
       {tab('portfolio', '/portfolio', 'Portfolio', ChartPie)}
       {tab('markets', '/markets', 'Markets', ChartNoAxesCombined)}
-      <button type="button" className={styles.create} aria-label="Start or extend a plan (hold for plan link)" aria-haspopup="dialog"
+      <button type="button" className={styles.create} aria-label="Start or extend a plan (hold for plan link)" aria-haspopup="dialog" aria-expanded={open !== null} aria-controls="create-plan-sheet"
         onPointerDown={startPress} onPointerUp={endPress} onPointerLeave={endPress} onPointerCancel={endPress} onContextMenu={event => event.preventDefault()}
         onClick={() => { if (longPressed.current) { longPressed.current = false; return; } setOpen('menu'); }}>
-        <Plus size={24} aria-hidden="true" />
+        <span className={styles.createIcon}><Plus size={22} aria-hidden="true" /></span><span>Plan</span>
       </button>
       {gallery ? tab('community', '/plans', 'Community', Users) : tab('pre-ipo', '/pre-ipo', 'Pre-IPO', Rocket)}
       <Link href="/sign-in" className={styles.tab} aria-current={active === 'account' ? 'page' : undefined}><UserRound size={20} aria-hidden="true" /><span>Account</span></Link>
     </nav>
-    <dialog ref={dialog} className={styles.sheet} aria-labelledby="create-sheet-title" onClose={() => { setOpen(null); setError(''); }} onClick={event => { if (event.target === event.currentTarget) setOpen(null); }}>
+    <dialog id="create-plan-sheet" ref={dialog} className={styles.sheet} aria-labelledby="create-sheet-title" onClose={() => { setOpen(null); setError(''); }} onClick={event => { if (event.target === event.currentTarget) setOpen(null); }}>
       <div className={styles.sheetBody}>
         <div className={styles.sheetTop}><h2 id="create-sheet-title">Start or extend a plan</h2><button type="button" aria-label="Close" onClick={() => setOpen(null)}><X size={18} /></button></div>
         <ul className={styles.actions}>

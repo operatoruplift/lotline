@@ -6,11 +6,12 @@ vi.mock('@/lib/server/execution/route-policy',()=>({unsupportedDexLabels:mocks.l
 vi.mock('@/lib/server/provider-limits',()=>({reserveProviderSlot:mocks.reserve}));
 import { createExecutionOrder } from '../lib/server/execution/orders';
 import { executionFixture } from './execution-fixtures';
-beforeEach(()=>{vi.resetAllMocks();vi.unstubAllEnvs();mocks.labels.mockResolvedValue('Whirlpool');});
-it('requires a server key before contacting any execution provider',async()=>{
+beforeEach(()=>{vi.resetAllMocks();vi.unstubAllEnvs();vi.stubEnv('LOTLINE_EXECUTION_KEYLESS_JUPITER','');mocks.labels.mockResolvedValue('Whirlpool');});
+it('requires configured access before contacting any execution provider',async()=>{
  vi.stubEnv('JUPITER_API_KEY','');const f=await executionFixture();
  await expect(createExecutionOrder(f.intent,f.asset,f.intent.reviewedLimits)).rejects.toThrow(/API key/);
  expect(mocks.fetch).not.toHaveBeenCalled();expect(mocks.validate).not.toHaveBeenCalled();
+ expect(mocks.labels).not.toHaveBeenCalled();expect(mocks.reserve).not.toHaveBeenCalled();
 });
 it('passes the provider envelope through semantic validation and propagates a rejection',async()=>{
  // This cryptographic fixture is deliberately NOT a semantic swap; the validator must decide.
@@ -24,4 +25,14 @@ it('passes the provider envelope through semantic validation and propagates a re
  expect(parsed.pathname).toBe('/swap/v2/order');expect(parsed.searchParams.get('taker')).toBe(f.intent.wallet);
  expect(parsed.searchParams.get('excludeDexes')).toBe('Whirlpool');expect(parsed.searchParams.has('jitoTipLamports')).toBe(false);
  expect(options.headers).toEqual({'x-api-key':'test-only-key'});
+});
+it('keeps semantic validation and routing restrictions with explicit keyless access',async()=>{
+ vi.stubEnv('JUPITER_API_KEY','');vi.stubEnv('LOTLINE_EXECUTION_KEYLESS_JUPITER','true');const f=await executionFixture();
+ mocks.fetch.mockResolvedValue(f.order);mocks.validate.mockRejectedValue(new Error('unsupported encoded swap'));
+ await expect(createExecutionOrder(f.intent,f.asset,f.intent.reviewedLimits)).rejects.toThrow('unsupported encoded swap');
+ expect(mocks.labels).toHaveBeenCalledWith(undefined);expect(mocks.reserve).toHaveBeenCalledWith('jupiter');
+ const [url,options]=mocks.fetch.mock.calls[0];const params=new URL(url).searchParams;
+ expect(options.headers).toEqual({});expect(params.get('taker')).toBe(f.intent.wallet);
+ expect(params.get('excludeRouters')).toBe('jupiterz,dflow,okx');expect(params.get('excludeDexes')).toBe('Whirlpool');
+ expect(mocks.validate).toHaveBeenCalledTimes(1);
 });

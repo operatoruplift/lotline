@@ -11,6 +11,7 @@ import { addressSchema, fetchJson, isBoundedRaw, rawSchema, ServiceError, USDC_M
 import { reserveProviderSlot } from '@/lib/server/provider-limits';
 import { validateExecutableOrder, type SemanticProof } from './semantic-validation';
 import { unsupportedDexLabels } from './route-policy';
+import { requireJupiterExecutionHeaders } from './provider-access';
 
 const MAX_TRANSACTION_BASE64 = 1644;
 const supportedRouters = new Set(['metis']);
@@ -138,12 +139,11 @@ export async function createExecutionOrder(intent: ContributionIntent, asset: As
   limits = stricterLimits(intent.reviewedLimits, limits);
   // Omitting the tip requests no explicit tip. The current provider rejects an explicit zero.
   const params = new URLSearchParams({ inputMint: USDC_MINT, outputMint: asset.mint, amount: leg.maximumInputRaw, taker: intent.wallet, swapMode: 'ExactIn', slippageBps: String(limits.slippageBps), priorityFeeLamports: limits.maximumPriorityFeeLamports, broadcastFeeType: 'maxCap', excludeRouters: 'jupiterz,dflow,okx' });
-  const apiKey = process.env.JUPITER_API_KEY?.trim();
-  if (!apiKey) throw new ServiceError('configuration-required', 'Executable orders need a server-side Jupiter API key.');
-  params.set('excludeDexes', await unsupportedDexLabels(apiKey));
+  const headers = requireJupiterExecutionHeaders();
+  params.set('excludeDexes', await unsupportedDexLabels(headers['x-api-key']));
   await reserveProviderSlot('jupiter');
   const fetchedAt = new Date().toISOString();
-  const payload = await fetchJson(`https://api.jup.ag/swap/v2/order?${params}`, { headers: { 'x-api-key': apiKey } });
+  const payload = await fetchJson(`https://api.jup.ag/swap/v2/order?${params}`, { headers });
   const order = parseOrder(payload, intent, asset, limits, fetchedAt);
   return validateExecutableOrder(order, intent, asset, limits);
 }

@@ -1,0 +1,178 @@
+{
+  "recordedAt": "2026-09-30T10:48:58.502Z",
+  "source": "http://127.0.0.1:3153",
+  "footage": "Actual app; no mocked API responses. Technical slides explicitly labeled.",
+  "narration": {
+    "status": "unavailable",
+    "reason": "Higgsfield connected workspace has zero credits; no generation submitted.",
+    "requestedVoice": "Ainsley",
+    "voiceId": "731b4ffe-e95e-59f4-8c00-81608936091f"
+  },
+  "signed": false,
+  "submitted": false,
+  "settlementProven": false,
+  "films": {
+    "product": {
+      "src": "/videos/release-20260930/product.mp4",
+      "poster": "/videos/release-20260930/product-poster.jpg",
+      "captions": "/videos/release-20260930/product.en.vtt",
+      "transcript": "/videos/release-20260930/product.transcript.txt",
+      "durationSeconds": 52,
+      "width": 1920,
+      "height": 1080,
+      "fps": 30,
+      "audio": false,
+      "fullDecode": "passed",
+      "sha256": "8cc2978d716f00b19e13dd9b8f200ba7d8ef8a1082a31aa9b99d62c72197b98a",
+      "chapters": [
+        {
+          "at": 0,
+          "title": "A familiar place to return.",
+          "description": "Your saved contribution plan, at a glance.",
+          "duration": 8,
+          "phone": false,
+          "textAlternative": [
+            "Your saved contribution plan, at a glance."
+          ]
+        },
+        {
+          "at": 8,
+          "title": "Explore before you add.",
+          "description": "Browse identities, then inspect the asset. Market snapshots are not quotes.",
+          "duration": 10,
+          "phone": false,
+          "textAlternative": [
+            "Browse identities, then inspect the asset. Market snapshots are not quotes."
+          ]
+        },
+        {
+          "at": 18,
+          "title": "Your amount. Your split.",
+          "description": "Example mode uses synthetic balances and estimates. Nothing is bought.",
+          "duration": 10,
+          "phone": false,
+          "textAlternative": [
+            "Example mode uses synthetic balances and estimates. Nothing is bought."
+          ]
+        },
+        {
+          "at": 28,
+          "title": "Every micro-USDC accounted for.",
+          "description": "Open the calculation and inspect the sources behind each line.",
+          "duration": 8,
+          "phone": false,
+          "textAlternative": [
+            "Open the calculation and inspect the sources behind each line."
+          ]
+        },
+        {
+          "at": 36,
+          "title": "A starting point, never an auto-trade.",
+          "description": "Browse community splits. Copying or following never approves a purchase.",
+          "duration": 8,
+          "phone": false,
+          "textAlternative": [
+            "Browse community splits. Copying or following never approves a purchase."
+          ]
+        },
+        {
+          "at": 44,
+          "title": "Keep the next step close.",
+          "description": "Portfolio, Markets, Plan and Community stay within reach on your phone.",
+          "duration": 8,
+          "phone": true,
+          "textAlternative": [
+            "Portfolio, Markets, Plan and Community stay within reach on your phone."
+          ]
+        }
+      ]
+    },
+    "technical": {
+      "src": "/videos/release-20260930/technical.mp4",
+      "poster": "/videos/release-20260930/technical-poster.jpg",
+      "captions": "/videos/release-20260930/technical.en.vtt",
+      "transcript": "/videos/release-20260930/technical.transcript.txt",
+      "durationSeconds": 48,
+      "width": 1920,
+      "height": 1080,
+      "fps": 30,
+      "audio": false,
+      "fullDecode": "passed",
+      "sha256": "eb99ed783ef031378bd22dcaf0a4320f0810d4847b7f4bf99828ab1ca9191715",
+      "chapters": [
+        {
+          "at": 0,
+          "title": "Precision starts with the budget.",
+          "description": "Actual Example calculation. The extra micro-unit stays accounted for.",
+          "duration": 10,
+          "phone": false,
+          "textAlternative": [
+            "Actual Example calculation. The extra micro-unit stays accounted for."
+          ]
+        },
+        {
+          "at": 10,
+          "title": "Freshness is part of the result.",
+          "description": "An estimate belongs to an amount and a time.",
+          "duration": 10,
+          "phone": false,
+          "textAlternative": [
+            "Provider boundaries",
+            "A price is context. A quote is specific.",
+            "Issuer identity and on-chain mint checks come first.",
+            "Changing the budget or split clears old estimates.",
+            "Pyth references retain their timestamp and confidence.",
+            "Pyth may fall back or be unavailable. Expired references stay visibly stale; an earlier successful read cannot authorize a later purchase."
+          ]
+        },
+        {
+          "at": 20,
+          "title": "Pre-IPO has its own planning path.",
+          "description": "Actual PreStocks screen. Discovery does not promise a purchase route.",
+          "duration": 8,
+          "phone": false,
+          "textAlternative": [
+            "Actual PreStocks screen. Discovery does not promise a purchase route."
+          ]
+        },
+        {
+          "at": 28,
+          "title": "Validate before the wallet signs.",
+          "description": "Technical explanation of the supported execution path.",
+          "duration": 10,
+          "phone": false,
+          "textAlternative": [
+            "Supported xStocks routes",
+            "The unsigned message has to match.",
+            "Check the wallet, mints, exact amounts and allowed programs.",
+            "Bound slippage and fees; validate the transaction instructions.",
+            "Simulate the unsigned message, then require wallet approval.",
+            "Current validator scope is direct Raydium CLMM through Metis for supported scaled xStocks. This slide is an explanation, not a transaction or proof that every asset can settle."
+          ]
+        },
+        {
+          "at": 38,
+          "title": "Uncertain is not complete.",
+          "description": "A receipt follows confirmed chain evidence.",
+          "duration": 10,
+          "phone": false,
+          "textAlternative": [
+            "Recovery",
+            "Stop. Reconcile. Then continue.",
+            "Persist the original signature before submission.",
+            "Pause later approvals when the outcome is unknown.",
+            "Confirm the original transaction and actual token movements.",
+            "Historical unsigned simulation and mocked recovery tests are separate evidence. Neither proves a real purchase. No wallet was connected and no funds moved in this recording."
+          ]
+        }
+      ]
+    }
+  },
+  "verification": {
+    "fullDecode": "Both complete MP4s decoded successfully with FFmpeg.",
+    "visualReview": "Portfolio, market detail, phone dock, PreStocks and technical explanation frames inspected.",
+    "blockedApiWrites": 0,
+    "captions": "6 product chapters; 5 technical chapters; all times within media duration.",
+    "textAlternatives": "Complete technical slide text included; no narration falsely claimed."
+  }
+}

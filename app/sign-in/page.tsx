@@ -7,5 +7,5 @@ export const metadata: Metadata = { title: 'Sign in', robots: { index: false, fo
 export default async function SignIn({ searchParams }: { searchParams: Promise<{ error?: string }> }) {
   const params = await searchParams;
   const header = headerSections();
-  return <><SiteHeader {...header} /><main id="main"><AuthForm mode="sign-in" confirmationError={params.error === 'confirmation'} walletSignIn={walletSignInEnabled()} /></main><SiteFooter />{header.markets && <AppTabBar active="account" gallery={header.community} />}</>;
+  return <><SiteHeader {...header} active="account" /><main id="main"><AuthForm mode="sign-in" confirmationError={params.error === 'confirmation'} walletSignIn={walletSignInEnabled()} /></main><SiteFooter />{header.markets && <AppTabBar active="account" gallery={header.community} />}</>;
 }

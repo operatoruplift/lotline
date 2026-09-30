@@ -2,6 +2,7 @@ import 'server-only';
 import { EXECUTION_POLICY_VERSION, MAX_BATCH_LEGS, type ExecutionLimits } from '@/lib/domain/execution';
 import { SEMANTIC_VALIDATOR_VERSION } from './route-semantics';
 import { addressSchema, ServiceError } from '@/lib/server/common';
+import { jupiterExecutionHeaders, JUPITER_EXECUTION_ACCESS_REQUIRED } from './provider-access';
 
 function restrictedWallets(): string[] {
   const values = process.env.LOTLINE_EXECUTION_ALLOWED_WALLETS?.split(',').map(value => value.trim()).filter(Boolean) ?? [];
@@ -43,7 +44,7 @@ export function batchSigningEnabled(): boolean {
 export function executionConfig(): ExecutionConfig {
   const reasons: string[] = [];
   if (process.env.LOTLINE_EXECUTION_ENABLED !== 'true') reasons.push('Execution is paused until the server readiness flag is enabled.');
-  if (!process.env.JUPITER_API_KEY?.trim()) reasons.push('A server-side Jupiter API key is required for executable orders.');
+  if (!jupiterExecutionHeaders()) reasons.push(JUPITER_EXECUTION_ACCESS_REQUIRED);
   if (!process.env.SOLANA_RPC_URL?.trim()) reasons.push('A server-side Solana RPC URL is required for transaction checks and reconciliation.');
   if (!process.env.SUPABASE_SECRET_KEY?.trim()) reasons.push('The private execution journal is not configured.');
   else if (!process.env.SUPABASE_SECRET_KEY.trim().startsWith('sb_secret_')) reasons.push('The execution journal requires a current sb_secret_ key.');
