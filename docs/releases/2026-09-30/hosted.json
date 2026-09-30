@@ -1,0 +1,1081 @@
+{
+  "beganAt": "2026-09-30T10:07:58.939Z",
+  "observedAt": "2026-09-30T10:09:03.141Z",
+  "origin": "https://lotline.dev",
+  "localSourceRevision": "ee7bc5a416b2db101648ffc4d9820f6246e96c7e",
+  "reportedDeployment": {
+    "deploymentId": "dpl_7EKRUvwP2wkL7qNxDrAFdN2kUrCy",
+    "deploymentUrl": "https://lotline-i4w650mzz-operatoruplift.vercel.app",
+    "sourceRevision": "ee7bc5a416b2db101648ffc4d9820f6246e96c7e",
+    "canonicalAliasVerifiedAt": "2026-09-30T10:06:19Z",
+    "identitySource": "Release owner supplied deployment identity and alias verification; this smoke independently probes the canonical URL."
+  },
+  "scope": "Read-only canonical HTTP pages, verified PreStocks discovery, Pyth reference read, public execution capability and partial media range checks. HTTP content is not proof of client hydration, authenticated flows, quote execution or settlement. Prices are dated observations, never current promises.",
+  "readOnly": true,
+  "walletConnected": false,
+  "orderRequested": false,
+  "transactionSigned": false,
+  "transactionSubmitted": false,
+  "environmentRead": false,
+  "environmentChanged": false,
+  "pages": [
+    {
+      "path": "/",
+      "httpStatus": 200,
+      "finalUrl": "https://lotline.dev/",
+      "elapsedMs": 1403,
+      "contentType": "text/html; charset=utf-8",
+      "title": "Lotline — Your next contribution, clearly.",
+      "headings": [
+        "Opening Lotline…",
+        "JavaScript is turned off.",
+        "Your next contribution,clearly."
+      ],
+      "hasMain": true,
+      "hasNotFound": false,
+      "passed": true
+    },
+    {
+      "path": "/app?mode=example",
+      "httpStatus": 200,
+      "finalUrl": "https://lotline.dev/app?mode=example",
+      "elapsedMs": 1131,
+      "contentType": "text/html; charset=utf-8",
+      "title": "Make a plan · Lotline",
+      "headings": [
+        "Opening Lotline…",
+        "JavaScript is turned off.",
+        "Your next contribution."
+      ],
+      "hasMain": true,
+      "hasNotFound": false,
+      "passed": true
+    },
+    {
+      "path": "/portfolio",
+      "httpStatus": 200,
+      "finalUrl": "https://lotline.dev/portfolio",
+      "elapsedMs": 1142,
+      "contentType": "text/html; charset=utf-8",
+      "title": "Portfolio · Lotline",
+      "headings": [
+        "Opening Lotline…",
+        "JavaScript is turned off.",
+        "Start with one clear split."
+      ],
+      "hasMain": true,
+      "hasNotFound": false,
+      "passed": true
+    },
+    {
+      "path": "/markets",
+      "httpStatus": 200,
+      "finalUrl": "https://lotline.dev/markets",
+      "elapsedMs": 358,
+      "contentType": "text/html; charset=utf-8",
+      "title": "Markets · Lotline",
+      "headings": [
+        "Opening Lotline…",
+        "JavaScript is turned off.",
+        "Find what goes in your next contribution."
+      ],
+      "hasMain": true,
+      "hasNotFound": false,
+      "passed": true
+    },
+    {
+      "path": "/plans",
+      "httpStatus": 200,
+      "finalUrl": "https://lotline.dev/plans",
+      "elapsedMs": 487,
+      "contentType": "text/html; charset=utf-8",
+      "title": "Community plans · Lotline",
+      "headings": [
+        "Opening Lotline…",
+        "JavaScript is turned off.",
+        "Splits other members keep coming back to."
+      ],
+      "hasMain": true,
+      "hasNotFound": false,
+      "passed": true
+    },
+    {
+      "path": "/pre-ipo",
+      "httpStatus": 200,
+      "finalUrl": "https://lotline.dev/pre-ipo",
+      "elapsedMs": 508,
+      "contentType": "text/html; charset=utf-8",
+      "title": "Plan a PreStocks contribution · Lotline",
+      "headings": [
+        "Opening Lotline…",
+        "JavaScript is turned off.",
+        "Your PreStocks contribution."
+      ],
+      "hasMain": true,
+      "hasNotFound": false,
+      "passed": true
+    },
+    {
+      "path": "/demo",
+      "httpStatus": 200,
+      "finalUrl": "https://lotline.dev/demo",
+      "elapsedMs": 527,
+      "contentType": "text/html; charset=utf-8",
+      "title": "See Lotline in action · Lotline",
+      "headings": [
+        "Opening Lotline…",
+        "JavaScript is turned off.",
+        "See your next contributioncome together."
+      ],
+      "hasMain": true,
+      "hasNotFound": false,
+      "passed": true
+    },
+    {
+      "path": "/brand-kit",
+      "httpStatus": 200,
+      "finalUrl": "https://lotline.dev/brand-kit",
+      "elapsedMs": 612,
+      "contentType": "text/html; charset=utf-8",
+      "title": "Brand kit · Lotline",
+      "headings": [
+        "Opening Lotline…",
+        "JavaScript is turned off.",
+        "A complete kit,ready to move."
+      ],
+      "hasMain": true,
+      "hasNotFound": false,
+      "passed": true
+    },
+    {
+      "path": "/privacy",
+      "httpStatus": 200,
+      "finalUrl": "https://lotline.dev/privacy",
+      "elapsedMs": 621,
+      "contentType": "text/html; charset=utf-8",
+      "title": "Privacy & storage · Lotline",
+      "headings": [
+        "What Lotline stores."
+      ],
+      "hasMain": true,
+      "hasNotFound": false,
+      "passed": true
+    }
+  ],
+  "observedFeatures": {
+    "marketsPageAvailable": true,
+    "communityPageAvailable": true,
+    "cryptoFilterPresent": false,
+    "evidence": "Rendered response content, not deployment environment inspection."
+  },
+  "endpoints": {
+    "prestocks": {
+      "path": "/api/prestocks/assets",
+      "method": "GET",
+      "readOnly": true,
+      "httpStatus": 200,
+      "elapsedMs": 1245,
+      "observedAt": "2026-09-30T10:08:05.416Z",
+      "cacheControl": "no-store",
+      "body": {
+        "state": "success",
+        "assets": [
+          {
+            "symbol": "ANDURIL",
+            "name": "Anduril PreStocks",
+            "mint": "PresTj4Yc2bAR197Er7wz4UUKSfqt6FryBEdAriBoQB",
+            "decimals": 9,
+            "tokenProgram": "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb",
+            "halted": null,
+            "verifiedAt": "2026-09-30T10:08:03.738Z",
+            "issuerId": "prestocks",
+            "instrumentId": "prestocks:solana:PresTj4Yc2bAR197Er7wz4UUKSfqt6FryBEdAriBoQB",
+            "issuerSourceUrl": "https://prestocks.com/api/prestocks",
+            "productUrl": "https://www.prestocks.com/anduril",
+            "logoUrl": "/logos/prestocks/ANDURIL.png",
+            "logoSourceUrl": "https://www.prestocks.com/logos/anduril.png",
+            "description": "Pre-IPO economic exposure issued by PreStocks. Read-only planning; issuer trading-halt status is not published. Token transfer fees and issuer controls apply."
+          },
+          {
+            "symbol": "ANTHROPIC",
+            "name": "Anthropic PreStocks",
+            "mint": "Pren1FvFX6J3E4kXhJuCiAD5aDmGEb7qJRncwA8Lkhw",
+            "decimals": 9,
+            "tokenProgram": "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb",
+            "halted": null,
+            "verifiedAt": "2026-09-30T10:08:03.738Z",
+            "issuerId": "prestocks",
+            "instrumentId": "prestocks:solana:Pren1FvFX6J3E4kXhJuCiAD5aDmGEb7qJRncwA8Lkhw",
+            "issuerSourceUrl": "https://prestocks.com/api/prestocks",
+            "productUrl": "https://www.prestocks.com/anthropic",
+            "logoUrl": "/logos/prestocks/ANTHROPIC.png",
+            "logoSourceUrl": "https://www.prestocks.com/logos/anthropic.png",
+            "description": "Pre-IPO economic exposure issued by PreStocks. Read-only planning; issuer trading-halt status is not published. Token transfer fees and issuer controls apply."
+          },
+          {
+            "symbol": "FIGUREAI",
+            "name": "Figure AI PreStocks",
+            "mint": "PreZad18qfPtbxNpMtMuAuX2zVpvkEU8DnJx56faCWd",
+            "decimals": 9,
+            "tokenProgram": "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb",
+            "halted": null,
+            "verifiedAt": "2026-09-30T10:08:03.738Z",
+            "issuerId": "prestocks",
+            "instrumentId": "prestocks:solana:PreZad18qfPtbxNpMtMuAuX2zVpvkEU8DnJx56faCWd",
+            "issuerSourceUrl": "https://prestocks.com/api/prestocks",
+            "productUrl": "https://www.prestocks.com/figureai",
+            "logoUrl": "/logos/prestocks/FIGUREAI.png",
+            "logoSourceUrl": "https://www.prestocks.com/logos/figureai.png",
+            "description": "Pre-IPO economic exposure issued by PreStocks. Read-only planning; issuer trading-halt status is not published. Token transfer fees and issuer controls apply."
+          },
+          {
+            "symbol": "KALSHI",
+            "name": "Kalshi PreStocks",
+            "mint": "PreLWGkkeqG1s4HEfFZSy9moCrJ7btsHuUtfcCeoRua",
+            "decimals": 9,
+            "tokenProgram": "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb",
+            "halted": null,
+            "verifiedAt": "2026-09-30T10:08:03.738Z",
+            "issuerId": "prestocks",
+            "instrumentId": "prestocks:solana:PreLWGkkeqG1s4HEfFZSy9moCrJ7btsHuUtfcCeoRua",
+            "issuerSourceUrl": "https://prestocks.com/api/prestocks",
+            "productUrl": "https://www.prestocks.com/kalshi",
+            "logoUrl": "/logos/prestocks/KALSHI.png",
+            "logoSourceUrl": "https://www.prestocks.com/logos/kalshi.png",
+            "description": "Pre-IPO economic exposure issued by PreStocks. Read-only planning; issuer trading-halt status is not published. Token transfer fees and issuer controls apply."
+          },
+          {
+            "symbol": "NEURALINK",
+            "name": "Neuralink PreStocks",
+            "mint": "PrekqLJvJ3qVdXmBGDiexvwUTF4rLFDa6HWS4HJbw9S",
+            "decimals": 9,
+            "tokenProgram": "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb",
+            "halted": null,
+            "verifiedAt": "2026-09-30T10:08:03.738Z",
+            "issuerId": "prestocks",
+            "instrumentId": "prestocks:solana:PrekqLJvJ3qVdXmBGDiexvwUTF4rLFDa6HWS4HJbw9S",
+            "issuerSourceUrl": "https://prestocks.com/api/prestocks",
+            "productUrl": "https://www.prestocks.com/neuralink",
+            "logoUrl": "/logos/prestocks/NEURALINK.png",
+            "logoSourceUrl": "https://www.prestocks.com/logos/neuralink.png",
+            "description": "Pre-IPO economic exposure issued by PreStocks. Read-only planning; issuer trading-halt status is not published. Token transfer fees and issuer controls apply."
+          },
+          {
+            "symbol": "OPENAI",
+            "name": "OpenAI PreStocks",
+            "mint": "PreweJYECqtQwBtpxHL171nL2K6umo692gTm7Q3rpgF",
+            "decimals": 9,
+            "tokenProgram": "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb",
+            "halted": null,
+            "verifiedAt": "2026-09-30T10:08:03.738Z",
+            "issuerId": "prestocks",
+            "instrumentId": "prestocks:solana:PreweJYECqtQwBtpxHL171nL2K6umo692gTm7Q3rpgF",
+            "issuerSourceUrl": "https://prestocks.com/api/prestocks",
+            "productUrl": "https://www.prestocks.com/openai",
+            "logoUrl": "/logos/prestocks/OPENAI.png",
+            "logoSourceUrl": "https://www.prestocks.com/logos/openai.png",
+            "description": "Pre-IPO economic exposure issued by PreStocks. Read-only planning; issuer trading-halt status is not published. Token transfer fees and issuer controls apply."
+          },
+          {
+            "symbol": "POLYMARKET",
+            "name": "Polymarket PreStocks",
+            "mint": "Pre8AREmFPtoJFT8mQSXQLh56cwJmM7CFDRuoGBZiUP",
+            "decimals": 9,
+            "tokenProgram": "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb",
+            "halted": null,
+            "verifiedAt": "2026-09-30T10:08:03.738Z",
+            "issuerId": "prestocks",
+            "instrumentId": "prestocks:solana:Pre8AREmFPtoJFT8mQSXQLh56cwJmM7CFDRuoGBZiUP",
+            "issuerSourceUrl": "https://prestocks.com/api/prestocks",
+            "productUrl": "https://www.prestocks.com/polymarket",
+            "logoUrl": "/logos/prestocks/POLYMARKET.png",
+            "logoSourceUrl": "https://www.prestocks.com/logos/polymarket.png",
+            "description": "Pre-IPO economic exposure issued by PreStocks. Read-only planning; issuer trading-halt status is not published. Token transfer fees and issuer controls apply."
+          },
+          {
+            "symbol": "SPACEX",
+            "name": "SpaceX PreStocks",
+            "mint": "PreANxuXjsy2pvisWWMNB6YaJNzr7681wJJr2rHsfTh",
+            "decimals": 9,
+            "tokenProgram": "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb",
+            "halted": null,
+            "verifiedAt": "2026-09-30T10:08:03.738Z",
+            "issuerId": "prestocks",
+            "instrumentId": "prestocks:solana:PreANxuXjsy2pvisWWMNB6YaJNzr7681wJJr2rHsfTh",
+            "issuerSourceUrl": "https://prestocks.com/api/prestocks",
+            "productUrl": "https://www.prestocks.com/spacex",
+            "logoUrl": "/logos/prestocks/SPACEX.png",
+            "logoSourceUrl": "https://www.prestocks.com/logos/spacex.png",
+            "description": "Pre-IPO economic exposure issued by PreStocks. Read-only planning; issuer trading-halt status is not published. Token transfer fees and issuer controls apply."
+          }
+        ],
+        "unavailable": []
+      },
+      "checks": {
+        "httpOk": true,
+        "stateSuccess": true,
+        "verifiedAssetCount": 8,
+        "unavailableCount": 0
+      }
+    },
+    "execution": {
+      "path": "/api/execution/config",
+      "method": "GET",
+      "readOnly": true,
+      "httpStatus": 200,
+      "elapsedMs": 1125,
+      "observedAt": "2026-09-30T10:08:05.297Z",
+      "cacheControl": "no-store",
+      "body": {
+        "state": "configuration-required",
+        "enabled": false,
+        "reconciliationAvailable": true,
+        "chain": "solana:mainnet",
+        "policyVersion": "2026-09-14.v1",
+        "validatorVersion": "jupiter-route-v2-raydium-clmm-v1",
+        "limits": {
+          "slippageBps": 100,
+          "maximumPriorityFeeLamports": "5000000",
+          "maximumTotalSolCostLamports": "10000000",
+          "maximumTokenFeeBps": 100
+        },
+        "supportedWalletFeatures": [
+          "solana:signTransaction"
+        ],
+        "batchSigning": false,
+        "maxBatchLegs": 3,
+        "message": "In-app purchases are not available in this release. You can plan a contribution and review it independently on Jupiter."
+      },
+      "checks": {
+        "httpOk": true,
+        "mainnet": true,
+        "enabled": false,
+        "reconciliationAvailable": true
+      }
+    },
+    "pyth": {
+      "path": "/api/market-reference",
+      "method": "POST",
+      "readOnly": true,
+      "httpStatus": 200,
+      "elapsedMs": 2368,
+      "observedAt": "2026-09-30T10:08:06.540Z",
+      "cacheControl": "no-store",
+      "body": {
+        "source": "pyth",
+        "state": "partial",
+        "fetchedAt": "2026-09-30T10:08:05.645Z",
+        "expiresAt": "2026-09-28T11:54:02.000Z",
+        "items": [
+          {
+            "mint": "XsbEhLAtcf6HdfpFZ5xEMdqW8nfAvcsP5bdudRLJzJp",
+            "state": "stale",
+            "comparison": "not-comparable",
+            "underlying": {
+              "feedId": "49f6b65cb1de6b10eaf75e7c03ca029c306d0357e91b5311b175084a5ad55688",
+              "symbol": "Equity.US.AAPL/USD",
+              "kind": "underlying",
+              "quoteCurrency": "USD",
+              "unitBasis": "underlying-share",
+              "price": "33986399",
+              "confidence": "8601",
+              "exponent": -5,
+              "publishTime": 1790596382,
+              "publishedAt": "2026-09-28T11:53:02.000Z",
+              "fetchedAt": "2026-09-30T10:08:05.073Z",
+              "expiresAt": "2026-09-28T11:54:02.000Z",
+              "state": "stale",
+              "displayPrice": "339.86399",
+              "displayConfidence": "0.08601",
+              "confidenceBps": "2.5307",
+              "provenance": "solana-receiver"
+            },
+            "message": "Separate USD references. The cross-feed ratio is context only; the token feed unit basis is not verified against an underlying share."
+          },
+          {
+            "mint": "Xsc9qvGR1efVDFGLrVsmkzv3qi45LTBjeUKSPmx9qEh",
+            "state": "stale",
+            "comparison": "not-comparable",
+            "underlying": {
+              "feedId": "b1073854ed24cbc755dc527418f52b7d271f6cc967bbf8d8129112b18860a593",
+              "symbol": "Equity.US.NVDA/USD",
+              "kind": "underlying",
+              "quoteCurrency": "USD",
+              "unitBasis": "underlying-share",
+              "price": "22717000",
+              "confidence": "3000",
+              "exponent": -5,
+              "publishTime": 1790596393,
+              "publishedAt": "2026-09-28T11:53:13.000Z",
+              "fetchedAt": "2026-09-30T10:08:05.075Z",
+              "expiresAt": "2026-09-28T11:54:13.000Z",
+              "state": "stale",
+              "displayPrice": "227.17",
+              "displayConfidence": "0.03",
+              "confidenceBps": "1.3205",
+              "provenance": "solana-receiver"
+            },
+            "message": "Separate USD references. The cross-feed ratio is context only; the token feed unit basis is not verified against an underlying share."
+          },
+          {
+            "mint": "XspzcW1PRtgf6Wj92HCiZdjzKCyFekVD8P5Ueh3dRMX",
+            "state": "stale",
+            "comparison": "not-comparable",
+            "underlying": {
+              "feedId": "d0ca23c1cc005e004ccf1db5bf76aeb6a49218f43dac3d4b275e92de12ded4d1",
+              "symbol": "Equity.US.MSFT/USD",
+              "kind": "underlying",
+              "quoteCurrency": "USD",
+              "unitBasis": "underlying-share",
+              "price": "51313526",
+              "confidence": "11526",
+              "exponent": -5,
+              "publishTime": 1790596388,
+              "publishedAt": "2026-09-28T11:53:08.000Z",
+              "fetchedAt": "2026-09-30T10:08:05.084Z",
+              "expiresAt": "2026-09-28T11:54:08.000Z",
+              "state": "stale",
+              "displayPrice": "513.13526",
+              "displayConfidence": "0.11526",
+              "confidenceBps": "2.2461",
+              "provenance": "solana-receiver"
+            },
+            "message": "Separate USD references. The cross-feed ratio is context only; the token feed unit basis is not verified against an underlying share."
+          }
+        ],
+        "usdc": {
+          "feedId": "eaa020c61cc479712813461ce153894a96a6c00b21ed0cfc2798d1f9a9e9c94a",
+          "symbol": "Crypto.USDC/USD",
+          "kind": "currency",
+          "quoteCurrency": "USD",
+          "unitBasis": "usdc-unit",
+          "price": "99999999",
+          "confidence": "48494",
+          "exponent": -8,
+          "publishTime": 1790762868,
+          "publishedAt": "2026-09-30T10:07:48.000Z",
+          "fetchedAt": "2026-09-30T10:08:05.072Z",
+          "expiresAt": "2026-09-30T10:08:48.000Z",
+          "state": "fresh",
+          "displayPrice": "0.99999999",
+          "displayConfidence": "0.00048494",
+          "confidenceBps": "4.8494",
+          "provenance": "solana-receiver"
+        },
+        "message": "Read without a key from the Pyth receiver accounts on Solana mainnet: equity and USDC/USD references. Token references arrive when Pyth Lazer answers."
+      },
+      "request": {
+        "mints": [
+          "XsbEhLAtcf6HdfpFZ5xEMdqW8nfAvcsP5bdudRLJzJp",
+          "XspzcW1PRtgf6Wj92HCiZdjzKCyFekVD8P5Ueh3dRMX",
+          "Xsc9qvGR1efVDFGLrVsmkzv3qi45LTBjeUKSPmx9qEh"
+        ]
+      },
+      "checks": {
+        "httpOk": true,
+        "validSchema": true,
+        "state": "partial",
+        "returnedRequestedMints": true,
+        "observationsMatchPinnedIds": true,
+        "usdcMatchesPinnedId": true,
+        "equityObservations": 3,
+        "tokenObservations": 0,
+        "summary": [
+          {
+            "mint": "XsbEhLAtcf6HdfpFZ5xEMdqW8nfAvcsP5bdudRLJzJp",
+            "state": "stale",
+            "underlying": {
+              "feedId": "49f6b65cb1de6b10eaf75e7c03ca029c306d0357e91b5311b175084a5ad55688",
+              "kind": "underlying",
+              "provenance": "solana-receiver",
+              "state": "stale",
+              "marketSession": null,
+              "displayPrice": "339.86399",
+              "quoteCurrency": "USD",
+              "unitBasis": "underlying-share",
+              "publishedAt": "2026-09-28T11:53:02.000Z",
+              "expiresAt": "2026-09-28T11:54:02.000Z",
+              "freshAtResponseReceipt": false
+            }
+          },
+          {
+            "mint": "Xsc9qvGR1efVDFGLrVsmkzv3qi45LTBjeUKSPmx9qEh",
+            "state": "stale",
+            "underlying": {
+              "feedId": "b1073854ed24cbc755dc527418f52b7d271f6cc967bbf8d8129112b18860a593",
+              "kind": "underlying",
+              "provenance": "solana-receiver",
+              "state": "stale",
+              "marketSession": null,
+              "displayPrice": "227.17",
+              "quoteCurrency": "USD",
+              "unitBasis": "underlying-share",
+              "publishedAt": "2026-09-28T11:53:13.000Z",
+              "expiresAt": "2026-09-28T11:54:13.000Z",
+              "freshAtResponseReceipt": false
+            }
+          },
+          {
+            "mint": "XspzcW1PRtgf6Wj92HCiZdjzKCyFekVD8P5Ueh3dRMX",
+            "state": "stale",
+            "underlying": {
+              "feedId": "d0ca23c1cc005e004ccf1db5bf76aeb6a49218f43dac3d4b275e92de12ded4d1",
+              "kind": "underlying",
+              "provenance": "solana-receiver",
+              "state": "stale",
+              "marketSession": null,
+              "displayPrice": "513.13526",
+              "quoteCurrency": "USD",
+              "unitBasis": "underlying-share",
+              "publishedAt": "2026-09-28T11:53:08.000Z",
+              "expiresAt": "2026-09-28T11:54:08.000Z",
+              "freshAtResponseReceipt": false
+            }
+          }
+        ],
+        "usdc": {
+          "feedId": "eaa020c61cc479712813461ce153894a96a6c00b21ed0cfc2798d1f9a9e9c94a",
+          "kind": "currency",
+          "provenance": "solana-receiver",
+          "state": "fresh",
+          "marketSession": null,
+          "displayPrice": "0.99999999",
+          "quoteCurrency": "USD",
+          "unitBasis": "usdc-unit",
+          "publishedAt": "2026-09-30T10:07:48.000Z",
+          "expiresAt": "2026-09-30T10:08:48.000Z",
+          "freshAtResponseReceipt": true
+        }
+      }
+    }
+  },
+  "demoMedia": {
+    "discoveredFrom": "/demo",
+    "count": 22,
+    "allPassed": true,
+    "items": [
+      {
+        "path": "/videos/release-20260912/product-poster.jpg",
+        "httpStatus": 206,
+        "contentType": "image/jpeg",
+        "contentRange": "bytes 0-63/212373",
+        "acceptRanges": "bytes",
+        "contentLength": "64",
+        "inspectedBytes": 64,
+        "signatureMatches": true,
+        "passed": true
+      },
+      {
+        "path": "/videos/release-20260912/product.en.vtt",
+        "httpStatus": 206,
+        "contentType": "text/vtt; charset=utf-8",
+        "contentRange": "bytes 0-63/3104",
+        "acceptRanges": "bytes",
+        "contentLength": "64",
+        "inspectedBytes": 64,
+        "signatureMatches": true,
+        "passed": true
+      },
+      {
+        "path": "/videos/release-20260912/product.mp4",
+        "httpStatus": 206,
+        "contentType": "video/mp4",
+        "contentRange": "bytes 0-63/10548121",
+        "acceptRanges": "bytes",
+        "contentLength": "64",
+        "inspectedBytes": 64,
+        "signatureMatches": true,
+        "passed": true
+      },
+      {
+        "path": "/videos/release-20260912/technical-poster.jpg",
+        "httpStatus": 206,
+        "contentType": "image/jpeg",
+        "contentRange": "bytes 0-63/217468",
+        "acceptRanges": "bytes",
+        "contentLength": "64",
+        "inspectedBytes": 64,
+        "signatureMatches": true,
+        "passed": true
+      },
+      {
+        "path": "/videos/release-20260912/technical.en.vtt",
+        "httpStatus": 206,
+        "contentType": "text/vtt; charset=utf-8",
+        "contentRange": "bytes 0-63/3850",
+        "acceptRanges": "bytes",
+        "contentLength": "64",
+        "inspectedBytes": 64,
+        "signatureMatches": true,
+        "passed": true
+      },
+      {
+        "path": "/videos/release-20260912/technical.mp4",
+        "httpStatus": 206,
+        "contentType": "video/mp4",
+        "contentRange": "bytes 0-63/15621229",
+        "acceptRanges": "bytes",
+        "contentLength": "64",
+        "inspectedBytes": 64,
+        "signatureMatches": true,
+        "passed": true
+      },
+      {
+        "path": "/videos/release-20260919/execution-fixture-description.txt",
+        "httpStatus": 206,
+        "contentType": "text/plain; charset=utf-8",
+        "contentRange": "bytes 0-63/1154",
+        "acceptRanges": "bytes",
+        "contentLength": "64",
+        "inspectedBytes": 64,
+        "signatureMatches": true,
+        "passed": true
+      },
+      {
+        "path": "/videos/release-20260919/execution-fixture-poster.png",
+        "httpStatus": 206,
+        "contentType": "image/png",
+        "contentRange": "bytes 0-63/127302",
+        "acceptRanges": "bytes",
+        "contentLength": "64",
+        "inspectedBytes": 64,
+        "signatureMatches": true,
+        "passed": true
+      },
+      {
+        "path": "/videos/release-20260919/execution-fixture-walkthrough.en.vtt",
+        "httpStatus": 206,
+        "contentType": "text/vtt; charset=utf-8",
+        "contentRange": "bytes 0-63/554",
+        "acceptRanges": "bytes",
+        "contentLength": "64",
+        "inspectedBytes": 64,
+        "signatureMatches": true,
+        "passed": true
+      },
+      {
+        "path": "/videos/release-20260919/execution-fixture-walkthrough.mp4",
+        "httpStatus": 206,
+        "contentType": "video/mp4",
+        "contentRange": "bytes 0-63/1814180",
+        "acceptRanges": "bytes",
+        "contentLength": "64",
+        "inspectedBytes": 64,
+        "signatureMatches": true,
+        "passed": true
+      },
+      {
+        "path": "/videos/release-20260920/first-minute-poster.jpg",
+        "httpStatus": 206,
+        "contentType": "image/jpeg",
+        "contentRange": "bytes 0-63/119428",
+        "acceptRanges": "bytes",
+        "contentLength": "64",
+        "inspectedBytes": 64,
+        "signatureMatches": true,
+        "passed": true
+      },
+      {
+        "path": "/videos/release-20260920/first-minute.en.vtt",
+        "httpStatus": 206,
+        "contentType": "text/vtt; charset=utf-8",
+        "contentRange": "bytes 0-63/577",
+        "acceptRanges": "bytes",
+        "contentLength": "64",
+        "inspectedBytes": 64,
+        "signatureMatches": true,
+        "passed": true
+      },
+      {
+        "path": "/videos/release-20260920/first-minute.mp4",
+        "httpStatus": 206,
+        "contentType": "video/mp4",
+        "contentRange": "bytes 0-63/2084731",
+        "acceptRanges": "bytes",
+        "contentLength": "64",
+        "inspectedBytes": 64,
+        "signatureMatches": true,
+        "passed": true
+      },
+      {
+        "path": "/videos/release-20260920/first-minute.transcript.txt",
+        "httpStatus": 206,
+        "contentType": "text/plain; charset=utf-8",
+        "contentRange": "bytes 0-63/376",
+        "acceptRanges": "bytes",
+        "contentLength": "64",
+        "inspectedBytes": 64,
+        "signatureMatches": true,
+        "passed": true
+      },
+      {
+        "path": "/videos/release-20260920/technical-proof-poster.jpg",
+        "httpStatus": 206,
+        "contentType": "image/jpeg",
+        "contentRange": "bytes 0-63/119428",
+        "acceptRanges": "bytes",
+        "contentLength": "64",
+        "inspectedBytes": 64,
+        "signatureMatches": true,
+        "passed": true
+      },
+      {
+        "path": "/videos/release-20260920/technical-proof.en.vtt",
+        "httpStatus": 206,
+        "contentType": "text/vtt; charset=utf-8",
+        "contentRange": "bytes 0-63/1139",
+        "acceptRanges": "bytes",
+        "contentLength": "64",
+        "inspectedBytes": 64,
+        "signatureMatches": true,
+        "passed": true
+      },
+      {
+        "path": "/videos/release-20260920/technical-proof.mp4",
+        "httpStatus": 206,
+        "contentType": "video/mp4",
+        "contentRange": "bytes 0-63/3472612",
+        "acceptRanges": "bytes",
+        "contentLength": "64",
+        "inspectedBytes": 64,
+        "signatureMatches": true,
+        "passed": true
+      },
+      {
+        "path": "/videos/release-20260920/technical-proof.transcript.txt",
+        "httpStatus": 206,
+        "contentType": "text/plain; charset=utf-8",
+        "contentRange": "bytes 0-63/809",
+        "acceptRanges": "bytes",
+        "contentLength": "64",
+        "inspectedBytes": 64,
+        "signatureMatches": true,
+        "passed": true
+      },
+      {
+        "path": "/videos/release-20260921/sponsor-planning-poster.jpg",
+        "httpStatus": 206,
+        "contentType": "image/jpeg",
+        "contentRange": "bytes 0-63/119993",
+        "acceptRanges": "bytes",
+        "contentLength": "64",
+        "inspectedBytes": 64,
+        "signatureMatches": true,
+        "passed": true
+      },
+      {
+        "path": "/videos/release-20260921/sponsor-planning.en.vtt",
+        "httpStatus": 206,
+        "contentType": "text/vtt; charset=utf-8",
+        "contentRange": "bytes 0-63/660",
+        "acceptRanges": "bytes",
+        "contentLength": "64",
+        "inspectedBytes": 64,
+        "signatureMatches": true,
+        "passed": true
+      },
+      {
+        "path": "/videos/release-20260921/sponsor-planning.mp4",
+        "httpStatus": 206,
+        "contentType": "video/mp4",
+        "contentRange": "bytes 0-63/1555325",
+        "acceptRanges": "bytes",
+        "contentLength": "64",
+        "inspectedBytes": 64,
+        "signatureMatches": true,
+        "passed": true
+      },
+      {
+        "path": "/videos/release-20260921/sponsor-planning.transcript.txt",
+        "httpStatus": 206,
+        "contentType": "text/plain; charset=utf-8",
+        "contentRange": "bytes 0-63/459",
+        "acceptRanges": "bytes",
+        "contentLength": "64",
+        "inspectedBytes": 64,
+        "signatureMatches": true,
+        "passed": true
+      }
+    ]
+  },
+  "summary": {
+    "pagesPassed": 9,
+    "pagesTotal": 9,
+    "mediaPassed": 22,
+    "mediaTotal": 22,
+    "prestocksState": "success",
+    "pythState": "partial",
+    "executionEnabled": false,
+    "pythFollowUpState": "success"
+  },
+  "pythFollowUp": {
+    "path": "/api/market-reference",
+    "method": "POST",
+    "readOnly": true,
+    "startedAt": "2026-09-30T10:08:59.819Z",
+    "reason": "One follow-up after the initial Pyth read fell back to Solana receiver data; preserve the initial result.",
+    "httpStatus": 200,
+    "observedAt": "2026-09-30T10:09:03.141Z",
+    "request": {
+      "mints": [
+        "XsbEhLAtcf6HdfpFZ5xEMdqW8nfAvcsP5bdudRLJzJp",
+        "XspzcW1PRtgf6Wj92HCiZdjzKCyFekVD8P5Ueh3dRMX",
+        "Xsc9qvGR1efVDFGLrVsmkzv3qi45LTBjeUKSPmx9qEh"
+      ]
+    },
+    "body": {
+      "source": "pyth",
+      "state": "success",
+      "fetchedAt": "2026-09-30T10:09:00.793Z",
+      "expiresAt": "2026-09-30T10:10:00.000Z",
+      "items": [
+        {
+          "mint": "XsbEhLAtcf6HdfpFZ5xEMdqW8nfAvcsP5bdudRLJzJp",
+          "state": "success",
+          "comparison": "cross-feed-context",
+          "comparisonRatio": "1.00363785",
+          "underlying": {
+            "feedId": "49f6b65cb1de6b10eaf75e7c03ca029c306d0357e91b5311b175084a5ad55688",
+            "symbol": "Equity.US.AAPL/USD",
+            "kind": "underlying",
+            "quoteCurrency": "USD",
+            "unitBasis": "underlying-share",
+            "price": "32950332",
+            "confidence": "9668",
+            "exponent": -5,
+            "publishTime": 1790762940,
+            "publishedAt": "2026-09-30T10:09:00.000Z",
+            "fetchedAt": "2026-09-30T10:09:00.793Z",
+            "expiresAt": "2026-09-30T10:10:00.000Z",
+            "state": "fresh",
+            "displayPrice": "329.50332",
+            "displayConfidence": "0.09668",
+            "confidenceBps": "2.9341",
+            "provenance": "lazer-proxy",
+            "marketSession": "pre-market"
+          },
+          "token": {
+            "feedId": "978e6cc68a119ce066aa830017318563a9ed04ec3a0a6439010fc11296a58675",
+            "symbol": "Crypto.AAPLX/USD",
+            "kind": "token",
+            "quoteCurrency": "USD",
+            "unitBasis": "unverified-token-unit",
+            "price": "33070200501",
+            "confidence": "17299499",
+            "exponent": -8,
+            "publishTime": 1790762940,
+            "publishedAt": "2026-09-30T10:09:00.000Z",
+            "fetchedAt": "2026-09-30T10:09:00.793Z",
+            "expiresAt": "2026-09-30T10:10:00.000Z",
+            "state": "fresh",
+            "displayPrice": "330.70200501",
+            "displayConfidence": "0.17299499",
+            "confidenceBps": "5.2311",
+            "provenance": "lazer-proxy",
+            "marketSession": "regular"
+          },
+          "message": "Separate USD references. The cross-feed ratio is context only; the token feed unit basis is not verified against an underlying share."
+        },
+        {
+          "mint": "Xsc9qvGR1efVDFGLrVsmkzv3qi45LTBjeUKSPmx9qEh",
+          "state": "success",
+          "comparison": "cross-feed-context",
+          "comparisonRatio": "1.00188762",
+          "underlying": {
+            "feedId": "b1073854ed24cbc755dc527418f52b7d271f6cc967bbf8d8129112b18860a593",
+            "symbol": "Equity.US.NVDA/USD",
+            "kind": "underlying",
+            "quoteCurrency": "USD",
+            "unitBasis": "underlying-share",
+            "price": "22816910",
+            "confidence": "6933",
+            "exponent": -5,
+            "publishTime": 1790762940,
+            "publishedAt": "2026-09-30T10:09:00.000Z",
+            "fetchedAt": "2026-09-30T10:09:00.793Z",
+            "expiresAt": "2026-09-30T10:10:00.000Z",
+            "state": "fresh",
+            "displayPrice": "228.1691",
+            "displayConfidence": "0.06933",
+            "confidenceBps": "3.0385",
+            "provenance": "lazer-proxy",
+            "marketSession": "pre-market"
+          },
+          "token": {
+            "feedId": "4244d07890e4610f46bbde67de8f43a4bf8b569eebe904f136b469f148503b7f",
+            "symbol": "Crypto.NVDAX/USD",
+            "kind": "token",
+            "quoteCurrency": "USD",
+            "unitBasis": "unverified-token-unit",
+            "price": "22859979755",
+            "confidence": "9520245",
+            "exponent": -8,
+            "publishTime": 1790762940,
+            "publishedAt": "2026-09-30T10:09:00.000Z",
+            "fetchedAt": "2026-09-30T10:09:00.793Z",
+            "expiresAt": "2026-09-30T10:10:00.000Z",
+            "state": "fresh",
+            "displayPrice": "228.59979755",
+            "displayConfidence": "0.09520245",
+            "confidenceBps": "4.1645",
+            "provenance": "lazer-proxy",
+            "marketSession": "regular"
+          },
+          "message": "Separate USD references. The cross-feed ratio is context only; the token feed unit basis is not verified against an underlying share."
+        },
+        {
+          "mint": "XspzcW1PRtgf6Wj92HCiZdjzKCyFekVD8P5Ueh3dRMX",
+          "state": "success",
+          "comparison": "cross-feed-context",
+          "comparisonRatio": "1.00367551",
+          "underlying": {
+            "feedId": "d0ca23c1cc005e004ccf1db5bf76aeb6a49218f43dac3d4b275e92de12ded4d1",
+            "symbol": "Equity.US.MSFT/USD",
+            "kind": "underlying",
+            "quoteCurrency": "USD",
+            "unitBasis": "underlying-share",
+            "price": "50745608",
+            "confidence": "34608",
+            "exponent": -5,
+            "publishTime": 1790762940,
+            "publishedAt": "2026-09-30T10:09:00.000Z",
+            "fetchedAt": "2026-09-30T10:09:00.793Z",
+            "expiresAt": "2026-09-30T10:10:00.000Z",
+            "state": "fresh",
+            "displayPrice": "507.45608",
+            "displayConfidence": "0.34608",
+            "confidenceBps": "6.8199",
+            "provenance": "lazer-proxy",
+            "marketSession": "pre-market"
+          },
+          "token": {
+            "feedId": "bb723a70af731ab56b9a650eb7e8ac22b7bc07ea77f8670bd1fa9a37bf6df3f5",
+            "symbol": "Crypto.MSFTX/USD",
+            "kind": "token",
+            "quoteCurrency": "USD",
+            "unitBasis": "unverified-token-unit",
+            "price": "50932124400",
+            "confidence": "170788400",
+            "exponent": -8,
+            "publishTime": 1790762940,
+            "publishedAt": "2026-09-30T10:09:00.000Z",
+            "fetchedAt": "2026-09-30T10:09:00.793Z",
+            "expiresAt": "2026-09-30T10:10:00.000Z",
+            "state": "fresh",
+            "displayPrice": "509.321244",
+            "displayConfidence": "1.707884",
+            "confidenceBps": "33.5325",
+            "provenance": "lazer-proxy",
+            "marketSession": "regular"
+          },
+          "message": "Separate USD references. The cross-feed ratio is context only; the token feed unit basis is not verified against an underlying share."
+        }
+      ],
+      "usdc": {
+        "feedId": "eaa020c61cc479712813461ce153894a96a6c00b21ed0cfc2798d1f9a9e9c94a",
+        "symbol": "Crypto.USDC/USD",
+        "kind": "currency",
+        "quoteCurrency": "USD",
+        "unitBasis": "usdc-unit",
+        "price": "99999720",
+        "confidence": "48380",
+        "exponent": -8,
+        "publishTime": 1790762940,
+        "publishedAt": "2026-09-30T10:09:00.000Z",
+        "fetchedAt": "2026-09-30T10:09:00.793Z",
+        "expiresAt": "2026-09-30T10:10:00.000Z",
+        "state": "fresh",
+        "displayPrice": "0.9999972",
+        "displayConfidence": "0.0004838",
+        "confidenceBps": "4.838",
+        "provenance": "lazer-proxy",
+        "marketSession": "regular"
+      },
+      "message": "Read without a key: Pyth Lazer serves the equity, token and USDC/USD feeds, and each equity and USDC reading is cross-checked against the Pyth receiver accounts on Solana mainnet."
+    },
+    "checks": {
+      "validSchema": true,
+      "state": "success",
+      "equityObservations": 3,
+      "tokenObservations": 3,
+      "provenances": [
+        "lazer-proxy"
+      ],
+      "observationsMatchPinnedIds": true,
+      "usdcMatchesPinnedId": true,
+      "observationFreshnessAtReceipt": [
+        {
+          "feedId": "49f6b65cb1de6b10eaf75e7c03ca029c306d0357e91b5311b175084a5ad55688",
+          "kind": "underlying",
+          "state": "fresh",
+          "provenance": "lazer-proxy",
+          "publishedAt": "2026-09-30T10:09:00.000Z",
+          "expiresAt": "2026-09-30T10:10:00.000Z",
+          "freshAtResponseReceipt": true
+        },
+        {
+          "feedId": "978e6cc68a119ce066aa830017318563a9ed04ec3a0a6439010fc11296a58675",
+          "kind": "token",
+          "state": "fresh",
+          "provenance": "lazer-proxy",
+          "publishedAt": "2026-09-30T10:09:00.000Z",
+          "expiresAt": "2026-09-30T10:10:00.000Z",
+          "freshAtResponseReceipt": true
+        },
+        {
+          "feedId": "b1073854ed24cbc755dc527418f52b7d271f6cc967bbf8d8129112b18860a593",
+          "kind": "underlying",
+          "state": "fresh",
+          "provenance": "lazer-proxy",
+          "publishedAt": "2026-09-30T10:09:00.000Z",
+          "expiresAt": "2026-09-30T10:10:00.000Z",
+          "freshAtResponseReceipt": true
+        },
+        {
+          "feedId": "4244d07890e4610f46bbde67de8f43a4bf8b569eebe904f136b469f148503b7f",
+          "kind": "token",
+          "state": "fresh",
+          "provenance": "lazer-proxy",
+          "publishedAt": "2026-09-30T10:09:00.000Z",
+          "expiresAt": "2026-09-30T10:10:00.000Z",
+          "freshAtResponseReceipt": true
+        },
+        {
+          "feedId": "d0ca23c1cc005e004ccf1db5bf76aeb6a49218f43dac3d4b275e92de12ded4d1",
+          "kind": "underlying",
+          "state": "fresh",
+          "provenance": "lazer-proxy",
+          "publishedAt": "2026-09-30T10:09:00.000Z",
+          "expiresAt": "2026-09-30T10:10:00.000Z",
+          "freshAtResponseReceipt": true
+        },
+        {
+          "feedId": "bb723a70af731ab56b9a650eb7e8ac22b7bc07ea77f8670bd1fa9a37bf6df3f5",
+          "kind": "token",
+          "state": "fresh",
+          "provenance": "lazer-proxy",
+          "publishedAt": "2026-09-30T10:09:00.000Z",
+          "expiresAt": "2026-09-30T10:10:00.000Z",
+          "freshAtResponseReceipt": true
+        },
+        {
+          "feedId": "eaa020c61cc479712813461ce153894a96a6c00b21ed0cfc2798d1f9a9e9c94a",
+          "kind": "currency",
+          "state": "fresh",
+          "provenance": "lazer-proxy",
+          "publishedAt": "2026-09-30T10:09:00.000Z",
+          "expiresAt": "2026-09-30T10:10:00.000Z",
+          "freshAtResponseReceipt": true
+        }
+      ]
+    }
+  },
+  "findings": [
+    "All nine canonical routes returned HTTP 200 with expected page structure. This is an HTTP content check; browser behavior is verified separately.",
+    "All 22 unique demo media URLs discovered in rendered HTML passed partial Range GET content-type and file-signature checks. This verifies reachability and range delivery, not full playback or narrative currency.",
+    "PreStocks returned success with eight verified assets and none unavailable.",
+    "Markets and community pages were available; the rendered Markets filters did not include Crypto.",
+    "Pyth availability varied across two reads: first partial via Solana receiver fallback (stale equity, no token readings, fresh USDC), then success via Lazer with three equity readings, three token readings and USDC. Both responses are retained; continuously fresh feed availability is not established.",
+    "Public execution readiness remains disabled on mainnet, with reconciliation available. No wallet, executable order, signature, submission or settlement was exercised."
+  ]
+}

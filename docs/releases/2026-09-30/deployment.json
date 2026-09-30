@@ -1,0 +1,48 @@
+{
+  "checkedAt": "2026-09-30T10:07:11.801253+00:00",
+  "canonicalUrl": "https://lotline.dev",
+  "deploymentId": "dpl_7EKRUvwP2wkL7qNxDrAFdN2kUrCy",
+  "deploymentUrl": "https://lotline-i4w650mzz-operatoruplift.vercel.app",
+  "readyState": "READY",
+  "sourceCommit": "ee7bc5a416b2db101648ffc4d9820f6246e96c7e",
+  "testedCommit": "dce521a20ae1af6627c7eecc1feaf47eb305819c",
+  "identicalSourceTree": "b4c294daa4dba064911ce783a96ff34e7b427dde",
+  "pullRequest": "https://github.com/operatoruplift/lotline/pull/26",
+  "ciRun": "https://github.com/operatoruplift/lotline/actions/runs/36699148815",
+  "ci": {
+    "lint": "passed",
+    "typecheck": "passed",
+    "build": "passed",
+    "unitPassed": 706,
+    "unitLiveSkipped": 4,
+    "pwaBrowserPassed": 129,
+    "featureEnabledBrowserPassed": 37,
+    "browserRetries": 0
+  },
+  "aliasesVerified": [
+    "lotline.dev",
+    "lotlineonsolana.vercel.app",
+    "lotlinesolana.vercel.app"
+  ],
+  "note": "Later documentation-only commits may redeploy the same application source. Live provider and account observations are distinct from fixture-based CI.",
+  "hostedBrowser": {
+    "checkedAt": "2026-09-30T10:08:13.711678+00:00",
+    "viewport": {
+      "width": 390,
+      "height": 844
+    },
+    "portfolioFitsViewport": true,
+    "headerOpacity": "1",
+    "headerFilter": "none",
+    "examplePlannerBudgetVisible": true,
+    "examplePlannerFitsViewport": true,
+    "landingNativeScroll": {
+      "scrollY": 844,
+      "heroDocumentTopBefore": 61,
+      "heroDocumentTopAfter": 61,
+      "depthLayerCount": 0,
+      "fitsViewport": true
+    },
+    "scope": "Read-only browser checks on the canonical production site; no wallet sign-in, plan publication or trade."
+  }
+}
