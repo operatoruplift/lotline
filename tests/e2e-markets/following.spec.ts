@@ -90,10 +90,11 @@ test('an author points a shared plan at a newer saved split, keeping its link an
     { id: '0d9c8b7a-6f5e-4d3c-8b1a-0f9e8d7c6b5a', name: 'Big tech core v2', budget_raw: '250000000', allocations: split('4000', '3000', '3000'), created_at: '2026-09-30T12:00:00Z' },
   ];
   const updates: unknown[] = [];
+  let sharedPlanId = first.id;
   await page.route('**/api/auth/session', route => route.fulfill({ json: { state: 'signed-in', user: { id: 'author', email: 'author@example.test' } } }));
   await page.route('**/api/plans', route => route.fulfill({ json: { state: 'success', plans: [second, first] } }));
-  await page.route('**/api/gallery/mine', route => route.fulfill({ json: { shared: [{ id: shared.id, plan_id: first.id, display_name: 'Alice', copy_count: 12, published_at: shared.published_at }] } }));
-  await page.route('**/api/gallery/publish', route => { updates.push(route.request().postDataJSON()); return route.fulfill({ json: { state: 'success', id: shared.id } }); });
+  await page.route('**/api/gallery/mine', route => route.fulfill({ json: { shared: [{ id: shared.id, plan_id: sharedPlanId, display_name: 'Alice', copy_count: 12, published_at: shared.published_at }] } }));
+  await page.route('**/api/gallery/publish', route => { updates.push(route.request().postDataJSON()); sharedPlanId = second.id; return route.fulfill({ json: { state: 'success', id: shared.id } }); });
   await page.goto('/app?mode=example');
   const cloud = page.getByRole('region', { name: 'Keep a plan for later' });
   await expect(cloud.getByText('Shared as Alice · 12 copies')).toBeVisible();
@@ -219,3 +220,53 @@ test(`a share completing after ${destination === 'leave' ? 'leaving the account 
   } finally { release(); releaseSave(); }
 });
 }
+
+test('an older sharing snapshot cannot overwrite a second successful publish', async ({ page }) => {
+  const first = { id: 'ccf2689b-66a7-45c0-8d7f-ebdf84c7e2e7', name: 'First share', budget_raw: '250000000', allocations: split('5000', '3000', '2000'), created_at: '2026-09-27T12:00:00Z' };
+  const second = { ...first, id: 'ee81e8d9-ce56-4907-b03b-caa60b6e1663', name: 'Second share' };
+  const published = new Set<string>();
+  let releasePublish!: () => void;
+  let publishStarted!: () => void;
+  let releaseRead!: () => void;
+  let readStarted!: () => void;
+  let holdNextRead = false;
+  const heldPublish = new Promise<void>(resolve => { releasePublish = resolve; });
+  const dispatched = new Promise<void>(resolve => { publishStarted = resolve; });
+  const heldRead = new Promise<void>(resolve => { releaseRead = resolve; });
+  const snapshotStarted = new Promise<void>(resolve => { readStarted = resolve; });
+  await page.route('**/api/auth/session', route => route.fulfill({ json: { state: 'signed-in', user: { id: 'author', email: 'author@example.test' } } }));
+  await page.route('**/api/plans', route => route.fulfill({ json: { state: 'success', plans: [first, second] } }));
+  await page.route('**/api/gallery/mine', async route => {
+    const snapshot = [...published].map(id => ({ id, plan_id: id, display_name: null, copy_count: 0 }));
+    if (holdNextRead) { holdNextRead = false; readStarted(); await heldRead; }
+    await route.fulfill({ json: { shared: snapshot } });
+  });
+  await page.route('**/api/gallery/publish', async route => {
+    const id = route.request().postDataJSON().planId as string;
+    if (id === first.id) { publishStarted(); await heldPublish; }
+    published.add(id);
+    await route.fulfill({ json: { state: 'success', id } });
+  });
+  try {
+    await page.goto('/app?mode=example');
+    const cloud = page.getByRole('region', { name: 'Keep a plan for later' });
+    await cloud.getByRole('button', { name: 'Share First share to community plans' }).click();
+    await cloud.getByRole('button', { name: 'Share name and split' }).click();
+    await dispatched;
+    await cloud.getByRole('button', { name: 'Refresh saved plans' }).click();
+    await expect(cloud.getByRole('button', { name: 'Refresh saved plans' })).toBeEnabled();
+    holdNextRead = true;
+    releasePublish();
+    await snapshotStarted;
+    const secondRow = cloud.getByRole('listitem').filter({ has: page.getByText('Second share', { exact: true }) });
+    await secondRow.getByRole('button', { name: 'Share Second share to community plans' }).click();
+    await secondRow.getByRole('button', { name: 'Share name and split' }).click();
+    await expect(cloud.getByRole('button', { name: 'Stop sharing Second share' })).toBeVisible();
+    await expect(cloud.getByRole('button', { name: 'Stop sharing First share' })).toBeVisible();
+    const completed = page.waitForResponse(response => response.url().includes('/api/gallery/mine'));
+    releaseRead();
+    await (await completed).finished();
+    await page.evaluate(() => new Promise<void>(resolve => requestAnimationFrame(() => requestAnimationFrame(() => resolve()))));
+    await expect(cloud.getByRole('button', { name: 'Stop sharing Second share' })).toBeVisible();
+  } finally { releasePublish(); releaseRead(); }
+});
