@@ -26,17 +26,13 @@ export function CloudPlans({ basket, onLoad, galleryEnabled = false }: { basket:
   const [message, setMessage] = useState('');
   const [failed, setFailed] = useState(false);
   const generation = useRef(0);
+  const sharingGeneration = useRef(0);
   const accountId = useRef<string | null>(null);
+  const mounted = useRef(false);
   // Plan schemas (and the registry they validate against) load with the
   // account, not with the page: a guest never saves or loads a cloud plan.
   const [plansModule, setPlansModule] = useState<PlansModule | null>(null);
   const body = plansModule ? plansModule.basketToCloudPlan(basket, name) : null;
-
-  const beginSharingMutation = useCallback(() => {
-    const revision = generation.current;
-    const owner = accountId.current;
-    return () => owner !== null && owner === accountId.current && revision === generation.current;
-  }, []);
 
   const clearPrivateState = useCallback((nextId: string | null) => {
     accountId.current = nextId;
@@ -53,6 +49,14 @@ export function CloudPlans({ basket, onLoad, galleryEnabled = false }: { basket:
     setFailed(true);
     setMessage('Your account session ended. Sign in again to manage cloud plans. Your local draft is unchanged.');
   }, [clearPrivateState]);
+
+  const refreshSharing = useCallback(async (revision = generation.current, owner = accountId.current) => {
+    if (!mounted.current || !owner || owner !== accountId.current) return;
+    const sharingRevision = ++sharingGeneration.current;
+    const mine = await fetch('/api/gallery/mine', { cache: 'no-store', signal: AbortSignal.timeout(15_000) }).then(response => response.ok ? response.json() : null).catch(() => null) as { shared?: { id: string; plan_id: string; display_name: string | null; copy_count: number }[] } | null;
+    if (!mounted.current || revision !== generation.current || owner !== accountId.current || sharingRevision !== sharingGeneration.current) return;
+    setShared(Object.fromEntries((mine?.shared ?? []).map(entry => [entry.plan_id, { id: entry.id, displayName: entry.display_name, copies: entry.copy_count }])));
+  }, []);
 
   const refresh = useCallback(async () => {
     const revision = ++generation.current;
@@ -79,18 +83,31 @@ export function CloudPlans({ basket, onLoad, galleryEnabled = false }: { basket:
       const validated = cloudPlanRecord.array().safeParse(data.plans);
       if (!result.ok || !validated.success) { setFailed(true); setMessage('Your cloud plans could not be loaded. Retry when you’re online.'); return; }
       setPlans(validated.data);
-      if (galleryEnabled) {
-        const mine = await fetch('/api/gallery/mine', { cache: 'no-store', signal: AbortSignal.timeout(15_000) }).then(response => response.ok ? response.json() : null).catch(() => null) as { shared?: { id: string; plan_id: string; display_name: string | null; copy_count: number }[] } | null;
-        if (revision !== generation.current) return;
-        setShared(Object.fromEntries((mine?.shared ?? []).map(entry => [entry.plan_id, { id: entry.id, displayName: entry.display_name, copies: entry.copy_count }])));
-      }
+      if (galleryEnabled) await refreshSharing(revision, nextId);
     } catch { if (revision === generation.current) { clearPrivateState(null); setSession({ state: 'unavailable' }); } }
     finally { if (revision === generation.current) setRefreshing(false); }
-  }, [clearPrivateState, expireSession, galleryEnabled]);
+  }, [clearPrivateState, expireSession, galleryEnabled, refreshSharing]);
+
+  const beginSharingMutation = useCallback(() => {
+    const revision = generation.current;
+    const owner = accountId.current;
+    return () => {
+      if (!mounted.current || owner === null || owner !== accountId.current) return false;
+      if (revision !== generation.current) {
+        // A same-account refresh may have read before this mutation committed.
+        // Re-read sharing only: changing the account generation here would cancel
+        // an unrelated save/delete that the member may already have started.
+        void refreshSharing();
+        return false;
+      }
+      return true;
+    };
+  }, [refreshSharing]);
 
   useEffect(() => {
+    mounted.current = true;
     queueMicrotask(() => void refresh());
-    return () => { generation.current += 1; };
+    return () => { mounted.current = false; generation.current += 1; };
   }, [refresh]);
 
   // The Supabase browser client exists to watch an account that is already

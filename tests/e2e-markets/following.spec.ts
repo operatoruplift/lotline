@@ -2,6 +2,8 @@ import AxeBuilder from '@axe-core/playwright';
 import { expect, test, type Page } from '../e2e/test';
 import { EXAMPLE_ASSETS } from '../../lib/demo/example';
 import type { GalleryPlan } from '../../lib/domain/gallery';
+import { FOLLOWING_STORAGE_KEY } from '../../lib/client/following';
+import { withFollowed } from '../../lib/domain/following';
 
 const [AAPLX, MSFTX, NVDAX] = EXAMPLE_ASSETS.map(asset => asset.mint);
 const split = (a: string, b: string, c: string) => [{ mint: AAPLX, bps: a }, { mint: MSFTX, bps: b }, { mint: NVDAX, bps: c }];
@@ -40,27 +42,28 @@ test('copying follows a plan, and Portfolio shows what its author changed until 
   await item.getByRole('button', { name: 'Keep my split' }).click();
   await expect(item).toContainText('Up to date');
 
-  author.plan = { ...shared, allocations: split('4000', '3000', '3000'), split_updated_at: '2026-10-01T09:00:00.000Z' };
-  await page.reload();
-  await expect(item).toContainText('AAPLx 50% → 40%');
-  await item.getByRole('button', { name: 'Review the new split' }).click();
-  const review = page.getByRole('dialog', { name: 'Review shared plan' });
-  await expect(review).toContainText('40');
-  await review.getByRole('button', { name: 'Keep my draft' }).click();
-  await page.goto('/portfolio');
-  await expect(item).toContainText('AAPLx 50% → 40%');
-  await item.getByRole('button', { name: 'Review the new split' }).click();
-  await expect(review).toBeVisible();
-  await page.keyboard.press('Escape');
-  await page.goto('/portfolio');
-  await expect(item).toContainText('AAPLx 50% → 40%');
-  await item.getByRole('button', { name: 'Review the new split' }).click();
-  await review.getByRole('button', { name: 'Apply shared plan' }).click();
-  await page.goto('/portfolio');
-  await expect(item).toContainText('Up to date');
   await item.getByRole('button', { name: 'Stop following Big tech core' }).click();
   await expect(following).toHaveCount(0);
 });
+
+for (const decision of ['cancel', 'escape', 'leave', 'apply'] as const) {
+  test(`a followed split review ${decision === 'apply' ? 'acknowledges an applied change' : `keeps the change notice on ${decision}`}`, async ({ page }) => {
+    const author = await community(page);
+    author.plan = { ...shared, allocations: split('4000', '3000', '3000'), split_updated_at: '2026-10-01T09:00:00.000Z' };
+    await page.addInitScript(({ key, value }) => { if (!localStorage.getItem(key)) localStorage.setItem(key, value); }, { key: FOLLOWING_STORAGE_KEY, value: JSON.stringify(withFollowed([], shared)) });
+    await page.goto('/portfolio');
+    const item = page.getByRole('region', { name: 'Following' }).getByRole('listitem').filter({ hasText: 'Big tech core' }).first();
+    await expect(item).toContainText('AAPLx 50% → 40%');
+    await item.getByRole('button', { name: 'Review the new split' }).click();
+    const review = page.getByRole('dialog', { name: 'Review shared plan' });
+    await expect(review).toContainText('40');
+    if (decision === 'cancel') await review.getByRole('button', { name: 'Keep my draft' }).click();
+    if (decision === 'escape') await page.keyboard.press('Escape');
+    if (decision === 'apply') await review.getByRole('button', { name: 'Apply shared plan' }).click();
+    await page.goto('/portfolio');
+    await expect(item).toContainText(decision === 'apply' ? 'Up to date' : 'AAPLx 50% → 40%');
+  });
+}
 
 test('a followed plan that stops being shared says so and can be let go', async ({ page }) => {
   const author = await community(page);
@@ -148,4 +151,71 @@ for (const action of ['share', 'update', 'stop'] as const) {
       await expect(cloud.getByRole('button', { name: 'Share Second account split to community plans' })).toBeEnabled();
     } finally { release(); }
   });
+}
+
+for (const destination of ['refresh', 'save', 'leave'] as const) {
+test(`a share completing after ${destination === 'leave' ? 'leaving the account panel does not fetch private state again' : `a same-account refresh reconciles sharing${destination === 'save' ? ' without cancelling a pending save' : ''}`}`, async ({ page }) => {
+  const plan = { id: 'ccf2689b-66a7-45c0-8d7f-ebdf84c7e2e7', name: 'My new share', budget_raw: '250000000', allocations: split('5000', '3000', '2000'), created_at: '2026-09-27T12:00:00Z' };
+  let committed = false;
+  let privateReads = 0;
+  let release!: () => void;
+  let started!: () => void;
+  let releaseSave!: () => void;
+  let saveStarted!: () => void;
+  const held = new Promise<void>(resolve => { release = resolve; });
+  const dispatched = new Promise<void>(resolve => { started = resolve; });
+  const heldSave = new Promise<void>(resolve => { releaseSave = resolve; });
+  const saveDispatched = new Promise<void>(resolve => { saveStarted = resolve; });
+  await page.route('**/api/auth/session', route => { privateReads += 1; return route.fulfill({ json: { state: 'signed-in', user: { id: 'author', email: 'author@example.test' } } }); });
+  await page.route('**/api/plans', async route => {
+    if (route.request().method() === 'POST') {
+      saveStarted();
+      await heldSave;
+      return route.fulfill({ status: 201, json: { state: 'success', plan: { ...route.request().postDataJSON(), id: 'ee81e8d9-ce56-4907-b03b-caa60b6e1663', created_at: '2026-09-30T12:00:00Z' } } });
+    }
+    privateReads += 1;
+    return route.fulfill({ json: { state: 'success', plans: [plan] } });
+  });
+  await page.route('**/api/gallery/mine', route => { privateReads += 1; return route.fulfill({ json: { shared: committed ? [{ id: shared.id, plan_id: plan.id, display_name: null, copy_count: 0 }] : [] } }); });
+  await page.route('**/api/gallery/publish', async route => {
+    started();
+    await held;
+    committed = true;
+    await route.fulfill({ json: { state: 'success', id: shared.id } });
+  });
+  try {
+    await page.goto('/app?mode=example');
+    const cloud = page.getByRole('region', { name: 'Keep a plan for later' });
+    await cloud.getByRole('button', { name: 'Share My new share to community plans' }).click();
+    await cloud.getByRole('button', { name: 'Share name and split' }).click();
+    await dispatched;
+    if (destination !== 'leave') {
+      await cloud.getByRole('button', { name: 'Refresh saved plans' }).click();
+      await expect(cloud.getByRole('button', { name: 'Refresh saved plans' })).toBeEnabled();
+      await expect(cloud.getByRole('button', { name: 'Stop sharing My new share' })).toHaveCount(0);
+      if (destination === 'save') {
+        await cloud.getByLabel('Plan name', { exact: true }).fill('Saved during reconciliation');
+        await cloud.getByRole('button', { name: 'Save this plan' }).click();
+        await saveDispatched;
+      }
+      release();
+      await expect(cloud.getByRole('button', { name: 'Stop sharing My new share' })).toBeVisible();
+      if (destination === 'save') {
+        releaseSave();
+        await expect(cloud.getByRole('button', { name: 'Load Saved during reconciliation' })).toBeVisible();
+        await expect(cloud.getByRole('button', { name: 'Save this plan' })).toBeEnabled();
+        await expect(cloud.getByRole('button', { name: 'Refresh saved plans' })).toBeEnabled();
+      }
+    } else {
+      await page.getByRole('navigation', { name: 'Main navigation' }).getByRole('link', { name: 'Portfolio', exact: true }).click();
+      await expect(cloud).toHaveCount(0);
+      const readsBeforeResponse = privateReads;
+      const completed = page.waitForResponse(response => response.url().includes('/api/gallery/publish'));
+      release();
+      await (await completed).finished();
+      await page.evaluate(() => new Promise<void>(resolve => requestAnimationFrame(() => requestAnimationFrame(() => resolve()))));
+      expect(privateReads).toBe(readsBeforeResponse);
+    }
+  } finally { release(); releaseSave(); }
+});
 }
