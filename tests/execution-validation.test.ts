@@ -32,6 +32,12 @@ describe('execution validation and immutable review', () => {
     expect(publicExecutionConfig()).not.toHaveProperty('reasons');
     expect(() => requireExecutionWallet(fixture.intent.wallet)).not.toThrow();
     expect(() => requireExecutionWallet('11111111111111111111111111111111')).toThrow(/not available/);
+    vi.stubEnv('JUPITER_API_KEY','');
+    vi.stubEnv('LOTLINE_EXECUTION_KEYLESS_JUPITER','');
+    expect(executionConfig().enabled).toBe(false);
+    vi.stubEnv('LOTLINE_EXECUTION_KEYLESS_JUPITER','true');
+    expect(executionConfig().enabled).toBe(true);
+    expect(publicExecutionConfig()).not.toHaveProperty('headers');
     vi.stubEnv('LOTLINE_EXECUTION_ALLOWED_WALLETS','not-an-address');
     expect(executionConfig().enabled).toBe(false);
   });

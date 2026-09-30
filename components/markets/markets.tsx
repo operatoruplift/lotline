@@ -49,7 +49,7 @@ function writeView(view: View) {
 }
 
 /** Browse the verified catalog with a dated market snapshot, open an asset, add it to a device draft. */
-export function Markets({ crypto = false }: { crypto?: boolean }) {
+export function Markets({ crypto = false, gallery = false }: { crypto?: boolean; gallery?: boolean }) {
   const [load, setLoad] = useState<Load>({ state: 'loading' });
   const [reload, setReload] = useState(0);
   const [view, setView] = useState<View>(DEFAULT_VIEW);
@@ -108,7 +108,7 @@ export function Markets({ crypto = false }: { crypto?: boolean }) {
       : `Snapshot from Jupiter at ${utcTime(load.snapshot.fetchedAt)}${load.snapshot.stale ? ' (refreshing)' : ''} · not a quote${load.snapshot.missing ? ` · ${load.snapshot.missing} without figures` : ''}`;
 
   return <>
-    <SiteHeader active="markets" markets />
+    <SiteHeader active="markets" markets community={gallery} />
     <main id="main" className={`page-width ${styles.page}`}>
       <div className={styles.heading}>
         <p className="eyebrow">MARKETS · VERIFIED CATALOG</p>

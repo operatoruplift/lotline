@@ -10,6 +10,27 @@
 @media(max-width:380px){.headerInner{width:calc(100% - 32px)}.footerCopy{gap:18px}.footerCopy h2{font-size:35px}.footerCopy>div:first-child{max-width:145px}.footerRight{max-width:126px}.footerRight a{font-size:10px}}
 .footer .footerCopy p{color:#354B3C}
 
+/* App destinations stay together; the public-site header keeps its own layout. */
+.appHeader .headerInner { gap: 28px; }
+.appHeader .appNavigation { flex: 1; gap: 20px; min-width: 0; }
+.destinations, .utilities { display: flex; align-items: center; gap: 4px; }
+.destinations { flex: 1; }
+.utilities { gap: 12px; }
+.appHeader :global(.nav-link) { display: inline-flex; align-items: center; justify-content: center; min-height: 44px; padding: 10px 12px; border-radius: 11px; font-size: 12px; font-weight: 550; white-space: nowrap; transition: background-color .15s, color .15s; }
+.appHeader :global(.nav-link):hover { background: #eeeede; color: #174D3C; }
+.appHeader :global(.nav-link)[aria-current='page'] { background: #e4ecde; color: #174D3C; box-shadow: inset 0 0 0 1px #d2decd; }
+.appHeader :global(.account-link) { border: 1px solid #c7cec0; }
+.appHeader :global(.network-badge) { padding-left: 16px; white-space: nowrap; }
+@media (min-width: 801px) and (max-width: 1200px) {
+  .appHeader .headerInner { width: calc(100% - 48px); gap: 16px; }
+  .appHeader .appNavigation { gap: 12px; }
+  .appHeader :global(.nav-link) { padding-inline: 8px; }
+  .appHeader .utilities { gap: 8px; }
+  .appHeader .utilities > :global(.nav-link):first-child { display: none; }
+  .appHeader :global(.network-badge) { padding-left: 10px; font-size: 10px; }
+}
+@media (prefers-reduced-motion: reduce) { .appHeader :global(.nav-link) { transition: none; } }
+
 @media(max-width:380px){.headerInner nav{gap:8px}.header :global(.header-cta){padding-inline:8px;gap:5px}.header :global(.network-badge){padding-left:6px;font-size:8px}}
 
 /* App screens on phones. The tab bar carries the navigation, so the header keeps
@@ -19,6 +40,8 @@
   :global(body:has([data-app-tab-bar])) .header { min-height: 0; }
   :global(body:has([data-app-tab-bar])) .headerInner { min-height: 60px; flex-wrap: nowrap; gap: 12px; padding: 10px 0; }
   :global(body:has([data-app-tab-bar])) .headerInner nav { order: 0; flex-basis: auto; margin-left: auto; }
+  .appHeader .destinations { display: none; }
+  .appHeader .utilities { margin-left: auto; }
   :global(body:has([data-app-tab-bar])) .header :global(.nav-link),
   :global(body:has([data-app-tab-bar])) .header :global(.header-cta) { display: none; }
   :global(body:has([data-app-tab-bar])) .footer { min-height: 0; }

@@ -1,4 +1,4 @@
-> Current Pyth review and settlement prerequisites: [September 23 release](releases/2026-09-23/release.md). The [September 20 contribution release](contribution-release-20260920.md) records the semantic validator. Earlier dated observations below remain historical.
+> The [September 30 release](releases/2026-09-30/release.md) records current hosted observations; the [September 23 release](releases/2026-09-23/release.md) explains the Pyth purchase-review gates. The [September 20 contribution release](contribution-release-20260920.md) records the semantic validator. Earlier dated observations below remain historical.
 
 # Lotline execution readiness
 
@@ -56,11 +56,19 @@ LOTLINE_EXECUTION_VALIDATOR_READY=jupiter-route-v2-raydium-clmm-v1
 LOTLINE_EXECUTION_ACCESS_POLICY=restricted-launch-v1
 LOTLINE_EXECUTION_ALLOWED_WALLETS=<comma-separated reviewed wallets>
 JUPITER_API_KEY=...
+# Optional alternative when no key is configured; false by default:
+LOTLINE_EXECUTION_KEYLESS_JUPITER=false
 SOLANA_RPC_URL=https://...
 NEXT_PUBLIC_SUPABASE_URL=https://...
 NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=sb_publishable_...
 SUPABASE_SECRET_KEY=sb_secret_...
 ```
+
+Jupiter access is checked consistently before requesting a route catalog, executable order or execution. A nonblank `JUPITER_API_KEY` takes precedence. Without a key, only the exact server value `LOTLINE_EXECUTION_KEYLESS_JUPITER=true` opts into the documented keyless tier; the default stays closed. Keyless requests omit the API-key header and retain the shared provider limiter, original order identity, semantic validation, simulation, fees, Pyth freshness and restricted-participant checks. This is access configuration, not permission to spend or evidence of settlement. No production flag was enabled by this change.
+
+As checked on September 30, Jupiter's [official rate-limit documentation](https://developers.jup.ag/docs/portal/rate-limits) lists 30 requests per minute for the general keyless tier and a separate 20-per-second execute bucket. The [order API reference](https://developers.jup.ag/docs/api-reference/swap/order) still labels the key header required; deployments should verify access and capacity for their chosen configuration. A read-only keyless 1-USDC AAPLx quote returned a direct Raydium CLMM route on September 30, without a taker or transaction. That observation does not verify authenticated access, transaction creation or settlement.
+
+An authenticated read-only production configuration check at **2026-09-30 10:34:53 UTC** confirmed the base, guest, integrity and proof migration acknowledgements, Supabase repository selection and exact semantic-validator version. Execution was not enabled. Both Jupiter access options, the restricted-launch policy and reviewed-wallet list were absent. The optional batch acknowledgement was also absent. Only boolean audit results were retained; no environment values were published or changed. To progress beyond planning, configure provider access and reviewed participants, verify a funded supported route and fresh required references, then enable the restricted launch. The user's approval of the exact transaction and its confirmed receipt remain separate, unperformed steps.
 
 The base `20260914090000_execution_journal.sql` is applied. The additive `20260915090000_guest_execution_owner_index.sql` and `20260919090000_execution_integrity.sql` were applied to the linked production project during the authorized September 20 release, followed by `20260920090000_execution_proof_immutability.sql`. The integrity migration enforces per-run active-attempt exclusion, immutable transaction identity, owner-scoped occurrence uniqueness, unsigned expiry, atomic receipt/progress/event updates, unresolved evidence retention and schedule validation/versioning. The additive `20260928090000_execution_batches.sql` (batch approval) is acknowledged separately with `LOTLINE_EXECUTION_BATCH_MIGRATIONS_READY`; execution works without it, one leg at a time. Isolated PostgreSQL tests exercise the actual SQL, including the batch rules; they do not certify multi-connection hosted concurrency. Verify representative orders before enabling purchases. Set `LOTLINE_EXECUTION_GUEST_MIGRATIONS_READY=true` only after the additive migration is applied and its quota/retention functions are checked. Both guest and integrity migrations passed hosted object/grant checks and rolled-back behavioral assertions; purchases remain disabled. The readiness endpoint is `GET /api/execution/config`; an HTTP 200 response with `state: configuration-required` and `enabled: false` is an intentional safety boundary.
 
@@ -75,7 +83,7 @@ Signed-in users also have an owner-scoped `/api/contribution-schedules` GET/POST
 | Boundary | Current release | Explicitly deferred |
 | --- | --- | --- |
 | Solana RPC | Wallet identity, issuer/mint checks and signature reconciliation | Custody, delegated signing or automatic SOL funding |
-| Jupiter Swap v2 | Metis-only v0 envelope and signed-message checks; executable instruction validation remains incomplete | Other routers, RFQ/counterparty signers and unchecked instruction layouts |
+| Jupiter Swap v2 | Metis-only v0 envelope, direct Raydium CLMM semantic validation, mainnet simulation and exact signed-message checks | Other routers, RFQ/counterparty signers, unchecked instruction layouts, PreStocks and crypto execution |
 | xStocks issuer catalog | Exact symbol plus Solana mint, halt status and logo provenance | Catalog presence as proof of legal eligibility or liquidity |
 | Supabase | Authenticated owner journal and schedule metadata with RLS | Browser access to execution journal or service keys |
 | Jupiter Recurring | Documentation reference only | Automated xStocks DCA; current Token-2022 support is not enabled |
@@ -93,7 +101,7 @@ npm run build
 npm run test:e2e -- tests/e2e/execution-readiness.spec.ts
 ```
 
-These checks prove that the disabled boundary, intent math, state transitions, and read-only Example experience work. A real purchase requires a funded test wallet, a production Jupiter key/RPC, applied Supabase migration, and a deliberate operator approval **and the missing instruction-validator implementation**; no live settlement is claimed by local CI.
+These checks prove that the disabled boundary, intent math, state transitions, and read-only Example experience work. A real purchase requires configured Jupiter access and a mainnet RPC, the applied and acknowledged Supabase migrations, the acknowledged validator version, a reviewed participant, a funded supported wallet, current catalog and required Pyth observations, and the user's approval of the exact transaction. The implemented validator accepts only the direct Raydium CLMM xStock subset described above; local CI and unsigned simulation do not prove a live settlement.
 
 ## Browser evidence
 

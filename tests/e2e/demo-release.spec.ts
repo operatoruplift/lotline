@@ -12,8 +12,10 @@ for (const width of [390, 1440]) {
     const errors: string[] = [];
     page.on('pageerror', error => errors.push(error.message));
     await page.goto('/demo');
+    await expect(page.getByRole('heading', { level: 1 })).toContainText('A clearer contribution.');
+    await expect(page.locator('[data-demo-video]')).toHaveCount(8);
+    await page.locator('[data-demo-archive] > summary').click();
     await expect(page.getByText(/Explore 832 Example assets, choose up to ten/)).toBeVisible();
-    await expect(page.locator('[data-demo-video]')).toHaveCount(6);
     const sponsor = page.locator('[data-demo-video="sponsor-planning"]');
     await expect(sponsor).toHaveAttribute('aria-describedby', 'sponsor-demo-description');
     await expect(page.locator('#sponsor-demo-description')).toContainText('controlled fixtures');
@@ -21,6 +23,10 @@ for (const width of [390, 1440]) {
     await sponsor.scrollIntoViewIfNeeded();
     await sponsor.evaluate(node => (node as HTMLVideoElement).play());
     await expect.poll(() => sponsor.evaluate(node => (node as HTMLVideoElement).currentTime)).toBeGreaterThan(.25);
+    await page.locator('[data-demo-archive] > summary').click();
+    await expect.poll(() => sponsor.evaluate(node => (node as HTMLVideoElement).paused)).toBe(true);
+    await page.locator('[data-demo-archive] > summary').click();
+    await sponsor.evaluate(node => (node as HTMLVideoElement).play());
     const sponsorState = await sponsor.evaluate(node => { const video = node as HTMLVideoElement & { webkitAudioDecodedByteCount: number }; return { duration: video.duration, width: video.videoWidth, height: video.videoHeight, muted: video.muted, controls: video.controls, audioBytes: video.webkitAudioDecodedByteCount }; });
     expect(sponsorState.duration).toBeGreaterThanOrEqual(25);
     expect(sponsorState.duration).toBeLessThanOrEqual(45);

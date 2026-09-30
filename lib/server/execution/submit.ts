@@ -9,6 +9,7 @@ import { z } from 'zod';
 import type { ExecutionOrder } from './orders';
 import { fetchJson, rawSchema, ServiceError } from '@/lib/server/common';
 import { reserveProviderSlot } from '@/lib/server/provider-limits';
+import { requireJupiterExecutionHeaders } from './provider-access';
 
 const MAX_TRANSACTION_BYTES = 1232;
 const executeResponseSchema = z.object({
@@ -63,11 +64,10 @@ export async function validateSignedTransaction(order: Pick<ExecutionOrder, 'tra
 }
 
 export async function executeOnJupiter(signedTransaction: string, requestId: string, expectedSignature: string, lastValidBlockHeight?: string, beforeDispatch?: () => void): Promise<{ status: 'Success' | 'Failed'; signature?: string; code?: number; error?: string; inputAmountResult?: string; outputAmountResult?: string }> {
-  const apiKey = process.env.JUPITER_API_KEY?.trim();
-  if (!apiKey) throw new ServiceError('configuration-required', 'Executable orders need a server-side Jupiter API key.');
+  const headers = requireJupiterExecutionHeaders();
   await reserveProviderSlot('jupiter');
   beforeDispatch?.();
-  const payload = await fetchJson('https://api.jup.ag/swap/v2/execute', { method: 'POST', headers: { 'content-type': 'application/json', 'x-api-key': apiKey }, body: JSON.stringify({ signedTransaction, requestId, ...(lastValidBlockHeight ? { lastValidBlockHeight } : {}) }) });
+  const payload = await fetchJson('https://api.jup.ag/swap/v2/execute', { method: 'POST', headers: { 'content-type': 'application/json', ...headers }, body: JSON.stringify({ signedTransaction, requestId, ...(lastValidBlockHeight ? { lastValidBlockHeight } : {}) }) });
   const parsed = executeResponseSchema.safeParse(payload);
   if (!parsed.success) throw new ServiceError('unavailable', 'Jupiter returned an unsupported execution response.');
   if (parsed.data.status === 'Success' && !parsed.data.signature) throw new ServiceError('unavailable', 'Jupiter accepted the order without a transaction signature.');

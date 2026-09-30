@@ -4,6 +4,9 @@ import { ArrowRight } from 'lucide-react';
 import { SiteHeader, SiteFooter } from '@/components/site-shell';
 import release from '@/docs/video-release-manifest.json';
 import { headerSections } from '@/lib/server/features';
+import { DemoArchive, DemoShowcase } from '@/components/demo-showcase';
+import currentRelease from '@/public/videos/release-20260930/manifest.json';
+import styles from './page.module.css';
 
 export const metadata: Metadata = { title: 'See Lotline in action' };
 
@@ -15,10 +18,11 @@ function durationLabel(seconds: number) {
 export default function DemoPage() {
   const { product, technical } = release.films;
   return <><SiteHeader {...headerSections()} /><main id="main" className="demo-page page-width">
-    <p className="eyebrow">A SMALL PLAN. A CLEAR NEXT STEP.</p>
-    <h1>See your next contribution<br />come together.</h1>
+    <div className={styles.hero}><p className={styles.stamp}>THE APP IN ACTION · SEPTEMBER 30</p><h1>A clearer contribution.<br />A familiar place to return.</h1><p>Explore the workspace, from your first split to your next review. Two focused tours show the app and the checks behind each contribution.</p></div>
+    <DemoShowcase films={currentRelease.films} />
+    <DemoArchive className={styles.archive}><summary><strong>Earlier releases &amp; narrated walkthroughs</strong><span>September 12–21 recordings. Preserved with their original UI, voices and dated limitations.</span></summary>
     <p className="demo-intro">Explore 832 Example assets, choose up to ten for a plan, and return to your split with a new contribution. These narrated tours show the September 12, 2026 planner release. Example balances and estimates are synthetic; recorded Live estimates are dated observations.</p>
-    <p className="demo-intro">The app now also offers a prefilled Jupiter handoff and saved manual contribution reminders. A supported mainnet order has now passed semantic validation and unsigned simulation. Lotline is a calculation and routing layer: every purchase is reviewed and approved in your own wallet on Jupiter. Below the narrated tours, a September 19 controlled demonstration shows the newer review, receipt and recovery screens with a fake wallet and mocked providers.</p>
+    <p className="demo-intro">These archived films predate Portfolio, Markets, Community and later execution changes. Their statements about available features and email configuration describe the recording date. The separate September 20 unsigned mainnet simulation does not prove a purchase. Controlled receipt and recovery demonstrations below use a fake wallet and mocked providers.</p>
     <section id="sponsor-demo" className="demo-technical" aria-labelledby="sponsor-demo-title">
       <p className="demo-intro">September 23 update: the PreStocks planner supports eight verified assets. The xStocks review checks Pyth freshness before mapped purchases and stops approvals when references expire. Its planning benchmark compares quoted share exposure with the underlying equity price using a separate USDC/USD conversion. The xStocks review shows a Pyth reference status beside each estimate. The dated rehearsal below shows that status flow as it was recorded.</p>
       <p className="eyebrow">SEPTEMBER 21, 2026 · PRESTOCKS AND PYTH</p>
@@ -30,15 +34,15 @@ export default function DemoPage() {
       <div className="demo-actions"><a href="/videos/release-20260921/sponsor-planning.mp4" download className="text-button">Download PreStocks and Pyth rehearsal</a><a href="/videos/release-20260921/sponsor-planning.transcript.txt" className="text-button">Read rehearsal description</a><Link href="/pre-ipo" className="button primary">Plan with PreStocks <ArrowRight size={16} /></Link></div>
     </section>
     <section className="demo-technical" aria-labelledby="current-demo-title">
-      <p className="eyebrow">SEPTEMBER 20, 2026 · CURRENT APPLICATION</p>
+      <p className="eyebrow">SEPTEMBER 20, 2026 · HISTORICAL REHEARSAL</p>
       <h2 id="current-demo-title">From a first plan to a clear review.</h2>
-      <p className="demo-intro">These narrated recordings show the current first-use journey and technical evidence screens. Catalog and quote responses in the UI rehearsal are controlled fixtures, labeled throughout. No wallet signs and no funds move. The separately documented unsigned mainnet simulation does not prove a completed purchase.</p>
-      <video controls playsInline preload="metadata" poster="/videos/release-20260920/first-minute-poster.jpg" aria-label="Lotline current first-minute rehearsal" data-demo-video="first-minute" className="demo-video">
+      <p className="demo-intro">These narrated September 20 recordings show that release’s first-use journey and technical evidence screens. Catalog and quote responses in the UI rehearsal are controlled fixtures, labeled throughout. No wallet signs and no funds move. The separately documented unsigned mainnet simulation does not prove a completed purchase.</p>
+      <video controls playsInline preload="metadata" poster="/videos/release-20260920/first-minute-poster.jpg" aria-label="Lotline September 20 first-minute rehearsal" data-demo-video="first-minute" className="demo-video">
         <source src="/videos/release-20260920/first-minute.mp4" type="video/mp4" /><track default kind="captions" src="/videos/release-20260920/first-minute.en.vtt" srcLang="en" label="English" />
       </video>
-      <div className="demo-actions"><a href="/videos/release-20260920/first-minute.mp4" download className="text-button">Download current walkthrough</a><a href="/videos/release-20260920/first-minute.transcript.txt" className="text-button">Read text description</a><Link href="/app" className="button primary">Plan your contribution <ArrowRight size={16} /></Link></div>
+      <div className="demo-actions"><a href="/videos/release-20260920/first-minute.mp4" download className="text-button">Download September 20 walkthrough</a><a href="/videos/release-20260920/first-minute.transcript.txt" className="text-button">Read text description</a><Link href="/app" className="button primary">Plan your contribution <ArrowRight size={16} /></Link></div>
       <h3>Inspect the evidence behind the numbers.</h3>
-      <video controls playsInline preload="none" poster="/videos/release-20260920/technical-proof-poster.jpg" aria-label="Lotline current technical evidence rehearsal" data-demo-video="technical-proof" className="demo-video">
+      <video controls playsInline preload="none" poster="/videos/release-20260920/technical-proof-poster.jpg" aria-label="Lotline September 20 technical evidence rehearsal" data-demo-video="technical-proof" className="demo-video">
         <source src="/videos/release-20260920/technical-proof.mp4" type="video/mp4" /><track default kind="captions" src="/videos/release-20260920/technical-proof.en.vtt" srcLang="en" label="English" />
       </video>
       <div className="demo-actions"><a href="/videos/release-20260920/technical-proof.mp4" download className="text-button">Download technical evidence tour</a><a href="/videos/release-20260920/technical-proof.transcript.txt" className="text-button">Read technical description</a></div>
@@ -49,7 +53,7 @@ export default function DemoPage() {
       <track default kind="captions" src={product.captions} srcLang="en" label="English" />
       Your browser cannot play this video. Use the interactive Example below.
     </video>
-    <div className="demo-actions"><Link href="/app?mode=example" className="button primary">Try it yourself <ArrowRight size={16} /></Link><a href="#technical" className="text-button">Watch the technical walkthrough <ArrowRight size={16} /></a><a href="#controlled-demo" className="text-button">See the latest controlled demonstration <ArrowRight size={16} /></a><a href={product.src} download className="text-button">Download product tour</a></div>
+    <div className="demo-actions"><Link href="/app?mode=example" className="button primary">Try it yourself <ArrowRight size={16} /></Link><a href="#technical" className="text-button">Watch the technical walkthrough <ArrowRight size={16} /></a><a href="#controlled-demo" className="text-button">See the controlled recovery demonstration <ArrowRight size={16} /></a><a href={product.src} download className="text-button">Download product tour</a></div>
     <details className="demo-transcript"><summary>Read the product tour</summary><p>{product.transcript}</p></details>
     <section id="technical" className="demo-technical" aria-labelledby="technical-title">
       <p className="eyebrow">INSIDE THE PLANNER</p>
@@ -76,5 +80,6 @@ export default function DemoPage() {
       <div className="demo-actions"><a href="/videos/release-20260919/execution-fixture-walkthrough.mp4" download className="text-button">Download controlled demonstration</a><a href="/videos/release-20260919/execution-fixture-description.txt" download className="text-button">Download text description</a></div>
       <details className="demo-transcript"><summary>Read the controlled demonstration</summary><p>A persistent banner identifies the entire recording as a controlled test with mocked wallet and providers. A four-asset contribution is reviewed with exact USDC amounts, minimum raw token output, wallet, network and fees. Two simulated legs confirm. The third has an unknown result, so further approvals stop and the original receipts remain visible. After a reload, Lotline reconciles the original attempt, then resumes only the fourth leg. The completed receipts show historical raw amounts and can be downloaded. Finally, a manual review reminder saves the amount and split, and the recording shows the receipt and reminder layouts on smaller screens. No real transaction was signed or submitted. Every future real contribution would require a fresh review and explicit wallet approval once execution readiness requirements are met.</p></details>
     </section>
+    </DemoArchive>
   </main><SiteFooter /></>;
 }

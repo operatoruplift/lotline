@@ -47,3 +47,27 @@ it('dispatches only after the current-review guard passes', async () => {
   expect(mocks.reserve.mock.invocationCallOrder[0]).toBeLessThan(guard.mock.invocationCallOrder[0]);
   expect(guard.mock.invocationCallOrder[0]).toBeLessThan(mocks.fetch.mock.invocationCallOrder[0]);
 });
+it('does not dispatch without configured execution provider access', async () => {
+  vi.stubEnv('JUPITER_API_KEY', '');
+  vi.stubEnv('LOTLINE_EXECUTION_KEYLESS_JUPITER', '');
+  await expect(executeOnJupiter('signed-bytes', 'request', 'signature')).rejects.toThrow('explicit keyless execution access');
+  expect(mocks.reserve).not.toHaveBeenCalled();
+  expect(mocks.fetch).not.toHaveBeenCalled();
+});
+it('uses no blank key header for explicit keyless dispatch and still checks queued expiry', async () => {
+  vi.stubEnv('JUPITER_API_KEY', '');
+  vi.stubEnv('LOTLINE_EXECUTION_KEYLESS_JUPITER', 'true');
+  const signature = '1'.repeat(88);
+  const guard = vi.fn(() => requireCurrentReview(now + 60000));
+  mocks.fetch.mockResolvedValue({ status: 'Success', signature });
+  await expect(executeOnJupiter('signed-bytes', 'request', signature, '123', guard)).resolves.toMatchObject({ signature });
+  const [url, options] = mocks.fetch.mock.calls[0];
+  expect(url).toBe('https://api.jup.ag/swap/v2/execute');
+  expect(options.headers).toEqual({ 'content-type': 'application/json' });
+  expect(JSON.parse(options.body)).toEqual({ signedTransaction: 'signed-bytes', requestId: 'request', lastValidBlockHeight: '123' });
+  expect(guard).toHaveBeenCalledOnce();
+  mocks.fetch.mockClear();
+  mocks.reserve.mockImplementation(async () => { vi.setSystemTime(now + 60000); });
+  await expect(executeOnJupiter('signed-bytes', 'request', signature, undefined, guard)).rejects.toThrow('expired');
+  expect(mocks.fetch).not.toHaveBeenCalled();
+});
