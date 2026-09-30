@@ -1,0 +1,81 @@
+{
+  "checkedAt": "2026-09-30T11:23:26.211704+00:00",
+  "canonicalUrl": "https://lotline.dev",
+  "deploymentId": "dpl_FCEVBsG1ttBrc6LNEnGZ4wXWw2iE",
+  "deploymentUrl": "https://lotline-c59682a4l-operatoruplift.vercel.app",
+  "readyState": "READY",
+  "target": "production",
+  "sourceCommit": "adc2bff772097771cf4972a686e3e3c45dba20f2",
+  "sourceBinding": "The Vercel success status for this exact GitHub commit references the same deployment ID returned by vercel inspect.",
+  "testedCommit": "67ddb13f1d3bfff25d75b2d1abcdb500eda4eceb",
+  "identicalSourceTree": "60254edf9ef31ee5d8e73ef9398acc9261359824",
+  "pullRequest": "https://github.com/operatoruplift/lotline/pull/27",
+  "ciRun": "https://github.com/operatoruplift/lotline/actions/runs/36706443709",
+  "ci": {
+    "lint": "passed",
+    "typecheck": "passed",
+    "build": "passed",
+    "unitPassed": 716,
+    "unitLiveSkipped": 4,
+    "pwaBrowserPassed": 131,
+    "featureEnabledBrowserPassed": 43,
+    "browserRetries": 0
+  },
+  "additionalProductionNavigationCasesPassed": 6,
+  "aliasesVerified": [
+    "lotline.dev",
+    "lotlineonsolana.vercel.app",
+    "lotlinesolana.vercel.app",
+    "lotline-operatoruplift.vercel.app",
+    "lotline-git-main-operatoruplift.vercel.app"
+  ],
+  "productionConfigurationChange": {
+    "LOTLINE_EXECUTION_KEYLESS_JUPITER": "true",
+    "otherExecutionOrParticipantFlagsChanged": false,
+    "note": "Provider access opt-in only. Deployed purchases remain disabled; no access restrictions were bypassed."
+  },
+  "hostedSmoke": "app-polish-hosted.json",
+  "hostedBrowser": {
+    "canonical": true,
+    "phoneViewport": {
+      "width": 390,
+      "height": 844
+    },
+    "phonePortfolioFits": true,
+    "planMenuOpens": true,
+    "preIpoCommunityVisible": true,
+    "preIpoMobileActiveSection": "Portfolio",
+    "desktopViewport": {
+      "width": 1440,
+      "height": 960
+    },
+    "desktopPreIpoFits": true,
+    "desktopPreIpoActiveSection": "Pre-IPO",
+    "plannerLinkNavigates": true,
+    "desktopPlannerFits": true,
+    "desktopPlannerActiveSection": "Planner",
+    "demoFitsPhone": true,
+    "productVideo": {
+      "duration": 52,
+      "chapterSeekSeconds": 18,
+      "playbackObservedAtSeconds": 18.787959,
+      "readyState": 4,
+      "captionTracks": 1,
+      "mediaError": null
+    },
+    "technicalVideo": {
+      "duration": 48,
+      "chapterSeekSeconds": 20,
+      "playbackObservedAtSeconds": 21.52535,
+      "readyState": 4,
+      "captionTracks": 1,
+      "mediaError": null
+    },
+    "switchingTourPausedPreviousVideo": true,
+    "viewportRestored": true,
+    "scope": "Read-only browser navigation and local playback controls. No account changes, publication, wallet approval or trade."
+  },
+  "settlementProven": false,
+  "newNarrationGenerated": false,
+  "note": "A later documentation-only commit records these observations; application source remains unchanged. Mainnet execution and narration blockers are described in app-polish.md."
+}

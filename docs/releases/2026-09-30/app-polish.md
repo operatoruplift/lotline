@@ -1,6 +1,6 @@
 # September 30 app polish
 
-Status: implementation and focused local verification complete. CI found a production-only Pre-IPO navigation flag defect; its correction and final deployment verification are in progress. This follows the [earlier September 30 regression release](release.md).
+Status: merged and deployed to **https://lotline.dev** with passing CI and separate hosted verification. Mainnet settlement and new narration remain unverified/blocked as detailed below. This follows the [earlier September 30 regression release](release.md).
 
 ## Product changes
 
@@ -17,13 +17,25 @@ The new suite checks 390, 768, 1024 and 1440-pixel layouts, visible destinations
 
 Scoped ESLint and whitespace checks passed. Independent code review approved the navigation, execution-provider and demo changes. Local demo checks cover phone/desktop playback, chapter seeking, captions, text alternatives, keyboard tabs and archive pause behavior. An initial phone chapter timestamp contrast failure was corrected without weakening the accessibility assertion; both current-tour cases then passed. These checks do not establish real wallet sign-in or financial settlement.
 
-The first full CI run passed lint, type checks, production build, **716 unit tests** (four credential-gated live cases skipped) and **131 PWA browser tests**. The feature-enabled suite passed 41 cases and failed two new navigation cases: the production Pre-IPO route captured operator flags at build time. This result is preserved in [CI run 36704964757](https://github.com/operatoruplift/lotline/actions/runs/36704964757); final passing evidence will be recorded after the fix.
+The first full CI run passed lint, type checks, production build, **716 unit tests** (four credential-gated live cases skipped) and **131 PWA browser tests**. The feature-enabled suite passed 41 cases and failed two new navigation cases: the production Pre-IPO route captured operator flags at build time. This result is preserved in [CI run 36704964757](https://github.com/operatoruplift/lotline/actions/runs/36704964757).
+
+The correction awaits `connection()` before reading Pre-IPO flags, matching the adjacent routes. Independent review approved it. A separate production build with flags off, then server startup with flags on, passed all six unchanged navigation tests. The route is no longer statically prerendered. The [final CI run](https://github.com/operatoruplift/lotline/actions/runs/36706443709) passed lint, type checks, build, **716 unit tests** (four live cases skipped), **131 PWA browser tests** and **43 feature-enabled browser tests**, with **zero browser retries**.
+
+## Deployed verification
+
+[PR #27](https://github.com/operatoruplift/lotline/pull/27) merged as `adc2bff772097771cf4972a686e3e3c45dba20f2`. Its complete source tree matches tested commit `67ddb13f1d3bfff25d75b2d1abcdb500eda4eceb`: `60254edf9ef31ee5d8e73ef9398acc9261359824`. Vercel deployment `dpl_FCEVBsG1ttBrc6LNEnGZ4wXWw2iE` is READY and assigned to `lotline.dev` and the two existing public Vercel aliases. See [deployment evidence](app-polish-deployment.json).
+
+The [hosted smoke](app-polish-hosted.json) passed all seven public app/demo pages and 30 discovered media references covering eight films. The new manifest matches local files; video byte-range responses and complete byte counts match released files. Six historical posters initially exceeded the probe's 100KB read cap; a larger-cap recheck passed, with both observations retained. This was a probe limitation, not an application failure.
+
+Separate browser checks on the canonical deployment verified the 390px portfolio dock and plan menu, Community remaining visible on Pre-IPO, and the 1440px Pre-IPO → Planner destination with correct active states. Both widths fit without horizontal overflow. Both new tours loaded their caption tracks, sought to chapter positions and played without a media error; switching tabs paused the previous tour. Temporary viewport settings were restored.
+
+Live PreStocks discovery returned **eight verified assets and zero unavailable**. One Pyth sample at **11:18:42 UTC** returned fresh equity, token and USDC observations through Lazer. These are timestamped provider observations, not guarantees of future availability or purchase quotes. Hosted account delivery and a real wallet settlement were not exercised.
 
 ## Purchase readiness
 
 The accompanying provider-access change supports explicit server-side keyless Jupiter access. A configured API key takes precedence; without one, only `LOTLINE_EXECUTION_KEYLESS_JUPITER=true` opts in. The default remains closed. This setting does not enable purchases or bypass participant restrictions, semantic transaction validation, simulation, fees, freshness checks or receipt verification. See [execution requirements](../../execution.md).
 
-Production configuration now includes `LOTLINE_EXECUTION_KEYLESS_JUPITER=true` for the next deployment (set September 30 via the authenticated Vercel CLI). No other execution or participant flags were changed. A reviewed participating wallet and issuer-access policy, enabled readiness gates, a funded supported route and fresh required references are still required. The user must approve the exact transaction in their wallet. No wallet was connected, transaction signed or mainnet settlement verified by this polish work.
+Production configuration includes `LOTLINE_EXECUTION_KEYLESS_JUPITER=true` for this deployment (set September 30 via the authenticated Vercel CLI). No other execution or participant flags were changed. The deployed capability endpoint remains `configuration-required`, with purchases disabled, receipt reconciliation available and batch signing disabled. A reviewed participating wallet and issuer-access policy, enabled readiness gates, a funded supported route and fresh required references are still required. The user must approve the exact transaction in their wallet. No wallet was connected, transaction signed or mainnet settlement verified by this polish work. The current validator supports specific scaled xStock routes; PreStocks remains a separate discovery/planning path rather than in-app settlement.
 
 ## Demonstrations
 
