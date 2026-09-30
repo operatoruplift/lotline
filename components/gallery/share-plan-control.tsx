@@ -10,6 +10,8 @@ export type SharedState = { id: string; displayName: string | null; copies: numb
 export type SharedTarget = { planId: string; name: string; state: SharedState };
 type Props = {
   planId: string; planName: string; shared: SharedState | undefined; disabled: boolean;
+  /** Captures the current account and refresh generation when a mutation starts. */
+  beginMutation: () => () => boolean;
   onChange: (next: SharedState | null, message: string, failed?: boolean) => void;
   /** The member's other shared plans, which this saved plan's split can replace. */
   targets?: SharedTarget[];
@@ -20,7 +22,7 @@ type Props = {
  * Share a saved plan's name and split to the community, or stop sharing it.
  * The budget stays private; the display name is optional and link-free.
  */
-export function SharePlanControl({ planId, planName, shared, disabled, onChange, targets = [], onMoved }: Props) {
+export function SharePlanControl({ planId, planName, shared, disabled, beginMutation, onChange, targets = [], onMoved }: Props) {
   const [open, setOpen] = useState<false | 'share' | 'update'>(false);
   const [target, setTarget] = useState('');
   const [name, setName] = useState('');
@@ -30,41 +32,47 @@ export function SharePlanControl({ planId, planName, shared, disabled, onChange,
 
   async function share(event: FormEvent) {
     event.preventDefault();
-    if (!valid || busy) return;
+    if (!valid || busy || disabled) return;
+    const isCurrent = beginMutation();
     setBusy(true);
     try {
       const response = await fetch('/api/gallery/publish', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ planId, displayName: trimmed }), signal: AbortSignal.timeout(15_000) });
       const body = await response.json().catch(() => ({})) as { id?: string; message?: string };
+      if (!isCurrent()) return;
       if (!response.ok || typeof body.id !== 'string') { onChange(shared ?? null, body.message ?? 'The plan could not be shared. Please retry.', true); return; }
       setOpen(false);
       onChange({ id: body.id, displayName: trimmed || null, copies: shared?.copies ?? 0 }, `${planName} is shared. Only its name and split are public.`);
-    } catch { onChange(shared ?? null, 'Sharing could not be confirmed. Refresh your saved plans before retrying.', true); }
+    } catch { if (isCurrent()) onChange(shared ?? null, 'Sharing could not be confirmed. Refresh your saved plans before retrying.', true); }
     finally { setBusy(false); }
   }
   // Followers see the change and decide for themselves; the shared link and copy count stay.
   async function update(event: FormEvent) {
     event.preventDefault();
     const chosen = targets.find(item => item.state.id === target) ?? targets[0];
-    if (!chosen || busy) return;
+    if (!chosen || busy || disabled) return;
+    const isCurrent = beginMutation();
     setBusy(true);
     try {
       const response = await fetch('/api/gallery/publish', { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ publishedId: chosen.state.id, planId }), signal: AbortSignal.timeout(15_000) });
       const body = await response.json().catch(() => ({})) as { id?: string; message?: string };
+      if (!isCurrent()) return;
       if (!response.ok || body.id !== chosen.state.id) { onChange(null, body.message ?? 'The shared plan could not be updated. Please retry.', true); return; }
       setOpen(false);
       onMoved?.(chosen.planId, chosen.state, `${chosen.name} now shares ${planName}’s split. Members who follow it will see what changed and decide for themselves.`);
-    } catch { onChange(null, 'The update could not be confirmed. Refresh your saved plans to check.', true); }
+    } catch { if (isCurrent()) onChange(null, 'The update could not be confirmed. Refresh your saved plans to check.', true); }
     finally { setBusy(false); }
   }
   async function stop() {
-    if (busy) return;
+    if (busy || disabled) return;
+    const isCurrent = beginMutation();
     setBusy(true);
     try {
       const response = await fetch(`/api/gallery/publish?planId=${encodeURIComponent(planId)}`, { method: 'DELETE', signal: AbortSignal.timeout(15_000) });
       const body = await response.json().catch(() => ({})) as { message?: string };
+      if (!isCurrent()) return;
       if (!response.ok && response.status !== 404) { onChange(shared ?? null, body.message ?? 'Sharing could not be stopped. Please retry.', true); return; }
       onChange(null, `${planName} is no longer shared.`);
-    } catch { onChange(shared ?? null, 'Stopping could not be confirmed. Refresh your saved plans to check.', true); }
+    } catch { if (isCurrent()) onChange(shared ?? null, 'Stopping could not be confirmed. Refresh your saved plans to check.', true); }
     finally { setBusy(false); }
   }
 

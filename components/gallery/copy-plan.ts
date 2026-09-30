@@ -1,4 +1,4 @@
-import { followOnDevice } from '@/lib/client/following';
+import { prepareFollowReview } from '@/lib/client/following-review';
 import { galleryPlanToBasket, type GalleryPlan } from '@/lib/domain/gallery';
 import { encodePlanHash } from '@/lib/domain/share';
 import { loadBasket } from '@/lib/domain/storage';
@@ -13,7 +13,7 @@ export function copySharedPlan(plan: Pick<GalleryPlan, 'id' | 'name' | 'display_
   let budget = '1000';
   try { budget = loadBasket(window.localStorage)?.budget || budget; } catch { /* Storage can be blocked; use the default budget. */ }
   const hash = encodePlanHash(galleryPlanToBasket(plan, budget), 'live', 'xstocks');
-  followOnDevice(plan);
+  prepareFollowReview(plan, hash);
   try {
     void fetch('/api/gallery/copy', { method: 'POST', keepalive: true, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: plan.id }) }).catch(() => undefined);
   } catch { /* Counting is best effort. */ }

@@ -32,6 +32,12 @@ export function CloudPlans({ basket, onLoad, galleryEnabled = false }: { basket:
   const [plansModule, setPlansModule] = useState<PlansModule | null>(null);
   const body = plansModule ? plansModule.basketToCloudPlan(basket, name) : null;
 
+  const beginSharingMutation = useCallback(() => {
+    const revision = generation.current;
+    const owner = accountId.current;
+    return () => owner !== null && owner === accountId.current && revision === generation.current;
+  }, []);
+
   const clearPrivateState = useCallback((nextId: string | null) => {
     accountId.current = nextId;
     setPlans([]); setShared({}); setName('My contribution'); setMessage(''); setFailed(false); setBusy(false);
@@ -175,6 +181,7 @@ export function CloudPlans({ basket, onLoad, galleryEnabled = false }: { basket:
               <form onSubmit={save} className={styles.saveForm}><label htmlFor="cloud-plan-name">Plan name<input id="cloud-plan-name" value={name} onChange={event => setName(event.target.value)} maxLength={60} required disabled={busy || refreshing} /></label><button className={styles.primary} type="submit" disabled={busy || refreshing || !body || plans.length >= 20}>{busy || refreshing ? <LoaderCircle size={16} className={styles.spin} /> : <Plus size={16} />}Save this plan</button></form>
               {!body && <p>Choose one to {MAX_PLAN_ASSETS} supported assets, a positive budget, and a split totaling 100% before saving.</p>}
               <ul className={styles.planList}>{plans.map(plan => <li key={plan.id}><div><strong>{plan.name}</strong><span>{formatUsdc(plan.budget_raw).replace(/0+$/, '').replace(/\.$/, '')} USDC · {plan.allocations.length} {plan.allocations.length === 1 ? 'asset' : 'assets'}</span>{galleryEnabled && <SharePlanControl planId={plan.id} planName={plan.name} shared={shared[plan.id]} disabled={busy || refreshing} onChange={(next, text, error) => { if (!error) setShared(current => { const copy = { ...current }; if (next) copy[plan.id] = next; else delete copy[plan.id]; return copy; }); setFailed(Boolean(error)); setMessage(text); }}
+                beginMutation={beginSharingMutation}
                 targets={plans.flatMap(other => other.id !== plan.id && shared[other.id] ? [{ planId: other.id, name: other.name, state: shared[other.id] }] : [])}
                 onMoved={(from, next, text) => { setShared(current => { const copy = { ...current }; delete copy[from]; copy[plan.id] = next; return copy; }); setFailed(false); setMessage(text); }} />}</div><div className={styles.planActions}><button className={styles.textButton} disabled={busy || refreshing} aria-label={`Load ${plan.name}`} onClick={() => { if (busy || refreshing) return; if (!plansModule) return; onLoad(plansModule.cloudPlanToBasket({ name: plan.name, budget_raw: plan.budget_raw, allocations: plan.allocations })); setFailed(false); setMessage(`Loaded ${plan.name}. Get fresh estimates when you’re ready.`); }}>Load</button><button className={styles.textButton} disabled={busy || refreshing} aria-label={`Delete ${plan.name}`} onClick={() => void remove(plan.id)}>Delete</button></div></li>)}</ul>
               {plans.length === 0 && <p>No cloud plans yet. Your local draft is only uploaded when you choose Save this plan.</p>}

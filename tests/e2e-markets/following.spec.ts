@@ -46,6 +46,16 @@ test('copying follows a plan, and Portfolio shows what its author changed until 
   await item.getByRole('button', { name: 'Review the new split' }).click();
   const review = page.getByRole('dialog', { name: 'Review shared plan' });
   await expect(review).toContainText('40');
+  await review.getByRole('button', { name: 'Keep my draft' }).click();
+  await page.goto('/portfolio');
+  await expect(item).toContainText('AAPLx 50% → 40%');
+  await item.getByRole('button', { name: 'Review the new split' }).click();
+  await expect(review).toBeVisible();
+  await page.keyboard.press('Escape');
+  await page.goto('/portfolio');
+  await expect(item).toContainText('AAPLx 50% → 40%');
+  await item.getByRole('button', { name: 'Review the new split' }).click();
+  await review.getByRole('button', { name: 'Apply shared plan' }).click();
   await page.goto('/portfolio');
   await expect(item).toContainText('Up to date');
   await item.getByRole('button', { name: 'Stop following Big tech core' }).click();
@@ -92,3 +102,50 @@ test('an author points a shared plan at a newer saved split, keeping its link an
   await expect(cloud.getByRole('button', { name: 'Stop sharing Big tech core v2' })).toBeVisible();
   await expect(cloud.getByRole('button', { name: 'Share Big tech core to community plans' })).toBeVisible();
 });
+
+for (const action of ['share', 'update', 'stop'] as const) {
+  test(`a late community ${action} response cannot write the previous account into the current one`, async ({ page }) => {
+    let owner = 'first';
+    const oldPlan = { id: 'ccf2689b-66a7-45c0-8d7f-ebdf84c7e2e7', name: 'Private first split', budget_raw: '250000000', allocations: split('5000', '3000', '2000'), created_at: '2026-09-27T12:00:00Z' };
+    const replacement = { ...oldPlan, id: '0d9c8b7a-6f5e-4d3c-8b1a-0f9e8d7c6b5a', name: 'Private replacement' };
+    const nextPlan = { ...oldPlan, id: 'ee81e8d9-ce56-4907-b03b-caa60b6e1663', name: 'Second account split' };
+    let release!: () => void;
+    let started!: () => void;
+    const held = new Promise<void>(resolve => { release = resolve; });
+    const dispatched = new Promise<void>(resolve => { started = resolve; });
+    await page.route('**/api/auth/session', route => route.fulfill({ json: { state: 'signed-in', user: { id: owner, email: `${owner}@example.test` } } }));
+    await page.route('**/api/plans', route => route.fulfill({ json: { state: 'success', plans: owner === 'first' ? [oldPlan, replacement] : [nextPlan] } }));
+    await page.route('**/api/gallery/mine', route => route.fulfill({ json: { shared: owner === 'first' && action !== 'share' ? [{ id: shared.id, plan_id: oldPlan.id, display_name: 'Alice', copy_count: 12 }] : [] } }));
+    await page.route(/\/api\/gallery\/publish(?:\?|$)/, async route => {
+      started();
+      await held;
+      await route.fulfill({ json: { state: 'success', id: shared.id } });
+    });
+    try {
+      await page.goto('/app?mode=example');
+      const cloud = page.getByRole('region', { name: 'Keep a plan for later' });
+      await expect(cloud.getByRole('button', { name: 'Refresh saved plans' })).toBeEnabled();
+      if (action === 'share') {
+        await cloud.getByRole('button', { name: 'Share Private first split to community plans' }).click();
+        await cloud.getByRole('button', { name: 'Share name and split' }).click();
+      } else if (action === 'update') {
+        await cloud.getByRole('button', { name: 'Update a shared plan with Private replacement’s split' }).click();
+        await cloud.getByRole('button', { name: 'Update split' }).click();
+      } else await cloud.getByRole('button', { name: 'Stop sharing Private first split' }).click();
+      await dispatched;
+      owner = 'second';
+      await cloud.getByRole('button', { name: 'Refresh saved plans' }).click();
+      await expect(cloud.getByText('Signed in as second@example.test')).toBeVisible();
+      await expect(cloud.getByRole('button', { name: 'Share Second account split to community plans' })).toBeEnabled();
+      const completed = page.waitForResponse(response => response.url().includes('/api/gallery/publish'));
+      release();
+      await (await completed).finished();
+      // Flush the response handlers and the React paint before checking for a leaked callback.
+      await page.evaluate(() => new Promise<void>(resolve => requestAnimationFrame(() => requestAnimationFrame(() => resolve()))));
+      await expect(cloud).not.toContainText('Private first split');
+      await expect(cloud).not.toContainText('Private replacement');
+      await expect(cloud.getByRole('status')).toHaveCount(0);
+      await expect(cloud.getByRole('button', { name: 'Share Second account split to community plans' })).toBeEnabled();
+    } finally { release(); }
+  });
+}
