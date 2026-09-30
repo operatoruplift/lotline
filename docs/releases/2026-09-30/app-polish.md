@@ -1,6 +1,6 @@
 # September 30 app polish
 
-Status: local implementation and focused navigation verification complete. Final CI, deployment and hosted playback results are pending and will be recorded separately. This follows the [earlier September 30 regression release](release.md).
+Status: implementation and focused local verification complete. CI found a production-only Pre-IPO navigation flag defect; its correction and final deployment verification are in progress. This follows the [earlier September 30 regression release](release.md).
 
 ## Product changes
 
@@ -15,7 +15,9 @@ All **10 focused browser tests passed**: six new [navigation cases](../../../tes
 
 The new suite checks 390, 768, 1024 and 1440-pixel layouts, visible destinations, minimum control height, horizontal fit and header/tab-bar accessibility. It also exercises desktop Markets → Pre-IPO → Planner navigation and tablet menu keyboard dismissal. Screenshots were visually inspected. Independent review additionally verified 320 and 801-pixel geometry without overflow or overlapping desktop links, plus keyboard menu behavior at 320 pixels.
 
-Scoped ESLint and whitespace checks passed. Independent code review approved the navigation changes with no remaining findings. These checks cover the app shell; they do not establish real wallet sign-in or financial settlement.
+Scoped ESLint and whitespace checks passed. Independent code review approved the navigation, execution-provider and demo changes. Local demo checks cover phone/desktop playback, chapter seeking, captions, text alternatives, keyboard tabs and archive pause behavior. An initial phone chapter timestamp contrast failure was corrected without weakening the accessibility assertion; both current-tour cases then passed. These checks do not establish real wallet sign-in or financial settlement.
+
+The first full CI run passed lint, type checks, production build, **716 unit tests** (four credential-gated live cases skipped) and **131 PWA browser tests**. The feature-enabled suite passed 41 cases and failed two new navigation cases: the production Pre-IPO route captured operator flags at build time. This result is preserved in [CI run 36704964757](https://github.com/operatoruplift/lotline/actions/runs/36704964757); final passing evidence will be recorded after the fix.
 
 ## Purchase readiness
 
@@ -25,4 +27,8 @@ Production configuration now includes `LOTLINE_EXECUTION_KEYLESS_JUPITER=true` f
 
 ## Demonstrations
 
-New current-app demonstrations are being captured and assembled; final media, playback and deployment verification remain pending. Requested Ainsley narration through Higgsfield is blocked before generation because the connected workspace has zero credits. No narration job was created and no substitute system voice was used. The [narration record](../../video/app-tour-narration-20260930.json) preserves that status and the planned scripts. Historical films remain preserved; a caption-led capture must not be labeled as narrated or as proof of a settled purchase.
+Two new 1920×1080, 30fps tours were captured from the actual local app on September 30: a **52-second product tour** and a **48-second technical tour**. The technical explanation slides are labeled; Example calculations are synthetic. Both complete MP4s decoded successfully, representative frames were visually inspected, and both films have captions, chapters and complete text alternatives. No API writes were attempted. The [media manifest](../../../public/videos/release-20260930/manifest.json) records hashes, durations and scope.
+
+The refreshed demo page leads with these current films and keeps all six historical films in a closed, dated archive. Switching current tabs or collapsing the archive pauses hidden playback. The archive explicitly identifies earlier product and authentication claims as historical.
+
+Requested Ainsley narration through Higgsfield is blocked before generation because the connected workspace has zero credits. No narration job was created and no substitute system voice was used. The [narration record](../../video/app-tour-narration-20260930.json) preserves that status and the planned scripts. The new films are caption-led, contain no audio and are not proof of a settled purchase.
