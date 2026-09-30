@@ -26,7 +26,9 @@ export function CloudPlans({ basket, onLoad, galleryEnabled = false }: { basket:
   const [message, setMessage] = useState('');
   const [failed, setFailed] = useState(false);
   const generation = useRef(0);
+  const sharingGeneration = useRef(0);
   const accountId = useRef<string | null>(null);
+  const mounted = useRef(false);
   // Plan schemas (and the registry they validate against) load with the
   // account, not with the page: a guest never saves or loads a cloud plan.
   const [plansModule, setPlansModule] = useState<PlansModule | null>(null);
@@ -47,6 +49,14 @@ export function CloudPlans({ basket, onLoad, galleryEnabled = false }: { basket:
     setFailed(true);
     setMessage('Your account session ended. Sign in again to manage cloud plans. Your local draft is unchanged.');
   }, [clearPrivateState]);
+
+  const refreshSharing = useCallback(async (revision = generation.current, owner = accountId.current) => {
+    if (!mounted.current || !owner || owner !== accountId.current) return;
+    const sharingRevision = ++sharingGeneration.current;
+    const mine = await fetch('/api/gallery/mine', { cache: 'no-store', signal: AbortSignal.timeout(15_000) }).then(response => response.ok ? response.json() : null).catch(() => null) as { shared?: { id: string; plan_id: string; display_name: string | null; copy_count: number }[] } | null;
+    if (!mounted.current || revision !== generation.current || owner !== accountId.current || sharingRevision !== sharingGeneration.current || !Array.isArray(mine?.shared)) return;
+    setShared(Object.fromEntries(mine.shared.map(entry => [entry.plan_id, { id: entry.id, displayName: entry.display_name, copies: entry.copy_count }])));
+  }, []);
 
   const refresh = useCallback(async () => {
     const revision = ++generation.current;
@@ -70,21 +80,35 @@ export function CloudPlans({ basket, onLoad, galleryEnabled = false }: { basket:
       const data = await result.json();
       if (revision !== generation.current) return;
       const { cloudPlanRecord } = await import('@/lib/supabase/plans');
+      if (revision !== generation.current) return;
       const validated = cloudPlanRecord.array().safeParse(data.plans);
       if (!result.ok || !validated.success) { setFailed(true); setMessage('Your cloud plans could not be loaded. Retry when you’re online.'); return; }
       setPlans(validated.data);
-      if (galleryEnabled) {
-        const mine = await fetch('/api/gallery/mine', { cache: 'no-store', signal: AbortSignal.timeout(15_000) }).then(response => response.ok ? response.json() : null).catch(() => null) as { shared?: { id: string; plan_id: string; display_name: string | null; copy_count: number }[] } | null;
-        if (revision !== generation.current) return;
-        setShared(Object.fromEntries((mine?.shared ?? []).map(entry => [entry.plan_id, { id: entry.id, displayName: entry.display_name, copies: entry.copy_count }])));
-      }
+      if (galleryEnabled) await refreshSharing(revision, nextId);
     } catch { if (revision === generation.current) { clearPrivateState(null); setSession({ state: 'unavailable' }); } }
     finally { if (revision === generation.current) setRefreshing(false); }
-  }, [clearPrivateState, expireSession, galleryEnabled]);
+  }, [clearPrivateState, expireSession, galleryEnabled, refreshSharing]);
+
+  const beginSharingMutation = useCallback(() => {
+    const revision = generation.current;
+    const owner = accountId.current;
+    return () => {
+      if (!mounted.current || owner === null || owner !== accountId.current) return false;
+      if (revision !== generation.current) {
+        // A same-account refresh may have read before this mutation committed.
+        // Re-read sharing only: changing the account generation here would cancel
+        // an unrelated save/delete that the member may already have started.
+        void refreshSharing();
+        return false;
+      }
+      return true;
+    };
+  }, [refreshSharing]);
 
   useEffect(() => {
+    mounted.current = true;
     queueMicrotask(() => void refresh());
-    return () => { generation.current += 1; };
+    return () => { mounted.current = false; generation.current += 1; };
   }, [refresh]);
 
   // The Supabase browser client exists to watch an account that is already
@@ -125,6 +149,7 @@ export function CloudPlans({ basket, onLoad, galleryEnabled = false }: { basket:
       const data = await response.json();
       if (revision !== generation.current) return;
       const { cloudPlanRecord } = await import('@/lib/supabase/plans');
+      if (revision !== generation.current) return;
       const validated = cloudPlanRecord.safeParse(data.plan);
       if (!response.ok || !validated.success) { setFailed(true); setMessage(data.message ?? 'The plan could not be saved. Please retry.'); return; }
       setPlans(current => [validated.data, ...current]);
@@ -174,9 +199,10 @@ export function CloudPlans({ basket, onLoad, galleryEnabled = false }: { basket:
               <div className={styles.cloudHeading}><p className={styles.accountEmail}>Signed in as {session.user?.email ?? (session.user?.wallet ? `wallet ${shortAddress(session.user.wallet)}` : 'your account')}</p><button className={styles.textButton} onClick={signOut} disabled={busy || refreshing}>Sign out</button></div>
               <form onSubmit={save} className={styles.saveForm}><label htmlFor="cloud-plan-name">Plan name<input id="cloud-plan-name" value={name} onChange={event => setName(event.target.value)} maxLength={60} required disabled={busy || refreshing} /></label><button className={styles.primary} type="submit" disabled={busy || refreshing || !body || plans.length >= 20}>{busy || refreshing ? <LoaderCircle size={16} className={styles.spin} /> : <Plus size={16} />}Save this plan</button></form>
               {!body && <p>Choose one to {MAX_PLAN_ASSETS} supported assets, a positive budget, and a split totaling 100% before saving.</p>}
-              <ul className={styles.planList}>{plans.map(plan => <li key={plan.id}><div><strong>{plan.name}</strong><span>{formatUsdc(plan.budget_raw).replace(/0+$/, '').replace(/\.$/, '')} USDC · {plan.allocations.length} {plan.allocations.length === 1 ? 'asset' : 'assets'}</span>{galleryEnabled && <SharePlanControl planId={plan.id} planName={plan.name} shared={shared[plan.id]} disabled={busy || refreshing} onChange={(next, text, error) => { if (!error) setShared(current => { const copy = { ...current }; if (next) copy[plan.id] = next; else delete copy[plan.id]; return copy; }); setFailed(Boolean(error)); setMessage(text); }}
+              <ul className={styles.planList}>{plans.map(plan => <li key={plan.id}><div><strong>{plan.name}</strong><span>{formatUsdc(plan.budget_raw).replace(/0+$/, '').replace(/\.$/, '')} USDC · {plan.allocations.length} {plan.allocations.length === 1 ? 'asset' : 'assets'}</span>{galleryEnabled && <SharePlanControl planId={plan.id} planName={plan.name} shared={shared[plan.id]} disabled={busy || refreshing} onChange={(next, text, error) => { if (!error) { setShared(current => { const copy = { ...current }; if (next) copy[plan.id] = next; else delete copy[plan.id]; return copy; }); void refreshSharing(); } setFailed(Boolean(error)); setMessage(text); }}
+                beginMutation={beginSharingMutation}
                 targets={plans.flatMap(other => other.id !== plan.id && shared[other.id] ? [{ planId: other.id, name: other.name, state: shared[other.id] }] : [])}
-                onMoved={(from, next, text) => { setShared(current => { const copy = { ...current }; delete copy[from]; copy[plan.id] = next; return copy; }); setFailed(false); setMessage(text); }} />}</div><div className={styles.planActions}><button className={styles.textButton} disabled={busy || refreshing} aria-label={`Load ${plan.name}`} onClick={() => { if (busy || refreshing) return; if (!plansModule) return; onLoad(plansModule.cloudPlanToBasket({ name: plan.name, budget_raw: plan.budget_raw, allocations: plan.allocations })); setFailed(false); setMessage(`Loaded ${plan.name}. Get fresh estimates when you’re ready.`); }}>Load</button><button className={styles.textButton} disabled={busy || refreshing} aria-label={`Delete ${plan.name}`} onClick={() => void remove(plan.id)}>Delete</button></div></li>)}</ul>
+                onMoved={(from, next, text) => { setShared(current => { const copy = { ...current }; delete copy[from]; copy[plan.id] = next; return copy; }); void refreshSharing(); setFailed(false); setMessage(text); }} />}</div><div className={styles.planActions}><button className={styles.textButton} disabled={busy || refreshing} aria-label={`Load ${plan.name}`} onClick={() => { if (busy || refreshing) return; if (!plansModule) return; onLoad(plansModule.cloudPlanToBasket({ name: plan.name, budget_raw: plan.budget_raw, allocations: plan.allocations })); setFailed(false); setMessage(`Loaded ${plan.name}. Get fresh estimates when you’re ready.`); }}>Load</button><button className={styles.textButton} disabled={busy || refreshing} aria-label={`Delete ${plan.name}`} onClick={() => void remove(plan.id)}>Delete</button></div></li>)}</ul>
               {plans.length === 0 && <p>No cloud plans yet. Your local draft is only uploaded when you choose Save this plan.</p>}
               <button className={styles.textButton} disabled={busy || refreshing} onClick={() => { setMessage(''); void refresh(); }}>Refresh saved plans</button>
             </>}

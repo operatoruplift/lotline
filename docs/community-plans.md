@@ -35,7 +35,7 @@ Saved plans cannot be edited. A shared plan changes only when its author points 
 
 ## Turning it on
 
-1. Apply `20260928130000_plan_gallery.sql` to the Lotline Supabase project.
+1. Apply `20260928130000_plan_gallery.sql`, then `20260929150000_plan_gallery_updates.sql` to the Lotline Supabase project. The second migration provides shared-plan updates and the timestamps used by Following. If crypto plans are enabled, also apply `20260929160000_crypto_plan_mints.sql`.
 2. Set `LOTLINE_GALLERY_ENABLED=true` and redeploy. (Public sign-up still depends on `NEXT_PUBLIC_AUTH_EMAIL_ENABLED`; until then only existing accounts can share, while anyone can browse and copy.)
 
 ## Tests

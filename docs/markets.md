@@ -1,6 +1,6 @@
 # Markets, the asset sheet and the phone tab bar
 
-Added 28 September 2026 behind the server flag `LOTLINE_MARKETS_ENABLED`. With the flag unset (the default, and production until an operator turns it on), nothing in the planner, header or routes changes: `/markets` and `/api/markets*` answer 404, the add link is ignored and no tab bar renders. The main browser suite asserts exactly that; a second suite runs the features on a server started with the flag on.
+Added 28 September 2026 behind the server flag `LOTLINE_MARKETS_ENABLED`. With the flag unset (the default), nothing in the planner, header or routes changes: `/markets` and `/api/markets*` answer 404, the add link is ignored and no tab bar renders. The main browser suite asserts exactly that; a second suite runs the features on a server started with the flag on.
 
 ## What people get
 
@@ -38,7 +38,7 @@ Markets reads no wallet, balance or account data. The only state it writes is th
 2. Optionally set `JUPITER_API_KEY` to lift the keyless snapshot budget.
 3. Check `/markets` shows a snapshot time, then `/app?add=<mint>` shows the review dialog.
 
-The flag was kept off while Stocklana judging runs (until 2 October 2026) so the judged interface stays exactly as submitted.
+The initial rollout kept this flag off. A read-only check on 30 September 2026 found `/markets`, `/portfolio` and `/plans` enabled on `https://lotline.dev`, served by deployment `dpl_Eqotz7bjzGRXzASgFausLkLLqWpX` from commit `11b6acd948551e4145e9908a7bfc4baf8cdc41fa`. This is a dated deployment observation; code defaults remain off, and the flags are managed separately.
 
 ## Tests
 

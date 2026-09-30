@@ -21,6 +21,7 @@ async function seed(page: Page, entries: Record<string, unknown>) {
 
 test('with no plan, the portfolio home starts people off with tiles, steps and the community', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
+  await page.emulateMedia({ reducedMotion: 'no-preference' });
   await page.goto('/portfolio');
   await expect(page.getByRole('heading', { level: 1, name: 'Start with one clear split.' })).toBeVisible();
   const tiles = page.getByRole('list', { name: 'Browse markets by type' });
@@ -36,6 +37,16 @@ test('with no plan, the portfolio home starts people off with tiles, steps and t
   await expect(bar.getByRole('link', { name: 'Portfolio' })).toHaveAttribute('aria-current', 'page');
   await expect(bar.getByRole('link', { name: 'Community' })).toHaveAttribute('href', '/plans');
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1)).toBe(true);
+  // The network label must retain contrast during the entrance, not just after it.
+  const sampledEntrance = await page.locator('.site-header > div').evaluate(node => {
+    const animation = node.getAnimations().find(item => item instanceof CSSAnimation && item.animationName.includes('arrive'));
+    const duration = animation?.effect?.getTiming().duration;
+    if (!animation || typeof duration !== 'number' || duration <= 0) return false;
+    animation.pause();
+    animation.currentTime = duration / 2;
+    return true;
+  });
+  expect(sampledEntrance).toBe(true);
   const accessibility = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21aa']).analyze();
   expect(accessibility.violations).toEqual([]);
 });

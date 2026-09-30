@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { Link2, ShieldCheck } from 'lucide-react';
+import { finishFollowReview } from '@/lib/client/following-review';
 import { formatUsdc, parseBudget, validatePlan } from '@/lib/domain/math';
 import { buildPlanLink, decodePlanHash, PLAN_HASH_PREFIX, type SharedPlan } from '@/lib/domain/share';
 import type { Asset, Basket, Mode } from '@/lib/domain/types';
@@ -32,6 +33,7 @@ export function PlanTransfer({ basket, mode, assets, universe = 'xstocks', disab
         // while the review dialog is open. Close the stale prompt and return
         // focus without rewriting the user's new URL.
         if (incomingRef.current) {
+          finishFollowReview(incomingRef.current.hash, false);
           dialog.current?.close();
           const target = previousFocus.current;
           if (target?.isConnected && target !== document.body) target.focus({ preventScroll: true });
@@ -66,6 +68,7 @@ export function PlanTransfer({ basket, mode, assets, universe = 'xstocks', disab
   }
 
   function finish(applied: boolean) {
+    if (incoming) finishFollowReview(incoming.hash, applied);
     clearIncomingHash();
     dialog.current?.close();
     incomingRef.current = null;
