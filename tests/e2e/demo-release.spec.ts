@@ -13,7 +13,7 @@ for (const width of [390, 1440]) {
     page.on('pageerror', error => errors.push(error.message));
     await page.goto('/demo');
     await expect(page.getByRole('heading', { level: 1 })).toContainText('A clearer contribution.');
-    await expect(page.locator('[data-demo-video]')).toHaveCount(8);
+    await expect(page.locator('[data-demo-video]')).toHaveCount(9);
     await page.locator('[data-demo-archive] > summary').click();
     await expect(page.getByText(/Explore 832 Example assets, choose up to ten/)).toBeVisible();
     const sponsor = page.locator('[data-demo-video="sponsor-planning"]');

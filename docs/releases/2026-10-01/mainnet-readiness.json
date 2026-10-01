@@ -1,0 +1,761 @@
+{
+  "observedAt": "2026-10-01T06:13:59.290Z",
+  "projectId": "uemunksopacicpbjubtg",
+  "origin": "https://lotline.dev",
+  "sourceRevision": "69eac39909077d5d0f983153dfccd4daae6633a7",
+  "scope": "Read-only public execution capability, hosted migration history and PostgreSQL catalog metadata. No application account, wallet, execution history or balance rows were queried. No behavioral SQL writes or live settlement were attempted.",
+  "readOnly": true,
+  "privateRowsRead": false,
+  "configurationChanged": false,
+  "walletConnected": false,
+  "orderRequested": false,
+  "transactionSigned": false,
+  "transactionSubmitted": false,
+  "settlementProven": false,
+  "publicExecutionConfig": {
+    "state": "configuration-required",
+    "enabled": false,
+    "reconciliationAvailable": true,
+    "chain": "solana:mainnet",
+    "policyVersion": "2026-09-14.v1",
+    "validatorVersion": "jupiter-route-v2-raydium-clmm-v1",
+    "limits": {
+      "slippageBps": 100,
+      "maximumPriorityFeeLamports": "5000000",
+      "maximumTotalSolCostLamports": "10000000",
+      "maximumTokenFeeBps": 100
+    },
+    "supportedWalletFeatures": [
+      "solana:signTransaction"
+    ],
+    "batchSigning": false,
+    "maxBatchLegs": 3,
+    "message": "In-app purchases are not available in this release. You can plan a contribution and review it independently on Jupiter."
+  },
+  "appliedMigrations": [
+    {
+      "version": "20260911170809",
+      "name": "shared_provider_limits"
+    },
+    {
+      "version": "20260911170815",
+      "name": "contribution_plans"
+    },
+    {
+      "version": "20260912094113",
+      "name": "expanded_stock_plans"
+    },
+    {
+      "version": "20260914090000",
+      "name": "execution_journal"
+    },
+    {
+      "version": "20260915090000",
+      "name": "guest_execution_owner_index"
+    },
+    {
+      "version": "20260919090000",
+      "name": "execution_integrity"
+    },
+    {
+      "version": "20260920090000",
+      "name": "execution_proof_immutability"
+    },
+    {
+      "version": "20260928090000",
+      "name": "execution_batches"
+    },
+    {
+      "version": "20260928130000",
+      "name": "plan_gallery"
+    },
+    {
+      "version": "20260929150000",
+      "name": "plan_gallery_updates"
+    },
+    {
+      "version": "20260929160000",
+      "name": "crypto_plan_mints"
+    }
+  ],
+  "schema": {
+    "observedAt": "2026-10-01T06:12:40.831823+00:00",
+    "tables": [
+      {
+        "name": "lotline_contribution_occurrences",
+        "rls": true,
+        "forceRls": true,
+        "anonAnyDml": false,
+        "authenticatedAnyDml": false,
+        "serviceSelect": true,
+        "serviceInsert": true,
+        "serviceUpdate": true,
+        "serviceDelete": true
+      },
+      {
+        "name": "lotline_contribution_schedules",
+        "rls": true,
+        "forceRls": true,
+        "anonAnyDml": false,
+        "authenticatedAnyDml": true,
+        "serviceSelect": true,
+        "serviceInsert": true,
+        "serviceUpdate": true,
+        "serviceDelete": true
+      },
+      {
+        "name": "lotline_execution_attempts",
+        "rls": true,
+        "forceRls": true,
+        "anonAnyDml": false,
+        "authenticatedAnyDml": false,
+        "serviceSelect": true,
+        "serviceInsert": true,
+        "serviceUpdate": true,
+        "serviceDelete": true
+      },
+      {
+        "name": "lotline_execution_daily_limits",
+        "rls": true,
+        "forceRls": true,
+        "anonAnyDml": false,
+        "authenticatedAnyDml": false,
+        "serviceSelect": true,
+        "serviceInsert": true,
+        "serviceUpdate": true,
+        "serviceDelete": true
+      },
+      {
+        "name": "lotline_execution_events",
+        "rls": true,
+        "forceRls": true,
+        "anonAnyDml": false,
+        "authenticatedAnyDml": false,
+        "serviceSelect": true,
+        "serviceInsert": true,
+        "serviceUpdate": false,
+        "serviceDelete": false
+      },
+      {
+        "name": "lotline_execution_legs",
+        "rls": true,
+        "forceRls": true,
+        "anonAnyDml": false,
+        "authenticatedAnyDml": false,
+        "serviceSelect": true,
+        "serviceInsert": true,
+        "serviceUpdate": true,
+        "serviceDelete": true
+      },
+      {
+        "name": "lotline_execution_runs",
+        "rls": true,
+        "forceRls": true,
+        "anonAnyDml": false,
+        "authenticatedAnyDml": false,
+        "serviceSelect": true,
+        "serviceInsert": true,
+        "serviceUpdate": true,
+        "serviceDelete": true
+      },
+      {
+        "name": "lotline_guest_execution_ip_limits",
+        "rls": true,
+        "forceRls": true,
+        "anonAnyDml": false,
+        "authenticatedAnyDml": false,
+        "serviceSelect": true,
+        "serviceInsert": true,
+        "serviceUpdate": true,
+        "serviceDelete": true
+      }
+    ],
+    "functions": [
+      {
+        "schema": "public",
+        "name": "lotline_consume_execution_daily_slot",
+        "securityDefiner": true,
+        "settings": [
+          "search_path=public"
+        ],
+        "anonExecute": false,
+        "authenticatedExecute": false,
+        "serviceExecute": true
+      },
+      {
+        "schema": "public",
+        "name": "lotline_prune_guest_execution_runs",
+        "securityDefiner": true,
+        "settings": [
+          "search_path=\"\""
+        ],
+        "anonExecute": false,
+        "authenticatedExecute": false,
+        "serviceExecute": true
+      },
+      {
+        "schema": "public",
+        "name": "lotline_limit_guest_execution_runs",
+        "securityDefiner": true,
+        "settings": [
+          "search_path=public"
+        ],
+        "anonExecute": false,
+        "authenticatedExecute": false,
+        "serviceExecute": true
+      },
+      {
+        "schema": "public",
+        "name": "lotline_consume_guest_execution_ip_slot",
+        "securityDefiner": true,
+        "settings": [
+          "search_path=public"
+        ],
+        "anonExecute": false,
+        "authenticatedExecute": false,
+        "serviceExecute": true
+      },
+      {
+        "schema": "public",
+        "name": "lotline_sync_execution_attempt",
+        "securityDefiner": true,
+        "settings": [
+          "search_path=\"\""
+        ],
+        "anonExecute": false,
+        "authenticatedExecute": false,
+        "serviceExecute": true
+      },
+      {
+        "schema": "lotline_private",
+        "name": "guard_contribution_schedule",
+        "securityDefiner": true,
+        "settings": [
+          "search_path=\"\""
+        ],
+        "anonExecute": false,
+        "authenticatedExecute": false,
+        "serviceExecute": false
+      },
+      {
+        "schema": "lotline_private",
+        "name": "guard_execution_evidence",
+        "securityDefiner": true,
+        "settings": [
+          "search_path=\"\""
+        ],
+        "anonExecute": false,
+        "authenticatedExecute": false,
+        "serviceExecute": false
+      },
+      {
+        "schema": "public",
+        "name": "lotline_guard_execution_attempt",
+        "securityDefiner": true,
+        "settings": [
+          "search_path=\"\""
+        ],
+        "anonExecute": false,
+        "authenticatedExecute": false,
+        "serviceExecute": true
+      }
+    ],
+    "triggers": [
+      {
+        "name": "lotline_guard_execution_attempt",
+        "table": "lotline_execution_attempts",
+        "enabled": "O",
+        "function": "lotline_guard_execution_attempt"
+      },
+      {
+        "name": "lotline_guard_execution_evidence",
+        "table": "lotline_execution_attempts",
+        "enabled": "O",
+        "function": "guard_execution_evidence"
+      },
+      {
+        "name": "lotline_sync_execution_attempt",
+        "table": "lotline_execution_attempts",
+        "enabled": "O",
+        "function": "lotline_sync_execution_attempt"
+      },
+      {
+        "name": "lotline_guard_contribution_schedule",
+        "table": "lotline_contribution_schedules",
+        "enabled": "O",
+        "function": "guard_contribution_schedule"
+      },
+      {
+        "name": "lotline_guest_execution_quota",
+        "table": "lotline_execution_runs",
+        "enabled": "O",
+        "function": "lotline_limit_guest_execution_runs"
+      }
+    ],
+    "indexes": [
+      {
+        "name": "lotline_execution_attempts_pkey",
+        "valid": true,
+        "ready": true,
+        "unique": true
+      },
+      {
+        "name": "lotline_execution_attempt_request_idx",
+        "valid": true,
+        "ready": true,
+        "unique": true
+      },
+      {
+        "name": "lotline_execution_attempt_signature_idx",
+        "valid": true,
+        "ready": true,
+        "unique": true
+      },
+      {
+        "name": "lotline_execution_attempt_one_active_idx",
+        "valid": true,
+        "ready": true,
+        "unique": true
+      },
+      {
+        "name": "lotline_execution_attempt_batch_idx",
+        "valid": true,
+        "ready": true,
+        "unique": false
+      },
+      {
+        "name": "lotline_execution_legs_pkey",
+        "valid": true,
+        "ready": true,
+        "unique": true
+      },
+      {
+        "name": "lotline_execution_legs_run_id_leg_key_key",
+        "valid": true,
+        "ready": true,
+        "unique": true
+      },
+      {
+        "name": "lotline_execution_legs_run_id_mint_key",
+        "valid": true,
+        "ready": true,
+        "unique": true
+      },
+      {
+        "name": "lotline_execution_legs_run_idx",
+        "valid": true,
+        "ready": true,
+        "unique": false
+      },
+      {
+        "name": "lotline_contribution_schedules_pkey",
+        "valid": true,
+        "ready": true,
+        "unique": true
+      },
+      {
+        "name": "lotline_contribution_schedules_owner_idx",
+        "valid": true,
+        "ready": true,
+        "unique": false
+      },
+      {
+        "name": "lotline_contribution_occurrences_pkey",
+        "valid": true,
+        "ready": true,
+        "unique": true
+      },
+      {
+        "name": "lotline_contribution_occurrences_schedule_id_occurrence_key_key",
+        "valid": true,
+        "ready": true,
+        "unique": true
+      },
+      {
+        "name": "lotline_execution_daily_limits_pkey",
+        "valid": true,
+        "ready": true,
+        "unique": true
+      },
+      {
+        "name": "lotline_guest_execution_ip_limits_pkey",
+        "valid": true,
+        "ready": true,
+        "unique": true
+      },
+      {
+        "name": "lotline_guest_execution_ip_limits_window_idx",
+        "valid": true,
+        "ready": true,
+        "unique": false
+      },
+      {
+        "name": "lotline_execution_runs_guest_idx",
+        "valid": true,
+        "ready": true,
+        "unique": false
+      },
+      {
+        "name": "lotline_execution_runs_pkey",
+        "valid": true,
+        "ready": true,
+        "unique": true
+      },
+      {
+        "name": "lotline_execution_runs_user_intent_idx",
+        "valid": true,
+        "ready": true,
+        "unique": true
+      },
+      {
+        "name": "lotline_execution_runs_guest_intent_idx",
+        "valid": true,
+        "ready": true,
+        "unique": true
+      },
+      {
+        "name": "lotline_execution_runs_owner_created_idx",
+        "valid": true,
+        "ready": true,
+        "unique": false
+      },
+      {
+        "name": "lotline_execution_runs_guest_updated_idx",
+        "valid": true,
+        "ready": true,
+        "unique": false
+      },
+      {
+        "name": "lotline_execution_runs_guest_retention_idx",
+        "valid": true,
+        "ready": true,
+        "unique": false
+      },
+      {
+        "name": "lotline_execution_runs_user_occurrence_idx",
+        "valid": true,
+        "ready": true,
+        "unique": true
+      },
+      {
+        "name": "lotline_execution_runs_guest_occurrence_idx",
+        "valid": true,
+        "ready": true,
+        "unique": true
+      },
+      {
+        "name": "lotline_execution_events_pkey",
+        "valid": true,
+        "ready": true,
+        "unique": true
+      },
+      {
+        "name": "lotline_execution_events_run_idx",
+        "valid": true,
+        "ready": true,
+        "unique": false
+      }
+    ],
+    "batchColumn": {
+      "type": "uuid",
+      "nullable": "YES"
+    },
+    "guardMarkers": {
+      "identityImmutable": true,
+      "batchIdentityImmutable": true,
+      "runLock": true,
+      "crossBatchFence": true,
+      "crossRunFence": true,
+      "signedExpiryFence": true
+    },
+    "proofMarkers": {
+      "semanticProofProtected": true,
+      "slippageProtected": true,
+      "immutabilityEnforced": true
+    }
+  },
+  "policies": {
+    "observedAt": "2026-10-01T06:13:07.657501+00:00",
+    "publicSchemaCreate": {
+      "anon": false,
+      "authenticated": false
+    },
+    "schedulePolicies": [
+      {
+        "name": "contribution_schedules_select_own",
+        "roles": [
+          "authenticated"
+        ],
+        "command": "SELECT",
+        "using": "(user_id = auth.uid())",
+        "withCheck": null
+      },
+      {
+        "name": "contribution_schedules_insert_own",
+        "roles": [
+          "authenticated"
+        ],
+        "command": "INSERT",
+        "using": null,
+        "withCheck": "(user_id = auth.uid())"
+      },
+      {
+        "name": "contribution_schedules_update_own",
+        "roles": [
+          "authenticated"
+        ],
+        "command": "UPDATE",
+        "using": "(user_id = auth.uid())",
+        "withCheck": "(user_id = auth.uid())"
+      },
+      {
+        "name": "contribution_schedules_delete_own",
+        "roles": [
+          "authenticated"
+        ],
+        "command": "DELETE",
+        "using": "(user_id = auth.uid())",
+        "withCheck": null
+      }
+    ],
+    "journalPolicyCounts": [
+      {
+        "name": "lotline_contribution_occurrences",
+        "policyCount": 0
+      },
+      {
+        "name": "lotline_execution_attempts",
+        "policyCount": 0
+      },
+      {
+        "name": "lotline_execution_daily_limits",
+        "policyCount": 0
+      },
+      {
+        "name": "lotline_execution_events",
+        "policyCount": 0
+      },
+      {
+        "name": "lotline_execution_legs",
+        "policyCount": 0
+      },
+      {
+        "name": "lotline_execution_runs",
+        "policyCount": 0
+      },
+      {
+        "name": "lotline_guest_execution_ip_limits",
+        "policyCount": 0
+      }
+    ],
+    "constraints": [
+      {
+        "name": "lotline_execution_attempts_leg_id_fkey",
+        "table": "lotline_execution_attempts",
+        "type": "f",
+        "validated": true
+      },
+      {
+        "name": "lotline_execution_attempts_minimum_output_raw_check",
+        "table": "lotline_execution_attempts",
+        "type": "c",
+        "validated": true
+      },
+      {
+        "name": "lotline_execution_attempts_original_last_valid_block_heig_check",
+        "table": "lotline_execution_attempts",
+        "type": "c",
+        "validated": true
+      },
+      {
+        "name": "lotline_execution_attempts_pkey",
+        "table": "lotline_execution_attempts",
+        "type": "p",
+        "validated": true
+      },
+      {
+        "name": "lotline_execution_attempts_provider_request_id_check",
+        "table": "lotline_execution_attempts",
+        "type": "c",
+        "validated": true
+      },
+      {
+        "name": "lotline_execution_attempts_state_check",
+        "table": "lotline_execution_attempts",
+        "type": "c",
+        "validated": true
+      },
+      {
+        "name": "lotline_execution_attempts_state_version_check",
+        "table": "lotline_execution_attempts",
+        "type": "c",
+        "validated": true
+      },
+      {
+        "name": "lotline_execution_attempts_transaction_message_hash_check",
+        "table": "lotline_execution_attempts",
+        "type": "c",
+        "validated": true
+      },
+      {
+        "name": "lotline_execution_events_leg_id_fkey",
+        "table": "lotline_execution_events",
+        "type": "f",
+        "validated": true
+      },
+      {
+        "name": "lotline_execution_events_pkey",
+        "table": "lotline_execution_events",
+        "type": "p",
+        "validated": true
+      },
+      {
+        "name": "lotline_execution_events_run_id_fkey",
+        "table": "lotline_execution_events",
+        "type": "f",
+        "validated": true
+      },
+      {
+        "name": "lotline_execution_legs_allocation_bps_check",
+        "table": "lotline_execution_legs",
+        "type": "c",
+        "validated": true
+      },
+      {
+        "name": "lotline_execution_legs_input_raw_check",
+        "table": "lotline_execution_legs",
+        "type": "c",
+        "validated": true
+      },
+      {
+        "name": "lotline_execution_legs_leg_key_check",
+        "table": "lotline_execution_legs",
+        "type": "c",
+        "validated": true
+      },
+      {
+        "name": "lotline_execution_legs_mint_check",
+        "table": "lotline_execution_legs",
+        "type": "c",
+        "validated": true
+      },
+      {
+        "name": "lotline_execution_legs_pkey",
+        "table": "lotline_execution_legs",
+        "type": "p",
+        "validated": true
+      },
+      {
+        "name": "lotline_execution_legs_run_id_fkey",
+        "table": "lotline_execution_legs",
+        "type": "f",
+        "validated": true
+      },
+      {
+        "name": "lotline_execution_legs_run_id_leg_key_key",
+        "table": "lotline_execution_legs",
+        "type": "u",
+        "validated": true
+      },
+      {
+        "name": "lotline_execution_legs_run_id_mint_key",
+        "table": "lotline_execution_legs",
+        "type": "u",
+        "validated": true
+      },
+      {
+        "name": "lotline_execution_legs_state_check",
+        "table": "lotline_execution_legs",
+        "type": "c",
+        "validated": true
+      },
+      {
+        "name": "lotline_execution_legs_state_version_check",
+        "table": "lotline_execution_legs",
+        "type": "c",
+        "validated": true
+      },
+      {
+        "name": "lotline_execution_runs_budget_raw_check",
+        "table": "lotline_execution_runs",
+        "type": "c",
+        "validated": true
+      },
+      {
+        "name": "lotline_execution_runs_chain_check",
+        "table": "lotline_execution_runs",
+        "type": "c",
+        "validated": true
+      },
+      {
+        "name": "lotline_execution_runs_check",
+        "table": "lotline_execution_runs",
+        "type": "c",
+        "validated": true
+      },
+      {
+        "name": "lotline_execution_runs_input_mint_check",
+        "table": "lotline_execution_runs",
+        "type": "c",
+        "validated": true
+      },
+      {
+        "name": "lotline_execution_runs_intent_hash_check",
+        "table": "lotline_execution_runs",
+        "type": "c",
+        "validated": true
+      },
+      {
+        "name": "lotline_execution_runs_pkey",
+        "table": "lotline_execution_runs",
+        "type": "p",
+        "validated": true
+      },
+      {
+        "name": "lotline_execution_runs_state_check",
+        "table": "lotline_execution_runs",
+        "type": "c",
+        "validated": true
+      },
+      {
+        "name": "lotline_execution_runs_user_id_fkey",
+        "table": "lotline_execution_runs",
+        "type": "f",
+        "validated": true
+      },
+      {
+        "name": "lotline_execution_runs_wallet_check",
+        "table": "lotline_execution_runs",
+        "type": "c",
+        "validated": true
+      }
+    ]
+  },
+  "summary": {
+    "appliedMigrationCount": 11,
+    "missingRequiredMigration": false,
+    "batchMigrationApplied": true,
+    "allJournalTablesRlsForced": true,
+    "allExecutionIndexesValid": true,
+    "allListedConstraintsValidated": true,
+    "journalBrowserAccessDenied": true,
+    "eventMutationPrivilegesDenied": true,
+    "batchGuardMarkersPresent": true,
+    "proofGuardMarkersPresent": true,
+    "purchasesEnabled": false,
+    "batchSigningEnabled": false
+  },
+  "remainingRequirements": [
+    "Public readiness still reports purchases disabled. The endpoint deliberately omits individual operator configuration reasons; root is auditing current environment separately.",
+    "Prior release enabled explicit keyless Jupiter access. That historical configuration change does not itself authorize wallets or prove a supported executable route.",
+    "Operator-reviewed participant access, specified public wallet and approved asset/USDC/fee bounds remain required. The root has requested those details; no answer was available during this audit.",
+    "Fresh issuer/catalog observations, required Pyth equity/token references, supported direct Raydium CLMM xStock route, funded wallet and exact unsigned transaction validation are checked during a real review.",
+    "The wallet owner must approve the exact reviewed message; only confirmed chain evidence of the original signature and actual token movement establishes settlement.",
+    "Optional batch schema exists, but batch signing remains disabled in public readiness. Its flag is independent of single-leg purchase availability."
+  ],
+  "limitations": [
+    "Catalog introspection establishes object existence, privileges and named guard structure; it does not certify concurrent behavior under load.",
+    "No environment variables or secrets were read by this audit. Exact current missing configuration values must come from the root's separate safe-value audit.",
+    "No private records were inspected and no financial orders, signatures, submissions or on-chain transactions were made."
+  ]
+}

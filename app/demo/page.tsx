@@ -5,6 +5,7 @@ import { SiteHeader, SiteFooter } from '@/components/site-shell';
 import release from '@/docs/video-release-manifest.json';
 import { headerSections } from '@/lib/server/features';
 import { DemoArchive, DemoShowcase } from '@/components/demo-showcase';
+import { LaunchFilm } from '@/components/launch-film';
 import currentRelease from '@/public/videos/release-20260930/manifest.json';
 import styles from './page.module.css';
 
@@ -18,7 +19,9 @@ function durationLabel(seconds: number) {
 export default function DemoPage() {
   const { product, technical } = release.films;
   return <><SiteHeader {...headerSections()} /><main id="main" className="demo-page page-width">
-    <div className={styles.hero}><p className={styles.stamp}>THE APP IN ACTION · SEPTEMBER 30</p><h1>A clearer contribution.<br />A familiar place to return.</h1><p>Explore the workspace, from your first split to your next review. Two focused tours show the app and the checks behind each contribution.</p></div>
+    <div className={styles.hero}><p className={styles.stamp}>LOTLINE IN MOTION</p><h1>A clearer contribution.<br />A familiar place to return.</h1><p>Start with the launch film, then explore the workspace. Two focused app tours take you from your first split to your next review.</p></div>
+    <LaunchFilm />
+    <div className={styles.tourHeading}><p className={styles.stamp}>APP TOURS · SEPTEMBER 30</p><h2>Take a closer look.</h2><p>Recorded app footage, with chapters to find your next step.</p></div>
     <DemoShowcase films={currentRelease.films} />
     <DemoArchive className={styles.archive}><summary><strong>Earlier releases &amp; narrated walkthroughs</strong><span>September 12–21 recordings. Preserved with their original UI, voices and dated limitations.</span></summary>
     <p className="demo-intro">Explore 832 Example assets, choose up to ten for a plan, and return to your split with a new contribution. These narrated tours show the September 12, 2026 planner release. Example balances and estimates are synthetic; recorded Live estimates are dated observations.</p>

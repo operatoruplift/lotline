@@ -1,3 +1,5 @@
+> The [October 1 readiness audit](releases/2026-10-01/release.md) records current configuration, schema and provider observations; no settlement is claimed.
+
 > The [September 30 release](releases/2026-09-30/release.md) records current hosted observations; the [September 23 release](releases/2026-09-23/release.md) explains the Pyth purchase-review gates. The [September 20 contribution release](contribution-release-20260920.md) records the semantic validator. Earlier dated observations below remain historical.
 
 # Lotline execution readiness
@@ -64,7 +66,7 @@ NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=sb_publishable_...
 SUPABASE_SECRET_KEY=sb_secret_...
 ```
 
-Jupiter access is checked consistently before requesting a route catalog, executable order or execution. A nonblank `JUPITER_API_KEY` takes precedence. Without a key, only the exact server value `LOTLINE_EXECUTION_KEYLESS_JUPITER=true` opts into the documented keyless tier; the default stays closed. Keyless requests omit the API-key header and retain the shared provider limiter, original order identity, semantic validation, simulation, fees, Pyth freshness and restricted-participant checks. This is access configuration, not permission to spend or evidence of settlement. No production flag was enabled by this change.
+Jupiter access is checked consistently before requesting a route catalog, executable order or execution. A nonblank `JUPITER_API_KEY` takes precedence. Without a key, only the exact server value `LOTLINE_EXECUTION_KEYLESS_JUPITER=true` opts into the documented keyless tier; the default stays closed. Keyless requests omit the API-key header and retain the shared provider limiter, original order identity, semantic validation, simulation, fees, Pyth freshness and restricted-participant checks. Production opted into this provider access on September 30; it does not enable purchases, authorize spending or establish settlement.
 
 As checked on September 30, Jupiter's [official rate-limit documentation](https://developers.jup.ag/docs/portal/rate-limits) lists 30 requests per minute for the general keyless tier and a separate 20-per-second execute bucket. The [order API reference](https://developers.jup.ag/docs/api-reference/swap/order) still labels the key header required; deployments should verify access and capacity for their chosen configuration. A read-only keyless 1-USDC AAPLx quote returned a direct Raydium CLMM route on September 30, without a taker or transaction. That observation does not verify authenticated access, transaction creation or settlement.
 

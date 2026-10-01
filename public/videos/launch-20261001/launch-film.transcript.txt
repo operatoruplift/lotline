@@ -1,0 +1,32 @@
+LOTLINE — LAUNCH FILM
+Released on the Lotline website: October 1, 2026
+Duration: 30 seconds. Original music and sound effects; no spoken narration.
+
+This is an animated introduction, with recreated interface elements and illustrative figures. It is not a screen recording, a current market quote, a wallet approval or evidence of a settled mainnet purchase. The recorded app tours remain available separately at https://lotline.dev/demo.
+
+0:00–0:02.5 — Three cream light trails move across a dark forest-green background and join to form the Lotline mark. Instrumental music, swishes and interface accents accompany the animation. The camera moves through the mark into a warm cream world.
+
+0:02.5–0:07.9 — The Lotline wordmark appears above an illustrated landscape. On-screen text: “Small contributions. Clear intent.” The headline builds: “Your next contribution, clearly.”
+
+0:07.9–0:12.5 — A recreated planner card assembles. “Your next contribution” rolls up to 1,000.00 USDC. A second card, labeled Example, shows “Your chosen split”: Apple xStock (AAPLx), 50%, 500.00 USDC; Microsoft xStock (MSFTx), 30%, 300.00 USDC; NVIDIA xStock (NVDAx), 20%, 200.00 USDC. Animated lines connect the contribution to its split.
+
+0:12.5–0:15 — “A little more precision. Every micro-USDC has a place.” An illustrative 10.000001 USDC contribution uses the same 50/30/20 split. One leftover micro-USDC moves to the first allocation, producing 5.000001 + 3.000000 + 2.000000 USDC. Every micro-USDC is accounted for.
+
+0:15–0:17.6 — “Review your next step.” A recreated contribution review contains the same three assets, the 500/300/200 USDC split, and illustrative estimated units of 2, 0.75 and 1.33333332. It is labeled “Example estimates.” The Refresh estimates control animates. Text says “Read-only estimates, freshly quoted. You review every trade” and “Example estimates · just now · stale after 30s.” A badge says “Quote only. No signature.” These are motion graphics depicting a review; they are not a live quote request.
+
+0:17.6–0:20 — The NVIDIA logo expands into a wall of company and fund logos. A counter reaches 832. On-screen text reads “832 issuer-verified xStocks. Each matched to its exact Solana mint, with its official logo.” This count refers to the 832 tokenized stock and ETF identities in Lotline's reviewed September 12, 2026 issuer and Solana mint snapshot. A verified identity is not a promise of an available route or permission to purchase. The app performs fresh issuer, mint, quote and access checks as required.
+
+0:20–0:22.5 — The letters NVDA are typed into a search field. The logo wall filters to the NVIDIA xStock card and its mint identity. Text: “Matched to its exact mint.”
+
+0:22.5–0:25 — A phone rises beside “Your plan, one tap away.” Recreated Markets rows show xStocks, then Pre-IPO names. Text: “Install Lotline on your phone. xStocks, ETFs and pre-IPO names in one catalog.” Badges: “Installable app” and “Sign in with Solana.” The Plan button is tapped. These are animated illustrations of navigation; PreStocks planning and the supported xStocks purchase flow have separate boundaries.
+
+0:25–0:27.5 — A forest-green glass sculpture appears behind “Your keys. Your call.” Smaller text reads “Planning only. You review every trade.” Three light trails return to the logo. This describes the film's planning scope; any available purchase requires its own current review and explicit wallet approval.
+
+0:27.5–0:30 — The cream background returns. The Lotline logo and wordmark settle into place. Closing text: “Your next contribution, clearly.” The URL lotline.dev appears. Music rings out.
+
+CREDITS AND PROVENANCE
+User-provided master: lotline-showreel-30s-1080p60.mp4.
+Website rendition: 1920 × 1080, 60 fps H.264, with the original AAC soundtrack copied unchanged. No voice was generated or replaced.
+Music: “Fashion” by The_Mountain, Pixabay. Source project identifies the Pixabay Content License: https://pixabay.com/music/beats-fashion-562619/.
+Source project credits ElevenLabs, Kenney and synthesized interface sound effects; Lotline's existing mark, design and brand artwork; issuer/company logos; Inter and Georgia typography; HyperFrames and Magic UI motion references.
+Third-party marks identify their respective assets and owners. No endorsement, return or completed transaction is implied.

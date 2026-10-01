@@ -1,0 +1,144 @@
+{
+  "releasedAt": "2026-10-01",
+  "verifiedAt": "2026-10-01T06:22:12.027091+00:00",
+  "title": "Lotline animated launch film",
+  "scope": "User-provided motion-design introduction with recreated UI and illustrative figures. Not transaction or mainnet-settlement evidence.",
+  "original": {
+    "filename": "lotline-showreel-30s-1080p60.mp4",
+    "bytes": 51401493,
+    "sha256": "37a11ce56cb94b6316e75a6a92f8184b1a8cea6d95d24ba55024647b1151494a",
+    "preserved": true
+  },
+  "delivery": {
+    "src": "/videos/launch-20261001/launch-film.mp4",
+    "poster": "/videos/launch-20261001/launch-film-poster.jpg",
+    "captions": "/videos/launch-20261001/launch-film.en.vtt",
+    "transcript": "/videos/launch-20261001/launch-film.transcript.txt",
+    "durationSeconds": 30.0,
+    "media": [
+      {
+        "codec_name": "h264",
+        "codec_type": "video",
+        "width": 1920,
+        "height": 1080,
+        "r_frame_rate": "60/1",
+        "duration": "30.000000"
+      },
+      {
+        "codec_name": "aac",
+        "codec_type": "audio",
+        "sample_rate": "48000",
+        "channels": 2,
+        "r_frame_rate": "0/0",
+        "duration": "30.000000"
+      }
+    ],
+    "bytes": 16449191,
+    "sha256": "6e59c9895ad23f106288bdbed40fac7b42138ee083c87427e9c3bb2e611f9af1",
+    "topLevelBoxes": [
+      {
+        "type": "ftyp",
+        "offset": 0,
+        "size": 32
+      },
+      {
+        "type": "moov",
+        "offset": 32,
+        "size": 48690
+      },
+      {
+        "type": "free",
+        "offset": 48722,
+        "size": 8
+      },
+      {
+        "type": "mdat",
+        "offset": 48730,
+        "size": 16400461
+      }
+    ],
+    "decodedVideoFrames": 1800
+  },
+  "encoding": {
+    "video": "libx264, preset slow, CRF21, maxrate16M, bufsize32M, high profile, yuv420p, bt709, 60fps",
+    "audio": "AAC copied unchanged from the original",
+    "fastStart": true
+  },
+  "audio": {
+    "speech": false,
+    "source": "Original provided music and sound effects",
+    "originalAndDeliveredPacketSha256": "b0b80d35067adc9a43e1422741b9d909cf2319eeec7b4315922bc50b041c4525",
+    "replacedOrGeneratedVoice": false
+  },
+  "accessibility": {
+    "captionCues": 10,
+    "sceneDescription": true,
+    "noAutoplay": true,
+    "preload": "none",
+    "nativeControls": true,
+    "inlinePlayback": true,
+    "singleActiveFilmOnDemoPage": true
+  },
+  "files": [
+    {
+      "path": "launch-film-poster.jpg",
+      "bytes": 84825,
+      "sha256": "f483d20fc74abe6295630681b551b212c47b94b240d296ac87be4a310f0e3793"
+    },
+    {
+      "path": "launch-film.en.vtt",
+      "bytes": 1005,
+      "sha256": "575d164e9dd0d974c0b1497248d1fc67a7ace3cd345eabf6fa9f1b82dbf8ecf7"
+    },
+    {
+      "path": "launch-film.mp4",
+      "bytes": 16449191,
+      "sha256": "6e59c9895ad23f106288bdbed40fac7b42138ee083c87427e9c3bb2e611f9af1"
+    },
+    {
+      "path": "launch-film.transcript.txt",
+      "bytes": 4459,
+      "sha256": "2069c3afa186f10b70a8b72de8103f410207cf3dc8bd1ec881670ea3da551fec"
+    }
+  ],
+  "verification": {
+    "completeFfmpegDecode": "passed",
+    "sourceAndDeliverySceneReview": "passed",
+    "localBrowserTests": {
+      "status": "passed",
+      "cases": 6,
+      "viewports": [
+        390,
+        1440
+      ],
+      "suites": [
+        "launch-film.spec.ts",
+        "current-demo.spec.ts",
+        "demo-release.spec.ts"
+      ],
+      "covered": [
+        "H.264 playback",
+        "original AAC audio decoding",
+        "10 caption cues",
+        "seeking",
+        "single active video across launch and tours",
+        "download/text alternatives",
+        "preserved archive playback",
+        "keyboard tour controls",
+        "no horizontal overflow",
+        "Axe accessibility with expanded credits"
+      ]
+    },
+    "productionPlayback": "not yet verified in this manifest",
+    "completeFfprobeFrameCount": "passed: 1800 video frames; 1407 audio frames",
+    "localScreenshotReview": "passed at 390px and 1440px",
+    "scopedEslint": "passed",
+    "diffWhitespace": "passed"
+  },
+  "catalogContext": "832 issuer/Solana-mint identities in the reviewed September 12,2026 snapshot; availability and executable routes checked separately.",
+  "credits": {
+    "music": "Fashion by The_Mountain, Pixabay; source project credit",
+    "musicSource": "https://pixabay.com/music/beats-fashion-562619/",
+    "otherCredits": "Full source-project credits reproduced in launch-film.transcript.txt"
+  }
+}
