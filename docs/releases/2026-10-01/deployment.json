@@ -1,0 +1,89 @@
+{
+  "date": "2026-10-01",
+  "origin": "https://lotline.dev",
+  "sourceRevision": "98a3f9af19baa020ae45354f9bc153b2a32b3597",
+  "testedRevision": "6a7899b6ce2903ee9b277d1e2816350c9e9e85a3",
+  "sourceAndTestedTree": "e77cb1b9c339b1759877b149ceae15e04fd59f38",
+  "sourceExactlyMatchesTestedTree": true,
+  "pullRequest": "https://github.com/operatoruplift/lotline/pull/28",
+  "deployment": {
+    "id": "dpl_C5inP4RonGjDLjVAE2C8soujtbDs",
+    "url": "https://lotline-nusnauv50-operatoruplift.vercel.app",
+    "target": "production",
+    "readyState": "READY",
+    "aliases": [
+      "lotline.dev",
+      "lotlineonsolana.vercel.app",
+      "lotlinesolana.vercel.app",
+      "lotline-operatoruplift.vercel.app",
+      "lotline-git-main-operatoruplift.vercel.app"
+    ],
+    "githubCommitStatus": {
+      "context": "Vercel",
+      "state": "success",
+      "targetUrl": "https://vercel.com/operatoruplift/lotline/C5inP4RonGjDLjVAE2C8soujtbDs"
+    },
+    "canonicalAliasInspectionReturnsSameDeploymentId": true,
+    "identityMethod": "GitHub status on the exact source commit identifies the Vercel deployment; Vercel CLI inspection by deployment and by canonical URL returned the same READY production deployment ID."
+  },
+  "ci": {
+    "run": "https://github.com/operatoruplift/lotline/actions/runs/36824997049",
+    "conclusion": "success",
+    "lint": "passed",
+    "typecheck": "passed",
+    "build": "passed",
+    "unitPassed": 716,
+    "liveCredentialGatedUnitSkipped": 4,
+    "pwaBrowserPassed": 133,
+    "featureEnabledBrowserPassed": 43,
+    "browserRetries": 0
+  },
+  "hostedHttpEvidence": "hosted.json",
+  "hostedBrowserVerification": {
+    "url": "https://lotline.dev/demo#launch-film",
+    "browser": "Codex in-app browser",
+    "nativeControls": true,
+    "preload": "none",
+    "autoplay": false,
+    "launchDurationSeconds": 30,
+    "mediaError": null,
+    "playAndPause": "passed through native keyboard controls",
+    "seek": "passed: paused playhead advanced with ArrowRight",
+    "captionTrackMode": "showing",
+    "singleActiveFilm": {
+      "launchPaused": true,
+      "currentProductTourPaused": false,
+      "currentProductTourTimeSeconds": 2.866325,
+      "action": "Started launch film, then started the September 30 product tour; the launch film paused automatically."
+    },
+    "mobileLayout": {
+      "viewportWidth": 390,
+      "viewportHeight": 844,
+      "pageWidth": 390,
+      "launchPlayerWidth": 350,
+      "horizontalOverflow": false,
+      "visualInspection": "passed"
+    },
+    "audioLimitation": "Hosted browser verification does not independently assert an audio-decoding metric. Local browser audio checks and exact preservation of original AAC packets are recorded in the media manifest.",
+    "allVideosPausedAfterCheck": true,
+    "temporaryViewportReset": true
+  },
+  "settlement": {
+    "purchaseEnabled": false,
+    "reconciliationAvailable": true,
+    "walletConnected": false,
+    "executableOrderRequested": false,
+    "transactionSigned": false,
+    "transactionSubmitted": false,
+    "settlementProven": false,
+    "configurationChangedThisRelease": false,
+    "pending": [
+      "Selected public wallet",
+      "Selected supported asset and maximum USDC spend",
+      "Participant eligibility review and restricted-launch wallet configuration",
+      "Fresh order validation and wallet-owner approval",
+      "Original-signature reconciliation and exact token-movement evidence"
+    ]
+  },
+  "recordScope": "Documentation of the verified application release. Subsequent evidence-only commits do not change the tested application or media."
+}
