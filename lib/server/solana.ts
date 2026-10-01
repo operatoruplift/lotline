@@ -2,6 +2,7 @@ import 'server-only';
 import { address, unwrapOption, type GetAccountInfoApi, type Rpc } from '@solana/kit';
 import { AccountState, amountToUiAmountForMintWithoutSimulation, getMintDecoder, getTokenDecoder, type Mint } from '@solana-program/token-2022';
 import { z } from 'zod';
+import { cryptoIdentity } from '../domain/crypto-assets';
 import type { UnitContext } from '../domain/types';
 import { addressSchema, BoundedCache, fetchJson, rawSchema, ServiceError, SpacedQueue, TOKEN_2022_PROGRAM, TOKEN_PROGRAM, U64_MAX, USDC_MINT } from './common';
 import { reserveProviderSlot } from './provider-limits';
@@ -118,14 +119,18 @@ export function inspectMintTransferPolicy(mint: Mint): Pick<MintInfo, 'extension
 /** Shared by single-account reads and ordered getMultipleAccounts responses. */
 function verifyMintAccount(mint: string, account: z.infer<typeof binaryAccountSchema>): MintInfo {
   if (account.executable) throw new ServiceError('unavailable', 'The chain account could not be verified.');
-  const expectedProgram = mint === USDC_MINT ? TOKEN_PROGRAM : TOKEN_2022_PROGRAM;
+  // USDC and the pinned crypto are classic SPL Token mints without extensions; every
+  // catalog stock token is Token-2022 with a ScaledUiAmountConfig display multiplier.
+  const crypto = cryptoIdentity(mint);
+  const classic = mint === USDC_MINT || crypto !== undefined;
+  const expectedProgram = classic ? TOKEN_PROGRAM : TOKEN_2022_PROGRAM;
   if (account.owner !== expectedProgram) throw new ServiceError('unavailable', 'The asset is not a supported mainnet token mint.', 'unsupported-token');
   try {
     const decoded = getMintDecoder().decode(Buffer.from(account.data[0], 'base64'));
-    if (!decoded.isInitialized || decoded.decimals > 18 || (mint === USDC_MINT && decoded.decimals !== 6)) throw new Error();
+    if (!decoded.isInitialized || decoded.decimals > 18 || (mint === USDC_MINT && decoded.decimals !== 6) || (crypto && decoded.decimals !== crypto.decimals)) throw new Error();
     const extensions = unwrapOption(decoded.extensions) ?? [];
     const scale = extensions.find(extension => extension.__kind === 'ScaledUiAmountConfig');
-    if (mint !== USDC_MINT && (!scale || extensions.some(extension => extension.__kind === 'InterestBearingConfig'))) throw new Error();
+    if (classic ? extensions.length > 0 : (!scale || extensions.some(extension => extension.__kind === 'InterestBearingConfig'))) throw new Error();
     if (scale && (!(scale.multiplier > 0) || !Number.isFinite(scale.multiplier) || !(scale.newMultiplier > 0) || !Number.isFinite(scale.newMultiplier))) throw new Error();
     if (new Set(extensions.map(extension => extension.__kind)).size !== extensions.length) throw new Error();
     const info = { decimals: decoded.decimals, tokenProgram: account.owner, scaled: Boolean(scale), ...inspectMintTransferPolicy(decoded) };
