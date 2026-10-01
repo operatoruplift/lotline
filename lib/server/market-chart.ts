@@ -21,7 +21,7 @@ const poolCache = new BoundedCache<{ address: string; name: string } | null>(1_0
 const chartCache = new BoundedCache<ChartResponse>(3_000);
 
 const poolsSchema = z.object({ data: z.array(z.object({
-  attributes: z.object({ address: z.string().max(64), name: z.string().max(120), reserve_in_usd: z.string().max(40).nullable().optional() }),
+  attributes: z.object({ address: z.string().max(64), name: z.string().max(120), reserve_in_usd: z.string().max(40).nullable().optional(), volume_usd: z.object({ h24: z.string().max(40).nullable().optional() }).nullable().optional() }),
   relationships: z.object({ base_token: z.object({ data: z.object({ id: z.string().max(80) }) }), quote_token: z.object({ data: z.object({ id: z.string().max(80) }) }) }),
 })).max(100) });
 const ohlcvSchema = z.object({ data: z.object({ attributes: z.object({ ohlcv_list: z.array(z.array(z.number()).min(5).max(6)).max(1_000) }) }) });
@@ -31,32 +31,44 @@ const REFERENCE_TOKENS = new Set([
   'solana_EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v', 'solana_Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB', 'solana_So11111111111111111111111111111111111111112',
 ]);
 
-/** A reference pool this deep relative to the deepest pool is preferred; a thinner one trades too rarely to chart. */
-export const REFERENCE_DEPTH_SHARE = 0.2;
+/** A reference pool this busy relative to the busiest pool is preferred; a quieter one trades too rarely to chart. */
+export const REFERENCE_SHARE = 0.2;
+
+type Candidate = { address: string; name: string; reserve: number; volume: number };
+
+/** More trading in the last day ranks higher; between pools that traded equally (usually not at all), the deeper one. */
+function outranks(candidate: Candidate, current: Candidate | null): boolean {
+  return !current || candidate.volume > current.volume || (candidate.volume === current.volume && candidate.reserve > current.reserve);
+}
 
 /**
- * The deepest pool that contains the mint and clears the value floor. A pool
- * priced directly against a reference token wins when it is at least a fifth
- * as deep as the deepest pool, since its price needs no second conversion.
+ * The busiest pool that contains the mint and clears the value floor. Locked
+ * value alone misleads: a pool against a thinly traded token can report
+ * hundreds of millions locked yet trade too rarely to chart. A pool priced
+ * directly against a reference token wins when it does at least a fifth of
+ * the busiest pool's trading, since its price needs no second conversion.
+ * When no pool reports trading, the same rule runs on locked value.
  */
 export function choosePool(payload: unknown, mint: string): { address: string; name: string } | null {
   const parsed = poolsSchema.safeParse(payload);
   if (!parsed.success) throw new ServiceError('unavailable', 'Chart pools could not be read.');
   const id = `solana_${mint}`;
-  type Candidate = { address: string; name: string; reserve: number };
-  let deepest: Candidate | null = null;
+  let busiest: Candidate | null = null;
   let reference: Candidate | null = null;
   for (const pool of parsed.data.data) {
     const { base_token: base, quote_token: quote } = pool.relationships;
     if (base.data.id !== id && quote.data.id !== id) continue;
     const reserve = Number(pool.attributes.reserve_in_usd ?? 'NaN');
     if (!Number.isFinite(reserve) || reserve < MIN_CHART_POOL_USD || !/^[1-9A-HJ-NP-Za-km-z]{32,44}$/.test(pool.attributes.address)) continue;
-    const candidate = { address: pool.attributes.address, name: pool.attributes.name, reserve };
-    if (!deepest || reserve > deepest.reserve) deepest = candidate;
-    if (REFERENCE_TOKENS.has(base.data.id === id ? quote.data.id : base.data.id) && (!reference || reserve > reference.reserve)) reference = candidate;
+    const traded = Number(pool.attributes.volume_usd?.h24 ?? 'NaN');
+    const candidate = { address: pool.attributes.address, name: pool.attributes.name, reserve, volume: Number.isFinite(traded) && traded > 0 ? traded : 0 };
+    if (outranks(candidate, busiest)) busiest = candidate;
+    if (REFERENCE_TOKENS.has(base.data.id === id ? quote.data.id : base.data.id) && outranks(candidate, reference)) reference = candidate;
   }
-  const best = reference && deepest && reference.reserve >= deepest.reserve * REFERENCE_DEPTH_SHARE ? reference : deepest;
-  return best ? { address: best.address, name: best.name } : null;
+  if (!busiest) return null;
+  const share = !reference ? 0 : busiest.volume > 0 ? reference.volume / busiest.volume : reference.reserve / busiest.reserve;
+  const best = reference && share >= REFERENCE_SHARE ? reference : busiest;
+  return { address: best.address, name: best.name };
 }
 
 /**

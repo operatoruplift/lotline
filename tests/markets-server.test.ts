@@ -90,10 +90,10 @@ describe('snapshot cache', () => {
 });
 
 describe('price history', () => {
-  const pool = (address: string, base: string, quote: string, reserve: string | null, name = 'AAPLx / USDC') => ({ attributes: { address, name, reserve_in_usd: reserve }, relationships: { base_token: { data: { id: `solana_${base}` } }, quote_token: { data: { id: `solana_${quote}` } } } });
+  const pool = (address: string, base: string, quote: string, reserve: string | null, name = 'AAPLx / USDC', volume?: string | null) => ({ attributes: { address, name, reserve_in_usd: reserve, ...(volume === undefined ? {} : { volume_usd: { h24: volume } }) }, relationships: { base_token: { data: { id: `solana_${base}` } }, quote_token: { data: { id: `solana_${quote}` } } } });
   const USDC = 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v';
   const DEEP = 'CKwJZwm7oj3nu4653N1EpDrqXbXAYXoPFiPeEnLouF8y';
-  it('chooses the deepest pool that contains the mint and clears the value floor', () => {
+  it('chooses among pools that contain the mint and clear the value floor, deepest first when none reports trading', () => {
     expect(choosePool({ data: [pool('ApniVWuZbZoruTAJdyJcLBA4AVw4DKGdV5fHxo6qrAZT', AAPLX, USDC, '253235.29'), pool(DEEP, USDC, AAPLX, '291288.30'), pool('EHdow7Yhmr1ac8Qff9Co1LhSosr38puA6zLd4cbJLdpV', NVDAX, USDC, '999999999'), pool('4dLtt8WQEjkZCiRrNJA5XRqqDBsoymdBxN54dz7pbDie', AAPLX, USDC, String(MIN_CHART_POOL_USD - 1))] }, AAPLX))
       .toEqual({ address: DEEP, name: 'AAPLx / USDC' });
     expect(choosePool({ data: [pool('bad address!', AAPLX, USDC, '1000000'), pool(DEEP, AAPLX, USDC, null)] }, AAPLX)).toBeNull();
@@ -109,6 +109,27 @@ describe('price history', () => {
     const thin = [pool(CROSS, AAPLX, SPYX, '87788'), pool(DEEP, AAPLX, USDC, '6939')];
     expect(choosePool({ data: thin }, AAPLX)?.address).toBe(CROSS);
     expect(choosePool({ data: [pool(CROSS, AAPLX, SPYX, '87788')] }, AAPLX)?.address).toBe(CROSS);
+  });
+  it('ranks pools by their last day of trading, since locked value can be inflated by a thinly traded token', () => {
+    const SOL = 'So11111111111111111111111111111111111111112';
+    const BUSY = 'Czfq3xZZDmsdGdUyrNLtRhGc47cXcZtLG4crryfu44zE';
+    // GeckoTerminal on 1 October 2026: a pump-token pool reported $214M locked
+    // against SOL but traded $754K a day, and charted SOL with two points.
+    const live = [
+      pool('H8unbUfzxrL6NnA4yFkp9BCefDqkB361D3Eb8dbKE9Nj', '78p2mwchPyQ7AYhwZFrKK5oXXuTwHN2frAPqStMcpump', SOL, '214207352.93', 'DOTF / SOL', '754164.33'),
+      pool('58oQChx4yWmvKdwLLZzBi4ChoCc2fqCUWBkwMihLYQo2', SOL, USDC, '35381373.84', 'SOL / USDC', '15776014.14'),
+      pool(BUSY, SOL, USDC, '30776547.53', 'SOL / USDC', '200231174.49'),
+    ];
+    expect(choosePool({ data: live }, SOL)).toEqual({ address: BUSY, name: 'SOL / USDC' });
+    const SPYX = 'XsoCS1TfEyfFhfvj8EtZ528L3CaKBDBRqRapnBbDF2W';
+    const CROSS = 'ApniVWuZbZoruTAJdyJcLBA4AVw4DKGdV5fHxo6qrAZT';
+    // A reference pool wins with at least a fifth of the busiest pool's trading, however shallow; under a fifth it does not.
+    expect(choosePool({ data: [pool(CROSS, AAPLX, SPYX, '87788', 'AAPLx / SPYx', '50000'), pool(DEEP, AAPLX, USDC, '3000', 'AAPLx / USDC', '10000')] }, AAPLX)?.address).toBe(DEEP);
+    expect(choosePool({ data: [pool(CROSS, AAPLX, SPYX, '87788', 'AAPLx / SPYx', '50000'), pool(DEEP, AAPLX, USDC, '300000', 'AAPLx / USDC', '9000')] }, AAPLX)?.address).toBe(CROSS);
+    // A pool that reports no trading, or trading that cannot be read, ranks below one that traded.
+    for (const silent of [null, 'n/a', '-5']) {
+      expect(choosePool({ data: [pool(DEEP, AAPLX, USDC, '900000', 'AAPLx / USDC', silent), pool(CROSS, AAPLX, USDC, '5000', 'AAPLx / USDC', '1200')] }, AAPLX)?.address).toBe(CROSS);
+    }
   });
   it('divides raw-unit prices by the display multiplier in force at each time', () => {
     const scale = { multiplier: 2, newMultiplier: 2.5, effectiveAtMs: 2_000 };
