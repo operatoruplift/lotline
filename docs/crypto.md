@@ -21,6 +21,7 @@ Added 29 September 2026 behind the server flag `LOTLINE_CRYPTO_ENABLED` (off by 
 
 ## How it is verified
 
+- **Mint checks.** The shared mint verifier (`verifyMintAccount` in `lib/server/solana.ts`) treats only USDC and the pinned crypto as classic SPL Token mints: no extensions, and each crypto mint's decimals must match its pin. Every other mint must still be Token-2022 with a ScaledUiAmount display multiplier, so nothing outside the pin is accepted.
 - **Catalog.** `cryptoCatalog()` in `lib/server/catalog.ts` re-reads every pinned mint from the chain. A token is listed only while its mint is still an SPL Token mint with the pinned decimals; otherwise it is reported unavailable with a reason. A failed chain read lists none of them. Crypto has no issuer halt flag, so `halted` is false, meaning no halt exists, never that one went unchecked.
 - **Estimates.** Quotes use the same Jupiter quote-only request as stocks and skip only the xStocks issuer re-check, which crypto does not have.
 - **Holdings.** SOL counts the wallet's native lamports as well as any wrapped SOL in token accounts, so a wallet holding SOL shows it.
@@ -41,5 +42,6 @@ Added 29 September 2026 behind the server flag `LOTLINE_CRYPTO_ENABLED` (off by 
 - `tests/crypto-server.test.ts`: chain verification (decimals or program mismatch and chain failure make a token unavailable), the combined catalog state, native SOL in holdings, and saved and shared plans accepting crypto but not an unlisted mint.
 - `tests/crypto-quotes.test.ts`: crypto quotes skip the issuer check; stock quotes keep it.
 - `tests/markets-routes.test.ts`: the chart endpoint serves crypto only with the crypto flag.
+- `tests/crypto-mints.test.ts`: real-shaped mint accounts: the pinned crypto verify as classic SPL Token mints (cbBTC as freezable); a pinned mint with changed decimals, one that moved to Token-2022, and an unpinned classic mint are refused; a crypto mint reads for its chart with no multiplier.
 - `tests/gallery-database.test.ts`: the database accepts a saved plan mixing xStocks and crypto and still refuses USDC.
 - `tests/e2e-markets/crypto.spec.ts` (flag on): the Crypto tab, cbBTC's sheet (issuer, freeze, backing, bitcoin versions, axe) and adding it to the plan; the planner offering crypto and placing SOL in a split. `tests/e2e-markets/portfolio.spec.ts` checks the Crypto tile.
