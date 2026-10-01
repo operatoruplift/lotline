@@ -1,0 +1,32 @@
+{
+  "checkedAt": "2026-10-01T06:12:58.246068+00:00",
+  "environment": "Vercel production",
+  "readOnly": true,
+  "flagsTrue": {
+    "LOTLINE_EXECUTION_ENABLED": false,
+    "LOTLINE_EXECUTION_KEYLESS_JUPITER": true,
+    "LOTLINE_EXECUTION_MIGRATIONS_READY": true,
+    "LOTLINE_EXECUTION_GUEST_MIGRATIONS_READY": true,
+    "LOTLINE_EXECUTION_INTEGRITY_MIGRATIONS_READY": true,
+    "LOTLINE_EXECUTION_PROOF_MIGRATIONS_READY": true,
+    "LOTLINE_EXECUTION_BATCH_MIGRATIONS_READY": false
+  },
+  "supabaseRepository": true,
+  "validatorAcknowledged": true,
+  "restrictedPolicyConfigured": false,
+  "reviewedWalletCount": 0,
+  "jupiterKeyPresent": false,
+  "journalSecretCurrentFormat": null,
+  "supabaseUrlPresent": true,
+  "rpcUrlPresent": true,
+  "rpcMainnetGenesisVerified": null,
+  "privateValuesInspection": "Vercel CLI redacts sensitive environment values. Secret format and direct RPC network identity cannot be verified from that export; redaction is not a missing or malformed production credential.",
+  "productionCapabilityReconciliationAvailable": true,
+  "productionCapabilityMeaning": "The deployed server reports that its RPC URL, current-format journal secret, Supabase URL, durable repository and required base/guest/integrity acknowledgements are present. This does not prove a purchase.",
+  "remainingActivationGates": [
+    "LOTLINE_EXECUTION_ENABLED",
+    "LOTLINE_EXECUTION_ACCESS_POLICY=restricted-launch-v1",
+    "LOTLINE_EXECUTION_ALLOWED_WALLETS"
+  ],
+  "environmentChanged": false
+}
