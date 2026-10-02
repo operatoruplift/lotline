@@ -88,6 +88,37 @@ test('the asset sheet shows dated context and identity, charts each range, and a
   await expect(page.getByRole('dialog', { name: 'SP500 xStock' })).toContainText('ETF per Nasdaq’s symbol directory');
 });
 
+test('a busy or refused chart offers a retry, and a missing pool does not', async ({ page }) => {
+  await mockMarkets(page);
+  const unavailable = (mint: string, range: string, message: string, retryable?: true) => ({ state: 'unavailable', mint, range, points: [], source: 'GeckoTerminal', pool: null, fetchedAt: FETCHED, message, ...(retryable ? { retryable } : {}) });
+  const answers: ((mint: string, range: string) => { status?: number; json: unknown })[] = [
+    // Lotline's own read limiter answers before any chart exists, so its body names no asset.
+    () => ({ status: 429, json: { state: 'unavailable', message: 'Too many live reads from this connection. Wait a moment, then retry.' } }),
+    (mint, range) => ({ json: unavailable(mint, range, 'The chart source is busy. Try again in a minute.', true) }),
+    (mint, range) => ({ json: chart(mint, range) }),
+    (mint, range) => ({ json: unavailable(mint, range, 'No pool with enough liquidity reports a price history for this asset.') }),
+  ];
+  let call = 0;
+  await page.route('**/api/markets/chart?**', route => {
+    const url = new URL(route.request().url());
+    const answer = answers[Math.min(call++, answers.length - 1)](url.searchParams.get('mint')!, url.searchParams.get('range')!);
+    return route.fulfill({ status: answer.status ?? 200, json: answer.json });
+  });
+  await page.goto(`/markets?asset=${AAPLX.mint}`);
+  const sheet = page.getByRole('dialog', { name: 'Apple xStock' });
+  const retry = sheet.getByRole('button', { name: 'Retry' });
+  await expect(sheet).toContainText('Too many live reads from this connection.');
+  await retry.click();
+  await expect(sheet).toContainText('The chart source is busy.');
+  await retry.click();
+  await expect(sheet.getByRole('img', { name: /Price over the last day/ })).toBeVisible();
+  await expect(retry).toHaveCount(0);
+  await sheet.getByRole('button', { name: '7D' }).click();
+  await expect(sheet).toContainText('No pool with enough liquidity');
+  await expect(retry).toHaveCount(0);
+  expect(call).toBe(4);
+});
+
 test('metals and bonds filters, leverage notes, and switching versions keep the sheet open', async ({ page }) => {
   const bySymbol = (symbol: string) => MARKET_IDENTITIES.find(identity => identity.symbol === symbol)!;
   await mockMarkets(page);
