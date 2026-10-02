@@ -14,14 +14,16 @@ Solana JavaScript stack, so installing it adds `@coral-xyz/anchor`,
 | `bigint-buffer` | buffer overflow in `toBigIntLE()` | none published |
 | `@solana/buffer-layout-utils` | depends on `bigint-buffer` | none published |
 | `@solana/spl-token` | depends on `@solana/buffer-layout-utils` | none published |
-| `toml` | uncontrolled recursion, prototype pollution | none published |
-| `@coral-xyz/anchor` | depends on `toml` | none published |
+| `toml` | uncontrolled recursion, prototype pollution | 4.2.0, pinned through `overrides` since 3 October 2026 |
+| `@coral-xyz/anchor` | depends on `toml` | resolved by the `toml` pin; still moderate through `@coral-xyz/borsh` and `@solana/web3.js` |
 | `@meteora-ag/dynamic-bonding-curve-sdk` | depends on the above | none published |
 
-No release of any of these packages resolves the advisories: `bigint-buffer`
-1.1.5 is both the newest and the affected version, the newest
-`@solana/buffer-layout-utils` still depends on it, and every published `toml`
-release is in the affected range.
+No release resolves the `bigint-buffer` chain: `bigint-buffer` 1.1.5 is both
+the newest and the affected version, and the newest
+`@solana/buffer-layout-utils` still depends on it. `toml` is different, and
+this review originally got it wrong: 4.2.0 (13 July 2026) fixes both
+advisories, but every Anchor release, 0.32.1 included, asks for `toml` ^3.0.0,
+so npm cannot install it without an override. See the update below.
 
 ## What ships
 
@@ -51,3 +53,19 @@ grep -rl "bigint-buffer\|toml\|spl-token" .next/server/app/api/dbc || echo "not 
 
 Re-run both after any change to `@meteora-ag/dynamic-bonding-curve-sdk`, which
 is pinned exactly in `package.json` for this reason.
+
+## Update, 3 October 2026
+
+- **`toml` pinned to 4.2.0** through `overrides` in `package.json`. Anchor uses
+  it in one place, `toml.parse` of an `Anchor.toml` in `workspace.js`. 4.2.0 is
+  still CommonJS with the same `parse`, and refuses the `__proto__` key path
+  behind the prototype-pollution advisory. `npm audit --omit=dev` now reports
+  four high advisories, the `bigint-buffer` chain, instead of six;
+  `@coral-xyz/anchor` drops to moderate. Remove the override once Anchor's own
+  range admits a patched `toml`.
+- **Next.js 16.3.8** for
+  [GHSA-vcvr-r3jv-pc5j](https://github.com/advisories/GHSA-vcvr-r3jv-pc5j)
+  (critical): remote code execution in the Node.js `ImageResponse` from
+  `next/og`. Lotline never imports `next/og` or `ImageResponse`, so it was not
+  exposed; `eslint-config-next` moves with it.
+
