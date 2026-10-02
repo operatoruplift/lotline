@@ -122,7 +122,7 @@ export async function readChart(mint: string, range: ChartRange, deps: Dependenc
   const cached = chartCache.get(key);
   if (cached) return cached;
   const fetchedAt = new Date(deps.now()).toISOString();
-  const unavailable = (message: string): ChartResponse => ({ state: 'unavailable', mint, range, points: [], source: 'GeckoTerminal', pool: null, fetchedAt, message });
+  const unavailable = (message: string, retryable = false): ChartResponse => ({ state: 'unavailable', mint, range, points: [], source: 'GeckoTerminal', pool: null, fetchedAt, message, ...(retryable ? { retryable } : {}) });
   try {
     let pool = poolCache.get(mint);
     if (pool === undefined) {
@@ -132,7 +132,8 @@ export async function readChart(mint: string, range: ChartRange, deps: Dependenc
     if (!pool) return unavailable('No pool with enough liquidity reports a price history for this asset.');
     let scale: DisplayScale | null;
     try { scale = await deps.scale(mint); }
-    catch { return unavailable('This asset’s display units could not be verified, so no price history is shown.'); }
+    // Usually a failed RPC read, so asking again can work.
+    catch { return unavailable('This asset’s display units could not be verified, so no price history is shown.', true); }
     const { timeframe, aggregate, limit } = RANGES[range];
     const raw = normalizeCandles(await deps.run(() => deps.fetch(`${API}/networks/solana/pools/${pool.address}/ohlcv/${timeframe}?aggregate=${aggregate}&limit=${limit}&currency=usd&token=${mint}`, { headers })), range, deps.now());
     if (raw.length < 2) return unavailable('Not enough recent trades to draw this range.');
@@ -141,6 +142,6 @@ export async function readChart(mint: string, range: ChartRange, deps: Dependenc
     chartCache.set(key, result, CHART_TTL_MS);
     return result;
   } catch (error) {
-    return unavailable(error instanceof ServiceError && error.reasonCode === 'rate-limited' ? 'The chart source is busy. Try again in a minute.' : 'The price history is temporarily unavailable.');
+    return unavailable(error instanceof ServiceError && error.reasonCode === 'rate-limited' ? 'The chart source is busy. Try again in a minute.' : 'The price history is temporarily unavailable.', true);
   }
 }

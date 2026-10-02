@@ -3,10 +3,10 @@
 import { useEffect, useRef, useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { ArrowDownRight, ArrowUpRight, Check, Clipboard, ExternalLink, LoaderCircle, Minus, Plus, X } from 'lucide-react';
+import { ArrowDownRight, ArrowUpRight, Check, Clipboard, ExternalLink, LoaderCircle, Minus, Plus, RefreshCw, X } from 'lucide-react';
 import { BACKPACK_UNDERLYINGS } from '@/lib/domain/rails';
 import { jupiterReviewUrl } from '@/lib/domain/jupiter';
-import { CHART_RANGES, formatMarketChange, formatMarketCount, formatMarketPrice, formatMarketUsd, marketDirection, marketTypeLabel, type ChartRange, type ChartResponse, type MarketRow } from '@/lib/domain/markets';
+import { CHART_RANGES, chartFromResponse, formatMarketChange, formatMarketCount, formatMarketPrice, formatMarketUsd, marketDirection, marketTypeLabel, type ChartRange, type ChartResponse, type MarketRow } from '@/lib/domain/markets';
 import { cryptoIdentity } from '@/lib/domain/crypto-assets';
 import type { VersionGroup } from '@/lib/domain/market-themes';
 import { utcTime } from '../verification-receipt';
@@ -45,6 +45,8 @@ export function AssetSheet({ row, versions, snapshotTime, inPlan, onAdd, onSelec
   const dialog = useRef<HTMLDialogElement>(null);
   const body = useRef<HTMLDivElement>(null);
   const [chart, setChart] = useState<ChartState>({ range: '1d', loading: false, data: null });
+  // Bumped by Retry to ask for the same chart once more.
+  const [attempt, setAttempt] = useState(0);
   const [copied, setCopied] = useState(false);
   const mint = row?.mint ?? null;
   const range = chart.range;
@@ -63,16 +65,13 @@ export function AssetSheet({ row, versions, snapshotTime, inPlan, onAdd, onSelec
     const controller = new AbortController();
     queueMicrotask(() => { if (!controller.signal.aborted) setChart(previous => ({ ...previous, loading: true, data: previous.data?.mint === mint && previous.data.range === range ? previous.data : null })); });
     fetch(`/api/markets/chart?mint=${encodeURIComponent(mint)}&range=${range}`, { signal: AbortSignal.any([controller.signal, AbortSignal.timeout(20_000)]) })
-      .then(response => response.json() as Promise<ChartResponse>)
-      .then(data => {
-        if (controller.signal.aborted) return;
-        const valid = data && data.mint === mint && data.range === range && Array.isArray(data.points) &&
-          data.points.every(point => Number.isFinite(point?.t) && Number.isFinite(point?.c) && point.c > 0);
-        setChart({ range, loading: false, data: valid ? data : { state: 'unavailable', mint, range, points: [], source: 'GeckoTerminal', pool: null, fetchedAt: new Date().toISOString(), message: 'The price history could not be verified.' } });
+      .then(async response => {
+        const body: unknown = await response.json().catch(() => null);
+        if (!controller.signal.aborted) setChart({ range, loading: false, data: chartFromResponse(response.status, body, mint, range) });
       })
-      .catch(() => { if (!controller.signal.aborted) setChart({ range, loading: false, data: { state: 'unavailable', mint, range, points: [], source: 'GeckoTerminal', pool: null, fetchedAt: new Date().toISOString(), message: 'The price history could not be loaded.' } }); });
+      .catch(() => { if (!controller.signal.aborted) setChart({ range, loading: false, data: chartFromResponse(0, null, mint, range) }); });
     return () => controller.abort();
-  }, [mint, range]);
+  }, [mint, range, attempt]);
 
   async function copyMint() {
     if (!mint) return;
@@ -115,10 +114,13 @@ export function AssetSheet({ row, versions, snapshotTime, inPlan, onAdd, onSelec
         <div className={styles.rangeTabs} role="group" aria-label="Chart range">
           {CHART_RANGES.map(value => <button key={value} type="button" aria-pressed={range === value} onClick={() => setChart(previous => ({ ...previous, range: value }))}>{value.toUpperCase()}</button>)}
         </div>
-        <div className={styles.chartArea} aria-busy={chart.loading}>
+        <div className={styles.chartArea} aria-busy={chart.loading} aria-live="polite">
           {points.length > 1 ? <PriceChart points={points} rangeLabel={RANGE_LABELS[range]} />
             : chart.loading ? <p className={styles.chartState}><LoaderCircle size={15} className="spinning" aria-hidden="true" />Loading price history…</p>
-              : <p className={styles.chartState}>{disagrees ? 'This pool’s recent prices disagree with the market snapshot, so no chart is shown.' : chart.data?.message ?? 'No price history for this range.'}</p>}
+              : <p className={styles.chartState}>
+                {disagrees ? 'This pool’s recent prices disagree with the market snapshot, so no chart is shown.' : chart.data?.message ?? 'No price history for this range.'}
+                {!disagrees && chart.data?.state === 'unavailable' && chart.data.retryable && <button type="button" className={styles.retryButton} onClick={() => setAttempt(value => value + 1)}>Retry <RefreshCw size={12} aria-hidden="true" /></button>}
+              </p>}
         </div>
         {chart.data?.state === 'success' && chart.data.pool && !disagrees && <p className={styles.chartSource}>USD closing prices per displayed unit, from GeckoTerminal · pool {chart.data.pool.name}</p>}
 

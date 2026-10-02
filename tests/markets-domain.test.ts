@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
-  addAssetToBasket, categoryCounts, CRYPTO_MARKET_IDENTITIES, filterMarkets, formatMarketChange, formatMarketPrice, formatMarketUsd, MARKET_IDENTITIES, marketDirection, marketIdentities,
+  addAssetToBasket, categoryCounts, chartFromResponse, CRYPTO_MARKET_IDENTITIES, filterMarkets, formatMarketChange, formatMarketPrice, formatMarketUsd, MARKET_IDENTITIES, marketDirection, marketIdentities,
   marketIdentity, marketIdentityBySymbol, marketRows, marketTypeLabel, pageOf, sortMarkets, versionRows, type MarketRow,
 } from '../lib/domain/markets';
 import { LEVERAGE_BY_SYMBOL, THEME_SYMBOLS, VERSION_GROUPS } from '../lib/domain/market-themes';
@@ -215,5 +215,32 @@ describe('crypto behind its flag', () => {
     expect(bitcoin?.group.label).toBe('Bitcoin');
     expect(bitcoin?.rows.map(row => row.symbol)).toEqual(['cbBTC', 'WBTC', 'BITXx']);
     expect(versionRows(marketRows(null), marketIdentityBySymbol('BITXx')!)).toBeNull();
+  });
+});
+
+describe('reading a chart answer', () => {
+  const mint = MARKET_IDENTITIES[0].mint;
+  const now = new Date('2026-10-03T12:00:00.000Z');
+  const success = { state: 'success', mint, range: '1d', points: [{ t: 1, c: 2 }, { t: 2, c: 3 }], source: 'GeckoTerminal', pool: null, fetchedAt: now.toISOString() };
+  const refused = (message: string) => ({ state: 'unavailable', mint, range: '1d', points: [], source: 'GeckoTerminal', pool: null, fetchedAt: now.toISOString(), message });
+  it('passes through an answer for the asset and range asked about', () => {
+    expect(chartFromResponse(200, success, mint, '1d', now)).toEqual(success);
+    const busy = { ...refused('The chart source is busy. Try again in a minute.'), retryable: true };
+    expect(chartFromResponse(200, busy, mint, '1d', now)).toEqual(busy);
+  });
+  it('refuses an answer about another asset or range, or with unusable prices, without offering to ask again', () => {
+    for (const body of [{ ...success, mint: MARKET_IDENTITIES[1].mint }, { ...success, range: '7d' }, { ...success, points: [{ t: 1, c: -2 }] }, null, 'nope']) {
+      expect(chartFromResponse(200, body, mint, '1d', now)).toEqual(refused('The price history could not be verified.'));
+    }
+  });
+  it('offers to ask again after a refusal, an outage or no answer, but not after a bad request', () => {
+    const limited = 'Too many live reads from this connection. Wait a moment, then retry.';
+    expect(chartFromResponse(429, { state: 'unavailable', message: limited }, mint, '1d', now)).toEqual({ ...refused(limited), retryable: true });
+    expect(chartFromResponse(503, null, mint, '1d', now)).toEqual({ ...refused('The price history could not be loaded.'), retryable: true });
+    // Status 0: no answer arrived (offline or timed out).
+    expect(chartFromResponse(0, null, mint, '1d', now)).toEqual({ ...refused('The price history could not be loaded.'), retryable: true });
+    expect(chartFromResponse(400, { state: 'invalid-input', message: 'Choose one catalog asset and a range of 1d, 7d or 30d.' }, mint, '1d', now))
+      .toEqual(refused('Choose one catalog asset and a range of 1d, 7d or 30d.'));
+    expect(chartFromResponse(503, { message: 'x'.repeat(201) }, mint, '1d', now).message).toBe('The price history could not be loaded.');
   });
 });
