@@ -12,5 +12,6 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${siteUrl}/brand-kit`, changeFrequency: 'monthly', priority: 0.6 },
     { url: `${siteUrl}/offline`, changeFrequency: 'monthly', priority: 0.5 },
     { url: `${siteUrl}/privacy`, changeFrequency: 'yearly', priority: 0.3 },
+    { url: `${siteUrl}/terms`, changeFrequency: 'yearly', priority: 0.3 },
   ];
 }
