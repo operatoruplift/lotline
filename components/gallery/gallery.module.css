@@ -67,7 +67,27 @@
 .detailList div span { font-size: 11.5px; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .detailList b { margin-left: auto; font-size: 15px; font-weight: 600; font-variant-numeric: tabular-nums; }
 .detailActions { display: flex; flex-wrap: wrap; gap: 10px; margin: 22px 0 14px; }
+/* Report and hide: quiet, below the plan's own actions, so they never compete with Copy. */
+.moderation { display: flex; flex-wrap: wrap; align-items: flex-start; gap: 4px 18px; margin-top: 14px; padding-top: 12px; border-top: 1px solid #e6ebe2; }
+.quietAction { display: inline-flex; align-items: center; gap: 6px; min-height: 40px; padding: 6px 0; border: 0; background: transparent; color: #43574a; font: inherit; font-size: 12px; font-weight: 550; cursor: pointer; text-decoration: underline; text-decoration-color: #43574a55; text-underline-offset: 3px; }
+.quietAction:hover:not(:disabled) { color: var(--forest); text-decoration-color: currentColor; }
+.quietAction:disabled { opacity: .55; cursor: not-allowed; }
+.reportForm { display: grid; gap: 10px; width: 100%; padding: 14px; border: 1px solid var(--line); border-radius: 12px; background: var(--white); }
+.reportForm fieldset { display: grid; gap: 4px; margin: 0; padding: 0; border: 0; min-width: 0; }
+.reportForm legend { margin-bottom: 6px; padding: 0; font-size: 13px; font-weight: 600; color: var(--ink); }
+.reportForm label { display: flex; align-items: center; gap: 10px; min-height: 40px; font-size: 13px; color: #34453a; cursor: pointer; }
+.reportForm input { width: 18px; height: 18px; accent-color: var(--forest); }
+.reportActions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; }
+.reportActions :global(.button) { min-height: 40px; gap: 6px; }
+.reportDone { width: 100%; font-size: 12px; line-height: 1.6; color: #2f5a3d; }
+.reportError { width: 100%; font-size: 12px; line-height: 1.6; color: #8b3430; }
+.hiddenNote { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 12px; margin-top: 18px; padding: 10px 14px; border: 1px solid #d9e2d4; border-radius: 12px; background: #f2f5ee; font-size: 12.5px; color: #34453a; max-width: 760px; }
+.hiddenAuthors { margin-top: 18px; max-width: 760px; font-size: 12.5px; color: #43574a; }
+.hiddenAuthors summary { min-height: 40px; display: flex; align-items: center; cursor: pointer; font-weight: 550; }
+.hiddenAuthors ul { list-style: none; margin: 4px 0 0; padding: 0; border-top: 1px solid #e6ebe2; }
+.hiddenAuthors li { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 4px 0; border-bottom: 1px solid #e6ebe2; }
 @media (max-width: 800px) {
+  .quietAction, .hiddenAuthors summary, .reportForm label { min-height: 44px; }
   .page { padding-block: 32px 40px; }
   .sorts button, .state button, .back { min-height: 44px; }
   .detailActions :global(.button) { min-height: 44px; }

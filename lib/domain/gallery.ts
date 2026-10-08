@@ -26,8 +26,20 @@ export const galleryPlanSchema = z.object({
   published_at: z.string().refine(value => Number.isFinite(Date.parse(value))),
   // When the author last pointed the share at a newer split; absent or null until then.
   split_updated_at: z.string().refine(value => Number.isFinite(Date.parse(value))).nullable().optional(),
+  // The same salted key for every plan one author shares, so a reader can hide them on
+  // this device. It never names the account. Absent until the moderation migration runs.
+  author_key: z.string().regex(/^[a-f0-9]{24}$/).optional(),
 }).strict();
 export type GalleryPlan = z.infer<typeof galleryPlanSchema>;
+/** Why a reader reports a shared plan. Three distinct reporters hide it until an operator reviews it. */
+export const REPORT_REASONS = ['spam', 'misleading', 'offensive', 'other'] as const;
+export type ReportReason = (typeof REPORT_REASONS)[number];
+export const REPORT_REASON_LABELS: Record<ReportReason, string> = {
+  spam: 'Spam or advertising',
+  misleading: 'Misleading name or split',
+  offensive: 'Offensive name',
+  other: 'Something else',
+};
 export type GalleryResponse = { state: 'success'; plans: GalleryPlan[]; sort: GallerySort; page: number; hasMore: boolean } | { state: 'unavailable' | 'configuration-required'; message: string };
 
 /** A shared plan opened in the planner keeps the reader's own budget. */

@@ -64,3 +64,18 @@ test('the tablet plan menu supports keyboard dismissal and keeps Community on Pr
   await expect(create).toHaveAttribute('aria-expanded', 'false');
   await expect(create).toBeFocused();
 });
+
+test('every app screen keeps Privacy and Terms in its phone footer, beside the tab bar', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.route('**/api/markets', route => route.fulfill({ status: 503, json: { state: 'unavailable', message: 'Snapshot is unavailable.' } }));
+  await page.route('**/api/assets', route => route.fulfill({ status: 503, json: { state: 'configuration-required', assets: [], unavailable: [] } }));
+  for (const path of ['/portfolio', '/markets', '/app', '/pre-ipo', '/plans', '/sign-in']) {
+    await page.goto(path);
+    await expect(page.getByRole('navigation', { name: 'Planning sections' }), path).toBeVisible();
+    const footer = page.getByRole('navigation', { name: 'Footer navigation' });
+    await expect(footer.getByRole('link', { name: 'Privacy', exact: true }), path).toHaveAttribute('href', '/privacy');
+    await expect(footer.getByRole('link', { name: 'Terms', exact: true }), path).toHaveAttribute('href', '/terms');
+    await expect(footer.getByRole('link', { name: 'Terms', exact: true }), path).toBeVisible();
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), path).toBe(true);
+  }
+});

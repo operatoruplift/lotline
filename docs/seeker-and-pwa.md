@@ -22,43 +22,65 @@ Mobile Wallet Adapter registers itself only on Android in a secure context (or i
 
 The shell in `android/` was generated with `@solana-mobile/webshell-cli`, which the Solana Mobile docs now recommend over Bubblewrap. It wraps `https://lotline.dev/app` in a WebView with native wallet-intent handling, so the deployed site is the app: redeploying the web app updates the app without a new APK.
 
-Prerequisites: Node 24+, `adb`, and about 2 GB of disk for the Android SDK. The CLI installs a managed JDK 17 and the SDK packages it needs on the first `build` (`doctor --fix` does the same without building).
+Build it with Gradle directly. You need JDK 21 and the Android SDK (`build-tools` 36.1).
 
 ```bash
-npm install -g @solana-mobile/webshell-cli
+export JAVA_HOME=/usr/local/opt/openjdk@21 ANDROID_HOME=$HOME/Library/Android/sdk
 cd android
 
-# First build only: choose a release keystore. The CLI creates it if the file
-# does not exist. Keep it and its passwords outside the repo; losing it means
-# you can never update the app on the dApp Store.
-export WEB_SHELL_KEYSTORE_PASSWORD='...'
-export WEB_SHELL_KEY_PASSWORD='...'
-webshell build . --keystore-path ~/keys/lotline-release.keystore --keystore-alias lotline
-
-adb install -r app/build/outputs/apk/release/app-release.apk
+# A debug build, for a phone you control.
+./gradlew --no-daemon assembleDebug
+adb install -r app/build/outputs/apk/debug/app-debug.apk
 ```
 
-Bump `--version-code` on every release (`webshell init . --force --version-code 2 --version-name 1.1.0` rewrites `gradle.properties`; the URL, id and icons are already recorded in `twa-manifest.json`).
+### Sign a release
+
+The dApp Store needs a release APK signed with a key that has never been used on Google Play. Create the keystore once and keep it, and its passwords, outside the repository. Losing it means you can never update the app on the dApp Store.
+
+```bash
+keytool -genkeypair -v -keystore ~/keys/lotline-release.keystore -alias lotline -keyalg RSA -keysize 4096 -validity 10000
+```
+
+`android/app/build.gradle.kts` reads the keystore file and alias as Gradle properties and the two passwords from the environment:
+
+```bash
+export JAVA_HOME=/usr/local/opt/openjdk@21 ANDROID_HOME=$HOME/Library/Android/sdk
+cd android
+WEB_SHELL_SIGNING_STORE_PASSWORD=… WEB_SHELL_SIGNING_KEY_PASSWORD=… ./gradlew --no-daemon assembleRelease -PWEB_SHELL_SIGNING_STORE_FILE=$HOME/keys/lotline-release.keystore -PWEB_SHELL_SIGNING_KEY_ALIAS=lotline
+```
+
+**A missing property silently produces an unsigned APK.** If the store file, alias or store password is absent, Gradle skips signing and writes `app/build/outputs/apk/release/app-release-unsigned.apk` without an error. Only `app-release.apk` is signed. Check it before you upload:
+
+```bash
+~/Library/Android/sdk/build-tools/36.1.0/apksigner verify --print-certs app/build/outputs/apk/release/app-release.apk
+```
+
+Raise the version for every release: set `WEB_SHELL_VERSION_CODE` (a whole number, one higher each time) and `WEB_SHELL_VERSION_NAME` in `android/gradle.properties`, or pass them with `-P`.
+
+### English only
+
+The app is in English. The AndroidX libraries carry translations for about 85 locales, and an APK declares every locale it contains, so the store would list them all. `androidResources { localeFilters += listOf("en") }` keeps English only. Check a build with:
+
+```bash
+~/Library/Android/sdk/build-tools/36.1.0/aapt2 dump badging app/build/outputs/apk/debug/app-debug.apk | grep -E '^locales'
+```
+
+It prints `locales: '--_--' 'en'`. Before the filter it listed 86 entries.
 
 ## Publish on the Solana dApp Store
 
-Winners must list on the dApp Store to claim CLOCK IN prizes, and the listing is the distribution channel for every Seeker owner.
+The dApp Store is the distribution channel for every Seeker owner. The listing text, banner and screenshots are in [`docs/dapp-store/`](dapp-store/listing.md).
 
-- Register at the Publisher Portal (https://docs.solanamobile.com/dapp-publishing/intro): KYC/KYB, and a publisher wallet holding about 0.2 SOL. That wallet signs every future update, so treat it like the keystore.
-- Signing key: a **new** key never used on Google Play. The keystore above qualifies.
-- Assets: the 512×512 icon (`icons/icon-512.png` or equivalent here), a 1200×600 banner, and at least four phone screenshots.
-- Submit the release APK; review currently takes 3–5 business days. Updates go through the `dapp-store` CLI with the same publisher wallet.
+- **Publisher Portal:** https://publish.solanamobile.com. Publishers complete KYC or KYB.
+- **Publisher wallet:** a desktop browser-extension wallet, not a Ledger. It signs every release and update, so treat it like the keystore.
+- **Cost:** about 0.05–0.1 SOL per release, plus ArDrive storage for the uploaded files.
+- **Package:** a signed release APK only. The store does not take an Android App Bundle (AAB).
+- **Text:** an app name of up to 25 characters and a subtitle of up to 30.
+- **Graphics:** the 512×512 icon (`public/icons/icon-512.png`), a banner of exactly 1200×600, and 4–8 portrait screenshots at least 1080 px wide.
+- **Review:** usually 3–5 business days.
 
 ## Decisions to make before the first publish
 
-- **Application ID is permanent.** This shell uses `dev.lotline.app`. Change it now (`webshell init . --force --application-id ...`) or never.
+- **Application ID is permanent.** This shell uses `dev.lotline.app`. Change it now (`WEB_SHELL_APPLICATION_ID` in `android/gradle.properties`) or never.
 - **Host is pinned.** The shell keeps navigation on `lotline.dev` and opens other hosts in the system browser. Moving to a custom domain later needs a rebuild but keeps the application ID.
-- **Deep links.** The shell opens the start URL; if you want `/rwa?mint=...`-style links to open the app, add an intent filter for the host in `android/app/src/main/AndroidManifest.xml`.
-
-## CLOCK IN checklist (Solana Mobile × RadiantsDAO, closes 8 October 2026)
-
-- [ ] Release APK built with the steps above and installed on a Seeker or Android device
-- [ ] Public GitHub repo (this one), with this branch merged
-- [ ] Demo video showing the install, the wallet handoff and the core flow on a phone
-- [ ] Pitch deck: problem, product, why mobile-first, traction, team
-- [ ] Optional SKR integration for the separate $10K SKR prize
+- **Deep links.** The shell opens the start URL. Markets links a single asset into the planner as `/app?add=<mint>`. If you want those links to open the app, add an intent filter for the host in `android/app/src/main/AndroidManifest.xml`.

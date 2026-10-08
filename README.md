@@ -1,6 +1,6 @@
 # Lotline
 
-> **In 20 seconds.** Lotline plans a USDC contribution across issuer-verified xStocks and pre-IPO PreStocks with exact splits, read-only Jupiter estimates and Pyth references, and can execute the plan on-chain when the operator turns execution on, approving several legs in one wallet prompt. Try it without a wallet: [lotline.dev/app?mode=example](https://lotline.dev/app?mode=example). Built by Matt ([RVAClassic](https://x.com/operatoruplift), Operator Uplift) for the Solana Foundation **Stocklana** sprint and the Solana Mobile **CLOCK IN** hackathon, September 2026. Real today: exact math, mainnet mint verification, installable PWA, Seeker Android shell, Mobile Wallet Adapter, and live reads from PreStocks, Pyth and Meteora. Lotline is a calculation and routing layer: it plans the contribution and hands you an exact, prefilled Jupiter link to review and approve in your own wallet. Everything below is verification detail; nothing claims traction or audits that have not happened.
+> **In 20 seconds.** Lotline plans a USDC contribution across issuer-verified xStocks and pre-IPO PreStocks with exact splits, read-only Jupiter estimates and Pyth references, and can execute the plan on-chain when the operator turns execution on, approving several legs in one wallet prompt. Try it without a wallet: [lotline.dev/app?mode=example](https://lotline.dev/app?mode=example). Built by Matt ([RVAClassic](https://x.com/operatoruplift), Operator Uplift) for the Solana Foundation **Stocklana** sprint, September 2026. Real today: exact math, mainnet mint verification, installable PWA, Seeker Android shell, Mobile Wallet Adapter, and live reads from PreStocks, Pyth and Meteora. Lotline is a calculation and routing layer: it plans the contribution and hands you an exact, prefilled Jupiter link to review and approve in your own wallet. Everything below is verification detail; nothing claims traction or audits that have not happened.
 
 **Your next contribution, clearly.** Choose up to 10 issuer-verified Solana xStocks, set your contribution percentages, enter a USDC budget, and request estimated units. Keep the split for next time, or copy/export the plan for independent review on Jupiter. A public-wallet balance read is optional.
 
@@ -115,7 +115,7 @@ Another flag, `LOTLINE_WALLET_SIGN_IN_ENABLED`, adds **Sign in with Solana** to 
 
 ## Storage and services
 
-Guest basket settings, budget, and the manual review cadence are saved in versioned localStorage on the current browser/device, with safe recovery from corrupt values. Supabase handles optional email/password authentication (and, when its flag is on, Sign in with Solana) and session cookies. An explicit cloud save stores a plan name, verified mints, basis-point weights, and exact budget under the signed-in owner. Wallet addresses, balances, quotes, and projections are excluded. The database enforces owner access with forced row-level security, validates plan content, and limits each account to 20 plans. Users can load or delete their saved plans. See [accounts](docs/accounts.md) and [privacy and storage](https://lotline.dev/privacy).
+Guest basket settings, budget, and the manual review cadence are saved in versioned localStorage on the current browser/device, with safe recovery from corrupt values. Supabase handles optional email/password authentication (and, when its flag is on, Sign in with Solana) and session cookies. An explicit cloud save stores a plan name, verified mints, basis-point weights, and exact budget under the signed-in owner. Wallet addresses, balances, quotes, and projections are excluded. The database enforces owner access with forced row-level security, validates plan content, and limits each account to 20 plans. Users can load or delete their saved plans, and delete their whole account from the app. See [accounts](docs/accounts.md), the [privacy policy](https://lotline.dev/privacy) and the [terms](https://lotline.dev/terms).
 
 Live provider requests use narrow same-origin handlers; authentication uses the official Supabase browser client. Server adapters validate issuer, Solana RPC, and Jupiter response data and expose normalized fields. RPC URLs, API keys, and raw provider errors are not returned. Catalog caching is approximately one hour; holdings approximately 15 seconds; identical quotes only briefly within freshness. Requests have timeouts, queue bounds, and a user-driven retry path.
 
@@ -125,7 +125,7 @@ The Supabase-backed limiter reserves upstream start times across Vercel instance
 
 ## Mobile, desktop, and offline use
 
-Lotline is a responsive, installable Progressive Web App. Supported browsers can add it to the home screen, dock, or desktop with a standalone window. This delivers one web application across mobile, tablet, and desktop; no native App Store or Play Store package is claimed.
+Lotline is a responsive, installable Progressive Web App. Supported browsers can add it to the home screen, dock, or desktop with a standalone window. This delivers one web application across mobile, tablet, and desktop. For the Solana Seeker and the Solana dApp Store, an Android WebView shell (`android/`) opens the same site; it is not on the App Store or Google Play. See [Seeker and PWA readiness](docs/seeker-and-pwa.md) and the [store listing kit](docs/dapp-store/listing.md).
 
 After the app reports **Example is ready to use offline**, disconnected public-page navigation opens the synthetic Example planner. Exact allocation, local drafts, Example estimates, and CSV export continue to work. Live data, authentication, and cloud plans require connectivity. API responses, account pages, authentication flows, and private plans are excluded from the service-worker cache. See [installation and offline behavior](docs/pwa.md).
 
@@ -182,7 +182,7 @@ Lotline application code is [MIT licensed](LICENSE). It uses Next.js/React, Type
 
 ## Structure
 
-- `app/`: website, planner, demo, authentication, privacy, offline page, and narrow API routes.
+- `app/`: website, planner, demo, authentication, privacy and terms, offline page, and narrow API routes.
 - `components/`: responsive planner, account controls, installation UI, and shared visual components.
 - `lib/domain/`: pure exact math, plan identity, bounded share-link encoding, storage schema, text/CSV exports.
 - `lib/server/`: verified catalog, read-only Solana data, quote-only Jupiter adapter, and shared provider limits.
