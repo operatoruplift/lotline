@@ -69,7 +69,7 @@ It prints `locales: '--_--' 'en'`. Before the filter it listed 86 entries.
 
 ## Publish on the Solana dApp Store
 
-Winners must list on the dApp Store to claim CLOCK IN prizes, and the listing is the distribution channel for every Seeker owner. The listing text, banner and screenshots are in [`docs/dapp-store/`](dapp-store/listing.md).
+The dApp Store is the distribution channel for every Seeker owner. The listing text, banner and screenshots are in [`docs/dapp-store/`](dapp-store/listing.md).
 
 - **Publisher Portal:** https://publish.solanamobile.com. Publishers complete KYC or KYB.
 - **Publisher wallet:** a desktop browser-extension wallet, not a Ledger. It signs every release and update, so treat it like the keystore.
@@ -84,11 +84,3 @@ Winners must list on the dApp Store to claim CLOCK IN prizes, and the listing is
 - **Application ID is permanent.** This shell uses `dev.lotline.app`. Change it now (`WEB_SHELL_APPLICATION_ID` in `android/gradle.properties`) or never.
 - **Host is pinned.** The shell keeps navigation on `lotline.dev` and opens other hosts in the system browser. Moving to a custom domain later needs a rebuild but keeps the application ID.
 - **Deep links.** The shell opens the start URL. Markets links a single asset into the planner as `/app?add=<mint>`. If you want those links to open the app, add an intent filter for the host in `android/app/src/main/AndroidManifest.xml`.
-
-## CLOCK IN checklist (Solana Mobile × RadiantsDAO, closes 8 October 2026)
-
-- [ ] Release APK built with the steps above and installed on a Seeker or Android device
-- [ ] Public GitHub repo (this one), with this branch merged
-- [ ] Demo video showing the install, the wallet handoff and the core flow on a phone
-- [ ] Pitch deck: problem, product, why mobile-first, traction, team
-- [ ] Optional SKR integration for the separate $10K SKR prize
