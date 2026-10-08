@@ -3,10 +3,12 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { ArrowLeft, LoaderCircle } from 'lucide-react';
+import { showAuthorOnDevice } from '@/lib/client/hidden-authors';
 import { galleryPlanSchema, type GalleryPlan } from '@/lib/domain/gallery';
 import { SiteFooter, SiteHeader } from '../site-shell';
 import { PlanDetail } from './plan-detail';
 import { byline } from './plan-meta';
+import { useHiddenAuthors } from './use-hidden-authors';
 import styles from './gallery.module.css';
 
 type Load = { state: 'loading' } | { state: 'ready'; plan: GalleryPlan } | { state: 'missing' } | { state: 'failed' };
@@ -14,6 +16,8 @@ type Load = { state: 'loading' } | { state: 'ready'; plan: GalleryPlan } | { sta
 /** A shareable page for one community plan. */
 export function SharedPlan({ id, markets = false }: { id: string; markets?: boolean }) {
   const [load, setLoad] = useState<Load>({ state: 'loading' });
+  const hiddenAuthors = useHiddenAuthors();
+  const hiddenKey = load.state === 'ready' && load.plan.author_key && hiddenAuthors?.some(author => author.key === load.plan.author_key) ? load.plan.author_key : null;
   useEffect(() => {
     const controller = new AbortController();
     fetch(`/api/gallery/${encodeURIComponent(id)}`, { signal: AbortSignal.any([controller.signal, AbortSignal.timeout(20_000)]) })
@@ -35,7 +39,8 @@ export function SharedPlan({ id, markets = false }: { id: string; markets?: bool
       {load.state === 'loading' && <p className={styles.state} role="status"><LoaderCircle size={15} className="spinning" aria-hidden="true" />Loading this plan…</p>}
       {load.state === 'missing' && <div className={styles.empty}><h1>This plan is no longer shared.</h1><p>Its member may have stopped sharing it or deleted it.</p><Link className="button primary" href="/plans">Browse community plans</Link></div>}
       {load.state === 'failed' && <div className={styles.empty}><h1>This plan couldn’t be loaded.</h1><p>Community plans are temporarily unavailable. Your own plan is unaffected.</p></div>}
-      {load.state === 'ready' && <article className={styles.detail} aria-labelledby="shared-plan-title">
+      {hiddenKey && <div className={styles.empty}><h1>You hid plans from this author.</h1><p>That choice is saved on this device only. Lotline did not tell anyone.</p><button type="button" className="button primary" onClick={() => showAuthorOnDevice(hiddenKey)}>Show their plans again</button></div>}
+      {load.state === 'ready' && !hiddenKey && <article className={styles.detail} aria-labelledby="shared-plan-title">
         <p className="eyebrow">COMMUNITY PLAN</p>
         <h1 id="shared-plan-title">{load.plan.name}</h1>
         <p className={styles.detailBy}>{byline(load.plan)}</p>

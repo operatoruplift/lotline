@@ -9,12 +9,14 @@ import type { GalleryPlan } from '@/lib/domain/gallery';
 import { marketIdentity } from '@/lib/domain/markets';
 import { bpsToPercent } from '@/lib/domain/rebalance';
 import { copySharedPlan } from './copy-plan';
+import { HideAuthor } from './hidden-authors';
 import { authorName, copiesLabel, sharedOn, SplitBar, updatedOn } from './plan-meta';
+import { ReportPlan } from './report-plan';
 import { useFollowing } from './use-following';
 import styles from './gallery.module.css';
 
 /** A shared plan's full split and what to do with it. Its page and the leaderboard's sheet both show this. */
-export function PlanDetail({ plan }: { plan: GalleryPlan }) {
+export function PlanDetail({ plan, onAuthorHidden }: { plan: GalleryPlan; onAuthorHidden?: (plan: GalleryPlan) => void }) {
   const router = useRouter();
   const [copied, setCopied] = useState(false);
   const followed = useFollowing();
@@ -41,5 +43,10 @@ export function PlanDetail({ plan }: { plan: GalleryPlan }) {
     </div>
     <p className={styles.followNote} role="status">{following ? `Portfolio will show when ${authorName(plan)} changes this split. Your plan changes only when you review and apply it.` : 'Copying also follows this plan, so Portfolio can show when its split changes.'}</p>
     <p className={styles.privacy}><ShieldCheck size={14} aria-hidden="true" />You’ll review the split with your own budget before anything changes. Nothing is bought, and this is a member’s choice, not advice.</p>
+    {/* Author keys arrive with the moderation migration, so both controls appear only once reports can be stored. */}
+    {plan.author_key && <div className={styles.moderation}>
+      <ReportPlan plan={plan} />
+      <HideAuthor plan={plan} onHidden={() => onAuthorHidden?.(plan)} />
+    </div>}
   </>;
 }
