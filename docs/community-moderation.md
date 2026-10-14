@@ -17,6 +17,11 @@ The controls ship with `supabase/migrations/20261007091000_community_moderation.
 - **Author key.** The gallery and plan APIs return `author_key`: the first 24 hex characters of SHA-256 over a random salt and the author's account id. It is the same for all of an author's plans and cannot be turned back into an account without the salt, which only the database owner can read (`lotline_private.gallery_secrets`). Changing the salt resets every reader's hidden-author list, so leave it alone.
 - RLS is on for the new tables with no policies, and no role has table grants. `lotline_report_plan` is executable by signed-in members; `lotline_report_plan_as_guest`, `lotline_hide_published_plan` and `lotline_unhide_published_plan` only by the service role. The database owner (the SQL editor) can run everything.
 
+## Known limits
+
+- Unsharing a plan deletes its published row and every report on it. If the author shares the same plan again it comes back visible, and hiding it again takes three new reporters or an operator. Readers who chose **Hide plans from this author** keep that choice, because the author key is per account, not per share. To stop a repeat offender, hide the new row with the operator SQL below.
+- Three distinct reporters hide a plan, and guests count as reporters, so three connections with different addresses can hide any plan until an operator restores it. Restoring marks those reports reviewed, so the same reporters cannot hide it again.
+
 ## Operator SQL
 
 Run these in the Supabase SQL editor for the Lotline project. Replace `<shared plan id>` with the id from a `/plans/<id>` link.

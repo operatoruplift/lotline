@@ -30,7 +30,7 @@ const sections: LegalSection[] = [
       <li><strong>Copies.</strong> When a signed-in member copies a shared plan, we record that their account copied it, once, to count copies. Authors see only the total.</li>
       <li><strong>Reports.</strong> When you report a shared plan, we store the plan, your reason and the time. A signed-in report is linked to your account. A guest report is linked to a salted hash of your IP address instead of the address itself. Reports are never shown to the author or to other members. A plan reported by three different people is hidden until it is reviewed.</li>
     </ul>
-    <p>Follows of community plans and authors you hide stay on your device only. They are never sent to Lotline.</p>
+    <p>Follows of community plans and authors you hide are stored on your device only; Lotline never stores them. When Portfolio refreshes a followed plan, your browser requests that plan from our server the way a gallery visit does, so that request names the plan, but we keep no record of what you follow.</p>
   </> },
   { id: 'purchases', title: 'Purchases and the purchase journal', body: <>
     <p>In-app purchases are a restricted launch for reviewed wallets. Everywhere else they are off, and you can take your plan to Jupiter yourself.</p>

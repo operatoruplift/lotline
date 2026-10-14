@@ -14,7 +14,7 @@ const sections: LegalSection[] = [
     <p>These terms are an agreement between you and {OPERATOR} (“we”), which runs Lotline at lotline.dev and in the Lotline Android app. By using Lotline you accept them. If you do not accept them, do not use Lotline. Our <Link href="/privacy">privacy policy</Link> explains what we store.</p>
   </> },
   { id: 'dapp-store', title: 'If you got Lotline from the Solana dApp Store', body: <>
-    <p>If you obtained Lotline through the Solana dApp Store, these terms are between you and {OPERATOR} only. Solana Mobile is not a party to them. Solana Mobile has no responsibility or liability for Lotline, its content, or its support or maintenance.</p>
+    <p>If you obtained Lotline through the Solana dApp Store, these terms are between you and {OPERATOR} only. Solana Mobile and its parents, subsidiaries, affiliates, officers, employees, agents, partners, suppliers and licensors (the Solana Mobile Parties) are not a party to these terms and have no responsibility or liability to you in connection with Lotline, its content, its support or maintenance, or any Solana Mobile program. The No warranty and Limitation of liability sections of these terms protect the Solana Mobile Parties to the same extent as they protect {OPERATOR}. {OPERATOR} alone is responsible for Lotline and for answering any claim about it.</p>
   </> },
   { id: 'eligibility', title: 'Who may use Lotline', body: <>
     <ul>

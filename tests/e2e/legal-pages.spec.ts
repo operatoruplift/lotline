@@ -3,7 +3,7 @@ import { expect, test } from './test';
 
 const pages = [
   { path: '/privacy', heading: 'What Lotline stores, and why.', must: ['Sign in with Solana', 'purchase journal', 'Transactions on Solana are public and permanent.', 'salted hash of the IP address', 'GeckoTerminal', 'Adults only'] },
-  { path: '/terms', heading: 'The terms for using Lotline.', must: ['Solana Mobile is not a party to them', 'no responsibility or liability for Lotline, its content, or its support or maintenance', 'at least 18 years old', 'xstocks.com', 'Lotline never holds your private keys', 'administrative transfer', 'Leveraged products', 'Limitation of liability', 'Governing law'] },
+  { path: '/terms', heading: 'The terms for using Lotline.', must: ['(the Solana Mobile Parties) are not a party to these terms', 'no responsibility or liability to you in connection with Lotline', 'protect the Solana Mobile Parties to the same extent', 'at least 18 years old', 'xstocks.com', 'Lotline never holds your private keys', 'administrative transfer', 'Leveraged products', 'Limitation of liability', 'Governing law'] },
 ];
 
 for (const { path, heading, must } of pages) {

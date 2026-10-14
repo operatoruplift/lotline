@@ -71,6 +71,8 @@ Try it without an account or a wallet: Example mode uses synthetic balances and 
 
 Until `NEXT_PUBLIC_SUPPORT_EMAIL` is set, the privacy and terms pages send people to https://github.com/operatoruplift/lotline/issues. Use the same support address in the Portal and in that variable. Check that both legal pages load on https://lotline.dev before you submit.
 
+The description says email sign-in works. Keep that sentence only if `NEXT_PUBLIC_AUTH_EMAIL_ENABLED` is `true` in production; otherwise delete it before pasting, because the sign-in page hides the email form while the flag is off.
+
 ## Other fields
 
 | Field | Value |
