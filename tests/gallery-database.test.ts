@@ -58,8 +58,10 @@ describe('community plan gallery', () => {
     const planId = await savePlan(alice, 'Big tech core');
     const id = await publish(alice, planId, 'Alice P.');
     const [entry] = await gallery();
-    expect(Object.keys(entry).sort()).toEqual(['allocations', 'copy_count', 'display_name', 'id', 'name', 'published_at', 'split_updated_at']);
+    expect(Object.keys(entry).sort()).toEqual(['allocations', 'author_key', 'copy_count', 'display_name', 'id', 'name', 'published_at', 'split_updated_at']);
     expect(entry.split_updated_at).toBeNull();
+    // A salted per-author key for hiding an author's plans on a device; never the account id.
+    expect(entry.author_key).toMatch(/^[a-f0-9]{24}$/);
     expect(entry).toMatchObject({ id, name: 'Big tech core', display_name: 'Alice P.', copy_count: 0, allocations: [{ mint: AAPLX, bps: '6000' }, { mint: MSFTX, bps: '4000' }] });
     expect(JSON.stringify(entry)).not.toContain('250000000');
     expect(JSON.stringify(entry)).not.toContain(alice);

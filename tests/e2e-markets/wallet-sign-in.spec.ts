@@ -43,12 +43,19 @@ async function wallets(page: Page, list: { name: string; behaviour: Behaviour }[
   }, { list, address });
 }
 
-/** Every account request answers from a fixture; the web3 grant is recorded. */
+/** Every account request answers from a fixture; the web3 grant is recorded. The member is a guest until a grant succeeds. */
 async function auth(page: Page, grant: (body: Record<string, unknown>) => { status: number; json: unknown; headers?: Record<string, string> }) {
   const grants: Record<string, unknown>[] = [];
+  let signedIn = false;
   await page.route('**/auth/v1/**', route => route.fulfill({ status: 401, json: { code: 'bad_jwt', msg: 'Fixture session only' } }));
-  await page.route('**/auth/v1/token?grant_type=web3', route => { const body = route.request().postDataJSON() as Record<string, unknown>; grants.push(body); return route.fulfill(grant(body)); });
-  await page.route('**/api/auth/session', route => route.fulfill({ json: { state: 'signed-in', user: { id: userId, wallet: address } } }));
+  await page.route('**/auth/v1/token?grant_type=web3', route => {
+    const body = route.request().postDataJSON() as Record<string, unknown>;
+    grants.push(body);
+    const answer = grant(body);
+    if (answer.status === 200) signedIn = true;
+    return route.fulfill(answer);
+  });
+  await page.route('**/api/auth/session', route => route.fulfill({ json: signedIn ? { state: 'signed-in', user: { id: userId, wallet: address } } : { state: 'guest', user: null } }));
   await page.route('**/api/plans', route => route.fulfill({ json: { plans: [] } }));
   await page.route('**/api/gallery/mine', route => route.fulfill({ json: { shared: [] } }));
   await page.route('**/api/assets', route => route.fulfill({ status: 503, json: { state: 'configuration-required', assets: [], unavailable: [] } }));
@@ -138,4 +145,21 @@ test('without a wallet the page says how to get one, and email sign-in is unchan
   await expect(page.getByText(/No Solana wallet found in this browser/)).toBeVisible();
   await expect(page.getByLabel('Email address')).toBeVisible();
   await expect(page.getByRole('button', { name: 'Sign in', exact: true })).toBeEnabled();
+});
+
+test('the Account tab shows a signed-in wallet member their wallet, with sign out and account deletion', async ({ page }) => {
+  await auth(page, () => ({ status: 500, json: {} }));
+  // Registered last, so it answers first: this member is already signed in.
+  await page.route('**/api/auth/session', route => route.fulfill({ json: { state: 'signed-in', user: { id: userId, wallet: address } } }));
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto('/app?mode=example');
+  await page.getByRole('navigation', { name: 'Planning sections' }).getByRole('link', { name: 'Account' }).click();
+  await expect(page).toHaveURL(/\/sign-in$/);
+  const card = page.locator('[data-glass-card]');
+  await expect(card.getByText('Signed in as wallet 7xKX…gAsU')).toBeVisible();
+  await expect(card.getByRole('button', { name: 'Sign out', exact: true })).toBeVisible();
+  await card.getByRole('button', { name: 'Delete account', exact: true }).click();
+  await expect(card.getByRole('group', { name: 'Delete your account?' })).toContainText('Transactions on Solana are public and permanent');
+  const accessibility = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21aa']).analyze();
+  expect(accessibility.violations.map(violation => violation.id)).toEqual([]);
 });

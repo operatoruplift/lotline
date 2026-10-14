@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- English is the app's one language. This folder declares it explicitly, so the
+     APK lists "en" next to the default; keep the text the same as values/. -->
+<resources>
+    <string name="app_name">Lotline</string>
+</resources>

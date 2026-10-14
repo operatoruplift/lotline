@@ -58,6 +58,8 @@
 .planActions { display:flex; gap:16px; flex-shrink:0; }
 .cloud .error,.cloud .success { margin-top:15px; }
 .cloud .accountEmail { overflow-wrap:anywhere; }
+.accountFooter { display:flex; flex-wrap:wrap; align-items:flex-start; justify-content:space-between; gap:0 18px; margin-top:6px; }
+.accountFooter > :last-child:not(button) { flex-basis:100%; }
 @media (max-width:780px) { .formCard { padding:34px 32px 25px; } }
 @media (max-width:420px) { .formCard { padding:29px 24px 23px; } .formCard h1 { font-size:31px; } .brand { margin-bottom:20px; } .cloud { padding:19px; } .saveForm { align-items:stretch; flex-direction:column; } .planList li { align-items:flex-start; } }
 @media (prefers-reduced-motion:reduce) { .spin { animation:none; } }

@@ -1,0 +1,94 @@
+<!doctype html>
+<!--
+  Solana dApp Store banner, 1200 x 600. Rendered by scripts/generate-store-kit.mjs at
+  deviceScaleFactor 1. Everything comes from the brand kit: the exact mark files in
+  public/brand/, the forest sculpture in public/brand-kit/art/, the palette in
+  public/brand-kit/brand-guide.md and the app's own type (Georgia display, system sans).
+  The card restates the planner's own split card; it is not a chart and promises nothing.
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Lotline dApp Store banner</title>
+<style>
+  :root {
+    --forest: #174D3C; --deep: #112B24; --paper: #F5F4EE; --sage: #BFD5A9; --moss: #6E8D6B;
+    --ink: #18211D; --eucalyptus: #87998A; --stone: #DCDDD2;
+    --split-forest: #174D3C; --split-sage: #7D9C85; --split-mint: #C6DFB9;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, Helvetica, sans-serif;
+    --serif: Georgia, "Times New Roman", serif;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { width: 1200px; height: 600px; overflow: hidden; background: var(--deep); }
+  body { position: relative; font-family: var(--sans); color: var(--paper); -webkit-font-smoothing: antialiased; }
+
+  /* The sculpture sits on the right and dissolves into deep forest, so the type keeps a quiet field. */
+  .art { position: absolute; top: 0; right: 0; width: 700px; height: 600px; background: url("../../public/brand-kit/art/forest-sculpture.png") 50% 44% / 760px auto no-repeat; }
+  .art::after { content: ""; position: absolute; inset: 0;
+    background:
+      linear-gradient(90deg, var(--deep) 0%, rgba(17, 43, 36, .88) 16%, rgba(17, 43, 36, .35) 42%, rgba(17, 43, 36, 0) 64%),
+      linear-gradient(180deg, rgba(17, 43, 36, .55) 0%, rgba(17, 43, 36, 0) 22%, rgba(17, 43, 36, 0) 74%, rgba(17, 43, 36, .7) 100%); }
+  /* A faint grain keeps the flat field from reading as a digital fill. */
+  .grain { position: absolute; inset: 0; opacity: .07; mix-blend-mode: soft-light; pointer-events: none; }
+
+  .copy { position: absolute; left: 84px; top: 74px; width: 520px; }
+  .lockup { display: flex; align-items: center; gap: 10px; }
+  .lockup img { width: 34px; height: 34px; display: block; }
+  .lockup span { font-size: 29px; font-weight: 650; letter-spacing: -1.3px; line-height: 1; color: var(--paper); }
+  .lockup b { font-weight: 650; color: var(--sage); }
+
+  .eyebrow { margin-top: 74px; display: flex; align-items: center; gap: 14px; font-size: 11.5px; font-weight: 600; letter-spacing: 2.6px; color: var(--sage); }
+  .eyebrow::before { content: ""; width: 26px; height: 1px; background: currentColor; opacity: .7; }
+  h1 { margin-top: 20px; font-family: var(--serif); font-weight: 400; font-size: 60px; line-height: 1.04; letter-spacing: -2.1px; color: var(--paper); }
+  h1 em { font-style: italic; color: #DCE8D0; }
+  .lede { margin-top: 24px; max-width: 440px; font-size: 17px; line-height: 1.6; color: #C5D2C4; }
+
+  .steps { position: absolute; left: 84px; bottom: 70px; display: flex; gap: 0; font-size: 11px; font-weight: 600; letter-spacing: 2.2px; color: #9FB29F; }
+  .steps span + span::before { content: "/"; margin: 0 12px; color: #5E7766; }
+
+  /* The planner's split card, restated: a budget, a three-way split, nothing bought. */
+  .card { position: absolute; left: 742px; top: 214px; width: 342px; padding: 22px 24px 18px; border-radius: 18px;
+    background: var(--paper); color: var(--ink);
+    box-shadow: 0 40px 70px rgba(4, 14, 10, .55), 0 10px 22px rgba(4, 14, 10, .35), inset 0 1px 0 rgba(255, 255, 255, .7); }
+  .card-top { display: flex; align-items: center; justify-content: space-between; }
+  .label { font-size: 10px; font-weight: 650; letter-spacing: 1.7px; color: #52675A; }
+  .chip { display: inline-flex; align-items: center; gap: 5px; padding: 4px 9px; border-radius: 99px; background: #E4ECDE; color: var(--forest); font-size: 11px; font-weight: 650; }
+  .chip svg { width: 11px; height: 11px; }
+  .amount { margin-top: 14px; display: flex; align-items: baseline; gap: 7px; }
+  .amount strong { font-size: 42px; font-weight: 650; letter-spacing: -1.6px; line-height: 1; font-variant-numeric: tabular-nums; }
+  .amount small { font-size: 13px; font-weight: 600; letter-spacing: .4px; color: #68736A; }
+  .per { margin-top: 7px; font-size: 13px; color: #5D695F; }
+  .bar { margin-top: 16px; display: flex; gap: 3px; height: 10px; }
+  .bar i { display: block; height: 100%; border-radius: 99px; }
+  .legend { margin-top: 10px; display: flex; gap: 18px; font-size: 12px; font-weight: 600; color: #3C4A40; font-variant-numeric: tabular-nums; }
+  .legend span { display: inline-flex; align-items: center; gap: 6px; }
+  .legend span::before { content: ""; width: 8px; height: 8px; border-radius: 3px; background: var(--dot); }
+  .note { margin-top: 16px; padding-top: 13px; border-top: 1px solid #DFE4DD; display: flex; align-items: center; gap: 7px; font-size: 11.5px; color: #68736A; }
+  .note svg { width: 13px; height: 13px; flex: none; color: var(--forest); }
+</style>
+</head>
+<body>
+  <div class="art" aria-hidden="true"></div>
+  <svg class="grain" width="1200" height="600" aria-hidden="true"><filter id="noise"><feTurbulence type="fractalNoise" baseFrequency=".9" numOctaves="2" stitchTiles="stitch"/><feColorMatrix type="saturate" values="0"/></filter><rect width="1200" height="600" filter="url(#noise)"/></svg>
+
+  <div class="copy">
+    <div class="lockup"><img src="../../public/brand/mark-light.svg" alt=""><span>Lotline<b>.</b></span></div>
+    <p class="eyebrow">CONTRIBUTION PLANNING ON SOLANA</p>
+    <h1>Your next<br>contribution,<br><em>clearly.</em></h1>
+    <p class="lede">Choose your split. See the estimates.<br>Keep the decision yours.</p>
+  </div>
+  <p class="steps"><span>PLAN</span><span>VERIFY</span><span>REVIEW</span></p>
+
+  <div class="card" role="img" aria-label="A plan card: 250 USDC per contribution, split three ways">
+    <div class="card-top">
+      <span class="label">YOUR NEXT CONTRIBUTION</span>
+      <span class="chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>Ready</span>
+    </div>
+    <div class="amount"><strong>250.00</strong><small>USDC</small></div>
+    <p class="per">per contribution, split across 3 assets</p>
+    <div class="bar"><i style="width:40%;background:var(--split-forest)"></i><i style="width:35%;background:var(--split-sage)"></i><i style="width:25%;background:var(--split-mint)"></i></div>
+    <div class="legend"><span style="--dot:var(--split-forest)">40%</span><span style="--dot:var(--split-sage)">35%</span><span style="--dot:var(--split-mint)">25%</span></div>
+    <p class="note"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/><path d="m9 12 2 2 4-4"/></svg>Quote only. No transaction or signature.</p>
+  </div>
+</body>
+</html>

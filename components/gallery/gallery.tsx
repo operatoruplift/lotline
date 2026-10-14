@@ -3,11 +3,15 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { Info, LoaderCircle, RefreshCw, ShieldCheck } from 'lucide-react';
+import { showAuthorOnDevice } from '@/lib/client/hidden-authors';
 import { GALLERY_SORTS, galleryPlanSchema, type GalleryPlan, type GallerySort } from '@/lib/domain/gallery';
+import { visiblePlans } from '@/lib/domain/hidden-authors';
 import { SiteFooter, SiteHeader } from '../site-shell';
+import { HiddenAuthorsList } from './hidden-authors';
 import { PlanRow } from './plan-row';
 import { PlanSheet } from './plan-sheet';
 import { useFollowing } from './use-following';
+import { useHiddenAuthors } from './use-hidden-authors';
 import styles from './gallery.module.css';
 
 const SORT_LABELS: Record<GallerySort, string> = { copies: 'Most copied', recent: 'Newest' };
@@ -24,6 +28,11 @@ export function Gallery({ markets = false }: { markets?: boolean }) {
   const [requested, setRequested] = useState<string | null>(null);
   const followed = useFollowing();
   const followingIds = useMemo(() => new Set(followed?.map(item => item.id)), [followed]);
+  // Authors this reader hid stay out of the list on this device; the server never learns who.
+  const hiddenAuthors = useHiddenAuthors();
+  const [justHidden, setJustHidden] = useState<{ key: string; name: string | null } | null>(null);
+  const shown = useMemo(() => load.state === 'ready' ? visiblePlans(load.plans, hiddenAuthors ?? []) : [], [load, hiddenAuthors]);
+  const undoable = justHidden && hiddenAuthors?.some(author => author.key === justHidden.key) ? justHidden : null;
 
   // The open plan lives in the URL (?plan=<id>), like Markets' open asset, so a view can be reopened.
   useEffect(() => {
@@ -82,13 +91,16 @@ export function Gallery({ markets = false }: { markets?: boolean }) {
       </div>
       {load.state === 'loading' && <p className={styles.state} role="status"><LoaderCircle size={15} className="spinning" aria-hidden="true" />Loading community plans…</p>}
       {load.state === 'failed' && <div className={styles.state} role="status"><Info size={15} aria-hidden="true" /><span>{load.message}</span><button type="button" onClick={() => { setPage(1); setReload(value => value + 1); }}>Retry <RefreshCw size={12} /></button></div>}
+      {undoable && <p className={styles.hiddenNote} role="status">Plans from {undoable.name ?? 'this member'} are hidden on this device. <button type="button" className={styles.quietAction} onClick={() => { showAuthorOnDevice(undoable.key); setJustHidden(null); }}>Undo</button></p>}
       {load.state === 'ready' && (load.plans.length ? <>
-        <ol className={styles.board} aria-label={sort === 'copies' ? 'Plans by copies' : 'Newest plans'}>{load.plans.map((plan, index) => <PlanRow key={plan.id} plan={plan} rank={sort === 'copies' ? index + 1 : undefined} following={followingIds.has(plan.id)} onOpen={open} />)}</ol>
+        {shown.length ? <ol className={styles.board} aria-label={sort === 'copies' ? 'Plans by copies' : 'Newest plans'}>{shown.map((plan, index) => <PlanRow key={plan.id} plan={plan} rank={sort === 'copies' ? index + 1 : undefined} following={followingIds.has(plan.id)} onOpen={open} />)}</ol>
+          : <div className={styles.empty}><h2>Every plan here is from an author you hid.</h2><p>Show an author again below, or load more plans.</p></div>}
         {load.hasMore && <button type="button" className={`button secondary ${styles.moreButton}`} onClick={() => setPage(value => value + 1)}>Show more plans</button>}
       </> : <div className={styles.empty}><h2>No shared plans yet.</h2><p>Save a plan to your account, then choose <strong>Share to community</strong> beside it. Only its name and split are shown.</p><Link className="button primary" href="/app">Open the planner</Link></div>)}
-      <p className={styles.footnote}>Copying opens the plan for your review with your own budget. Nothing is bought, and the plan is not advice: percentages are each member’s own choice.</p>
+      <HiddenAuthorsList authors={hiddenAuthors} />
+      <p className={styles.footnote}>Copying opens the plan for your review with your own budget. Nothing is bought, and the plan is not advice: percentages are each member’s own choice. Report a plan from its page if something is wrong with it.</p>
     </main>
     <SiteFooter />
-    <PlanSheet plan={opened} onClose={close} />
+    <PlanSheet plan={opened} onClose={close} onAuthorHidden={plan => { close(); if (plan.author_key) setJustHidden({ key: plan.author_key, name: plan.display_name }); }} />
   </>;
 }

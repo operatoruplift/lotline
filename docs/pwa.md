@@ -1,6 +1,6 @@
 # Install Lotline
 
-Lotline is an installable PWA with one responsive codebase for phone, tablet, and desktop. It is a browser application; no native app-store binaries are required or claimed.
+Lotline is an installable PWA with one responsive codebase for phone, tablet, and desktop. On Android and the Solana Seeker it is also packaged for the Solana dApp Store as a WebView shell that opens the same site (`android/`, see [Seeker and PWA readiness](seeker-and-pwa.md)). It is not on the App Store or Google Play.
 
 - **Chrome or Edge:** open the deployed HTTPS site and choose **Install Lotline**, the address-bar install icon, or the browser’s install menu item.
 - **iPhone or iPad:** open the site in Safari, choose **Share → Add to Home Screen → Add**. Turn on **Open as Web App** if offered.

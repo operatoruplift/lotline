@@ -40,6 +40,25 @@ Each row contains the authenticated user ID, a generated plan ID, a name, exact 
 
 Each account can keep 20 plans. A per-user transaction lock serializes the count check. Read and delete policies require `auth.uid() = user_id`; create also requires ownership. Application queries add the owner filter as a second check. A loaded plan gets fresh quotes only when the user asks for them; cloud storage never makes an old quote look current.
 
+## Deleting an account
+
+Added 7 October 2026 for the Solana dApp Store Publisher Policy. A signed-in member can delete their account from **Account** (`/sign-in`, which shows a signed-in member their account instead of a second sign-in) or from the planner's account panel. **Delete account** opens an in-page confirmation that says what goes and that Solana transactions stay. **Delete my account** calls `DELETE /api/account`, then the browser signs out locally and shows a confirmation.
+
+The route refuses another origin, allows 5 attempts per connection every 10 minutes (in the instance and in the shared bucket, keyed by a salted hash), revalidates the session with `auth.getUser()`, and deletes only that user with the admin API (`SUPABASE_SECRET_KEY`). It answers `configuration-required` without the secret key, and a failed deletion says nothing was removed.
+
+Every table that references `auth.users` uses `ON DELETE CASCADE`, so one delete removes:
+
+| Table | How it goes |
+| --- | --- |
+| `lotline_contribution_plans` | `user_id` cascade |
+| `lotline_published_plans` | `user_id` cascade, and with its saved plan |
+| `lotline_plan_copies` | `user_id` cascade, and with the shared plan |
+| `lotline_plan_reports` | `reporter_id` cascade, and with the shared plan |
+| `lotline_contribution_schedules`, `lotline_contribution_occurrences` | `user_id` cascade, then `schedule_id` cascade |
+| `lotline_execution_runs`, `_legs`, `_attempts`, `_events` | `user_id` cascade, then `run_id` and `leg_id` cascade |
+
+One link used to stop it: a reminder occurrence that started a run referenced the run with no delete action, so deleting an account with both failed. `20261007090000_account_deletion.sql` makes that link `ON DELETE SET NULL`. Copy totals on other members' plans stay (they name no one), as do guest records, which are not linked to the account. On-chain transactions are public and permanent. `tests/account-deletion-database.test.ts` deletes a user with every kind of record in isolated PostgreSQL and checks what goes and what stays; `tests/account-route.test.ts` and `tests/e2e/account-deletion.spec.ts` cover the route and the flow.
+
 ## Verification
 
 `npx vitest run tests/supabase-plans.test.ts tests/supabase-api.test.ts` exercises exact round trips, bad money strings, forbidden fields, unsupported mints, duplicate weights, missing sessions, cross-origin writes, owner spoofing, database filters, sanitized account responses, and callback redirects.
