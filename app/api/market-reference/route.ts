@@ -1,12 +1,15 @@
-import { readSmallJson } from '@/lib/server/common';
+import { readSmallJson, safeMessage } from '@/lib/server/common';
 import { isUnmappedPythSelection } from '@/lib/domain/market-reference';
 import { emptyMarketReference, getMarketReferences, marketReferenceRequestSchema } from '@/lib/server/pyth';
+import { enforceReadRateLimit, readFailure } from '@/lib/server/read-limits';
 import { noStore, optionalHttpStatus } from '@/lib/server/requests';
 
 export const dynamic = 'force-dynamic';
 export const maxDuration = 30;
 
 export async function POST(request: Request) {
+  try { await enforceReadRateLimit(request); }
+  catch (error) { return Response.json(emptyMarketReference([], 'unavailable', safeMessage(error)), readFailure(error, 503)); }
   let mints: string[];
   try {
     const parsed = marketReferenceRequestSchema.safeParse(await readSmallJson(request));

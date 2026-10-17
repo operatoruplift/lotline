@@ -70,6 +70,11 @@ export function isRateLimited(error: unknown): boolean {
   return error instanceof ServiceError && error.reasonCode === 'rate-limited';
 }
 
+/** Status and headers for a failed read: 429 with Retry-After when the limiter refused it, otherwise the route's own status; never cached. */
+export function readFailure(error: unknown, status: number): { status: number; headers: Record<string, string> } {
+  return isRateLimited(error) ? { status: 429, headers: RATE_LIMITED_HEADERS } : { status, headers: noStore };
+}
+
 /**
  * Throws when the caller has exhausted its budget. The shared bucket is what
  * actually protects the provider allowance, since each Vercel instance holds its

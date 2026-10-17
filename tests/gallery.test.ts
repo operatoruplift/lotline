@@ -1,8 +1,10 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { galleryPlanSchema, galleryPlanToBasket, leadingWeights, type GalleryPlan } from '../lib/domain/gallery';
+import { ServiceError } from '../lib/server/common';
 
-const mocks = vi.hoisted(() => ({ server: vi.fn(), rpc: vi.fn(), getUser: vi.fn() }));
+const mocks = vi.hoisted(() => ({ server: vi.fn(), rpc: vi.fn(), getUser: vi.fn(), limit: vi.fn() }));
 vi.mock('../lib/supabase/server', () => ({ serverSupabase: mocks.server }));
+vi.mock('../lib/server/read-limits', async original => ({ ...(await original<typeof import('../lib/server/read-limits')>()), enforceReadRateLimit: mocks.limit }));
 
 const AAPLX = 'XsbEhLAtcf6HdfpFZ5xEMdqW8nfAvcsP5bdudRLJzJp';
 const MSFTX = 'XspzcW1PRtgf6Wj92HCiZdjzKCyFekVD8P5Ueh3dRMX';
@@ -41,6 +43,7 @@ describe('community plan routes', () => {
     vi.stubEnv('LOTLINE_GALLERY_ENABLED', 'true');
     mocks.server.mockResolvedValue({ rpc: mocks.rpc, auth: { getUser: mocks.getUser } });
     mocks.getUser.mockResolvedValue({ data: { user: { id: 'member' } }, error: null });
+    mocks.limit.mockResolvedValue(undefined);
   });
   afterEach(() => { vi.unstubAllEnvs(); vi.clearAllMocks(); });
 
@@ -75,6 +78,15 @@ describe('community plan routes', () => {
     mocks.rpc.mockResolvedValueOnce({ data: null, error: null });
     expect((await GET(new Request('https://lotline.dev'), { params: Promise.resolve({ id: ID }) })).status).toBe(404);
     expect((await GET(new Request('https://lotline.dev'), { params: Promise.resolve({ id: 'not-a-uuid' }) })).status).toBe(400);
+    // A connection past its budget is told to wait, before the database is asked; the refusal is never cached.
+    mocks.limit.mockRejectedValueOnce(new ServiceError('unavailable', 'Too many requests from this connection. Wait a moment, then retry.', 'rate-limited'));
+    const limited = await GET(new Request('https://lotline.dev'), { params: Promise.resolve({ id: ID }) });
+    expect(limited.status).toBe(429);
+    expect(limited.headers.get('retry-after')).toBe('60');
+    expect(limited.headers.get('cache-control')).toBe('no-store');
+    expect(await limited.json()).toEqual({ state: 'unavailable', message: 'Too many requests from this connection. Wait a moment, then retry.' });
+    expect(mocks.rpc).toHaveBeenCalledTimes(2);
+    expect(mocks.limit).toHaveBeenLastCalledWith(expect.any(Request), expect.objectContaining({ scope: 'gallery-read' }));
   });
 
   it('counts copies for signed-in members only and refuses other origins', async () => {

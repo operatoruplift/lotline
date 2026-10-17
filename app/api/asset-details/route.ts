@@ -1,3 +1,5 @@
+import { safeMessage } from '@/lib/server/common';
+import { enforceReadRateLimit, readFailure } from '@/lib/server/read-limits';
 import { getAssetDetails } from '@/lib/server/tokens';
 import { noStore, optionalHttpStatus } from '@/lib/server/requests';
 
@@ -5,6 +7,8 @@ export const dynamic = 'force-dynamic';
 export const maxDuration = 60;
 
 export async function GET(request: Request) {
+  try { await enforceReadRateLimit(request); }
+  catch (error) { return Response.json({ state: 'unavailable', network: 'solana', mint: '', source: 'tokens.xyz', details: null, message: safeMessage(error) }, readFailure(error, 503)); }
   const params = new URL(request.url).searchParams;
   const keys = [...params.keys()];
   if (keys.length !== 2 || params.getAll('network').length !== 1 || params.getAll('mint').length !== 1) {

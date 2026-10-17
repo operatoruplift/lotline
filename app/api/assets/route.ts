@@ -1,9 +1,11 @@
 import { getCatalog } from '@/lib/server/catalog';
 import { safeMessage, ServiceError } from '@/lib/server/common';
+import { CATALOG_READ_BUDGET, enforceReadRateLimit, readFailure } from '@/lib/server/read-limits';
 import { httpStatus, noStore } from '@/lib/server/requests';
 export const dynamic = 'force-dynamic';
-export async function GET() {
+export async function GET(request: Request) {
   try {
+    await enforceReadRateLimit(request, CATALOG_READ_BUDGET);
     const body = await getCatalog();
     // The catalog is a dated issuer snapshot that the server itself caches for
     // an hour, so a successful response may sit at the CDN for five minutes.
@@ -13,5 +15,5 @@ export async function GET() {
     const headers = body.state === 'success' ? { ...noStore, 'Cache-Control': 'public, s-maxage=300, stale-while-revalidate=3600' } : noStore;
     return Response.json(body, { status: httpStatus(body.state), headers });
   }
-  catch (error) { const state = error instanceof ServiceError ? error.kind : 'unavailable'; return Response.json({ state, assets: [], unavailable: [], message: safeMessage(error) }, { status: httpStatus(state), headers: noStore }); }
+  catch (error) { const state = error instanceof ServiceError ? error.kind : 'unavailable'; return Response.json({ state, assets: [], unavailable: [], message: safeMessage(error) }, readFailure(error, httpStatus(state))); }
 }
