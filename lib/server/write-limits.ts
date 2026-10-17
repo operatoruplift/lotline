@@ -1,11 +1,11 @@
 import 'server-only';
-import { createHmac } from 'node:crypto';
 import { adminSupabase } from '../supabase/admin';
+import { clientAddress, hashedLabel } from './client-address';
 
 /**
  * Per-connection budgets for account and community writes. The same two layers
- * as the Live reads (read-limits.ts): a window in this instance, then the
- * shared bucket in the database, keyed by a salted hash so no address is stored.
+ * as the reads (read-limits.ts): a window in this instance, then the shared
+ * bucket in the database, keyed by a salted hash so no address is stored.
  */
 export type WriteAction = 'account-delete' | 'plan-report';
 const BUDGETS: Record<WriteAction, { limit: number; windowSeconds: number }> = {
@@ -28,16 +28,9 @@ function consumeLocal(key: string, limit: number, windowSeconds: number): boolea
   return true;
 }
 
-/** The platform-normalized address. A client-supplied forwarded chain is never trusted. */
-function address(request: Request): string {
-  return request.headers.get('x-real-ip')?.trim() || 'edge-unknown';
-}
-
-/** A salted hash of the connection for one purpose. Null without the server secret. */
+/** A salted hash of the connection for one purpose (client-address.ts says what is hashed). Null without the hash key. */
 export function connectionHash(request: Request, purpose: string): string | null {
-  const secret = process.env.SUPABASE_SECRET_KEY?.trim();
-  if (!secret?.startsWith('sb_secret_')) return null;
-  return createHmac('sha256', secret).update(`${purpose}:ip:${address(request)}`).digest('hex');
+  return hashedLabel(`${purpose}:ip:${clientAddress(request)}`);
 }
 
 /**
@@ -46,7 +39,7 @@ export function connectionHash(request: Request, purpose: string): string | null
  */
 export async function allowWrite(request: Request, action: WriteAction): Promise<boolean> {
   const { limit, windowSeconds } = BUDGETS[action];
-  if (!consumeLocal(`${action}:${address(request)}`, limit, windowSeconds)) return false;
+  if (!consumeLocal(`${action}:${clientAddress(request)}`, limit, windowSeconds)) return false;
   const db = adminSupabase();
   const key = connectionHash(request, action);
   if (!db || !key) return true;
