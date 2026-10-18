@@ -5,6 +5,8 @@ import { readFile, readdir } from 'node:fs/promises';
 // Isolated PostgreSQL/WASM: never reads credentials or connects to Supabase.
 const db = new PGlite();
 const [alice, bruno, chen] = ['00000000-0000-4000-8000-00000000000a', '00000000-0000-4000-8000-00000000000b', '00000000-0000-4000-8000-00000000000c'];
+// An account created just now: its copies are remembered but not counted.
+const dara = '00000000-0000-4000-8000-00000000000d';
 const AAPLX = 'XsbEhLAtcf6HdfpFZ5xEMdqW8nfAvcsP5bdudRLJzJp';
 const MSFTX = 'XspzcW1PRtgf6Wj92HCiZdjzKCyFekVD8P5Ueh3dRMX';
 const split = (a = '6000', b = '4000') => JSON.stringify([{ mint: AAPLX, bps: a }, { mint: MSFTX, bps: b }]);
@@ -23,14 +25,15 @@ const copy = (user: string | null, id: string) => as<number>(user, 'select publi
 
 beforeAll(async () => {
   await db.exec(`create role anon; create role authenticated; create role service_role bypassrls;
-    create schema auth; create table auth.users (id uuid primary key);
+    create schema auth; create table auth.users (id uuid primary key, created_at timestamptz not null default now());
     create function auth.uid() returns uuid language sql stable as
     $$ select nullif(current_setting('request.jwt.claim.sub', true), '')::uuid $$;
     grant usage on schema auth to anon, authenticated;
     grant execute on function auth.uid() to anon, authenticated;`);
   const directory = new URL('../supabase/migrations/', import.meta.url);
   for (const name of (await readdir(directory)).filter(name => name.endsWith('.sql')).sort()) await db.exec(await readFile(new URL(name, directory), 'utf8'));
-  await db.exec(`insert into auth.users (id) values ('${alice}'), ('${bruno}'), ('${chen}');`);
+  await db.exec(`insert into auth.users (id, created_at) values ('${alice}', now() - interval '2 days'), ('${bruno}', now() - interval '2 days'), ('${chen}', now() - interval '2 days');`);
+  await db.exec(`insert into auth.users (id) values ('${dara}');`);
 }, 120_000);
 afterAll(async () => { await db.close(); });
 
@@ -129,6 +132,15 @@ describe('community plan gallery', () => {
     const ranked = await gallery('copies');
     expect(ranked[0]).toMatchObject({ id, copy_count: 2 });
     expect((await gallery('recent'))[0].name).toBe('Copy me');
+  });
+
+  it('remembers a copy by an account younger than a day without raising the public count', async () => {
+    const id = await publish(bruno, await savePlan(bruno, 'New member copies'), 'Bruno');
+    expect(await copy(dara, id)).toBe(0);
+    expect(await copy(dara, id)).toBe(0);
+    expect((await db.query<{ n: number }>('select count(*)::int as n from public.lotline_plan_copies where published_id = $1 and user_id = $2', [id, dara])).rows[0].n).toBe(1);
+    expect(await copy(chen, id)).toBe(1);
+    expect((await gallery('copies')).find(entry => entry.id === id)?.copy_count).toBe(1);
   });
 
   it('limits each member to five shared plans and pages the gallery', async () => {

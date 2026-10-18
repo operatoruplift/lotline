@@ -4,7 +4,9 @@
 -- their connection, which only the server computes and sends. A plan reported
 -- by three distinct reporters is hidden until an operator reviews it, and an
 -- operator can hide or restore any shared plan. Hidden plans leave the gallery,
--- the plan page and copy counting. Shared plans also gain an author key: a
+-- the plan page and copy counting. A report or a copy from an account younger
+-- than a day is stored but carries no weight, so a batch of fresh accounts can
+-- neither hide a plan nor lift one up the leaderboard. Shared plans also gain an author key: a
 -- salted hash that lets a reader hide every plan from one author on their own
 -- device without learning who the author is.
 -- Only the SECURITY DEFINER functions below touch the new tables; RLS with no
@@ -56,6 +58,18 @@ as $$
   from lotline_private.gallery_secrets secrets;
 $$;
 
+-- An account at least a day old. Reports and copies from younger accounts are
+-- kept but carry no weight; a missing creation time counts as new.
+create function lotline_private.account_is_established(p_user uuid)
+returns boolean
+language sql
+stable
+security invoker
+set search_path = ''
+as $$
+  select coalesce((select account.created_at <= now() - interval '24 hours' from auth.users account where account.id = p_user), false);
+$$;
+
 create function lotline_private.record_plan_report(p_id uuid, p_reason text, p_member uuid, p_guest text)
 returns boolean
 language plpgsql
@@ -89,7 +103,14 @@ begin
     values (p_id, p_member, p_guest, p_reason)
     on conflict do nothing;
   if not found then return false; end if;
-  select count(*) into open_reports from public.lotline_plan_reports where published_id = p_id and reviewed_at is null;
+  -- A report from an account younger than a day is kept, and shows in the operator
+  -- queries, but does not count toward hiding: three throwaway accounts could
+  -- otherwise hide any plan. Guests count as before; their reports are limited per
+  -- hashed connection and in total.
+  select count(*) into open_reports
+  from public.lotline_plan_reports report
+  where report.published_id = p_id and report.reviewed_at is null
+    and (report.reporter_id is null or lotline_private.account_is_established(report.reporter_id));
   if open_reports >= 3 then
     update public.lotline_published_plans set hidden_at = now(), hidden_reason = 'reports' where id = p_id;
   end if;
@@ -97,7 +118,7 @@ begin
 end;
 $$;
 
-revoke all on function lotline_private.author_key(uuid), lotline_private.record_plan_report(uuid, text, uuid, text) from public, anon, authenticated;
+revoke all on function lotline_private.author_key(uuid), lotline_private.account_is_established(uuid), lotline_private.record_plan_report(uuid, text, uuid, text) from public, anon, authenticated;
 
 -- A signed-in member reports as their account. True when this report is new.
 create function public.lotline_report_plan(p_id uuid, p_reason text)
@@ -216,7 +237,9 @@ begin
   if author is null then raise exception 'Shared plan not found' using errcode = 'P0002'; end if;
   if author = member then return total; end if;
   insert into public.lotline_plan_copies (published_id, user_id) values (p_id, member) on conflict do nothing;
-  if found then
+  -- A copy by an account younger than a day is remembered, so it is not counted
+  -- later either, but it does not raise the public count the leaderboard sorts by.
+  if found and lotline_private.account_is_established(member) then
     update public.lotline_published_plans set copy_count = copy_count + 1 where id = p_id returning copy_count into total;
   end if;
   return total;

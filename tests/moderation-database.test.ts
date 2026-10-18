@@ -8,6 +8,7 @@ const users = Array.from({ length: 8 }, (_, index) => `00000000-0000-4000-8000-0
 const [alice, bruno, chen, dana, emil, fay, gus, hana] = users;
 const guest = (letter: string) => letter.repeat(64);
 const MISSING = '00000000-0000-4000-8000-000000000999';
+const nova = '00000000-0000-4000-8000-000000000200';
 
 const report = (actor: Actor, id: string, reason = 'spam') => runAs<boolean>(db, actor, 'select public.lotline_report_plan($1, $2) as result', [id, reason]);
 const reportAsGuest = (actor: Actor, id: string, reporter: string, reason = 'misleading') => runAs<boolean>(db, actor, 'select public.lotline_report_plan_as_guest($1, $2, $3) as result', [id, reason, reporter]);
@@ -21,7 +22,9 @@ async function sharedPlan(author: string, name: string) { return publish(db, aut
 
 beforeAll(async () => {
   db = await migratedDatabase();
-  await db.exec(`insert into auth.users (id) values ${users.map(id => `('${id}')`).join(', ')};`);
+  await db.exec(`insert into auth.users (id, created_at) values ${users.map(id => `('${id}', now() - interval '2 days')`).join(', ')};`);
+  // One account created just now: its reports are stored but carry no weight.
+  await db.exec(`insert into auth.users (id) values ('${nova}');`);
 }, 120_000);
 afterAll(async () => { await db.close(); });
 
@@ -75,6 +78,19 @@ describe('reporting a shared plan', () => {
     for (const id of plans.slice(0, 10)) expect(await reportAsGuest('service', id, guest('d'))).toBe(true);
     await expect(reportAsGuest('service', plans[10], guest('d'))).rejects.toMatchObject({ code: 'P0001' });
     expect(await report(hana, plans[10])).toBe(true);
+  });
+
+  it('stores a report from an account younger than a day without counting it toward hiding', async () => {
+    const id = await sharedPlan(alice, 'Fresh accounts');
+    expect(await report(nova, id)).toBe(true);
+    expect(await report(bruno, id)).toBe(true);
+    expect(await report(chen, id)).toBe(true);
+    // Two established reporters and one new account: still shown, all three reports kept.
+    expect(await reportsFor(id)).toBe(3);
+    expect(await listed(id)).toBe(true);
+    expect(await detail(id)).toMatchObject({ id });
+    expect(await report(dana, id)).toBe(true);
+    expect(await listed(id)).toBe(false);
   });
 });
 

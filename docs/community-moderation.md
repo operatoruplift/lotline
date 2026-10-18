@@ -13,14 +13,14 @@ The controls ship with `supabase/migrations/20261007091000_community_moderation.
 
 - `lotline_plan_reports` holds one row per report: the shared plan, the reason, the time, and the reporter. A signed-in reporter is their account id. A guest is an HMAC-SHA-256 of their IP address keyed with the server secret, computed by `/api/gallery/report`; the database never sees the address.
 - One report per reporter per plan. A reporter can send 10 reports an hour, and all guests together 300 an hour. The route also allows 20 report requests per connection every 10 minutes. Authors cannot report their own plans.
-- **Auto-hide.** When a plan has open reports from 3 distinct reporters, it is hidden (`hidden_reason = 'reports'`). Hidden plans leave the gallery, their page answers "no longer shared", and they cannot be copied or reported.
+- **Auto-hide.** When a plan has open reports from 3 distinct reporters, it is hidden (`hidden_reason = 'reports'`). A report from an account created in the last 24 hours is stored, and shows in the operator queries below, but does not count toward the three. Hidden plans leave the gallery, their page answers "no longer shared", and they cannot be copied or reported.
 - **Author key.** The gallery and plan APIs return `author_key`: the first 24 hex characters of SHA-256 over a random salt and the author's account id. It is the same for all of an author's plans and cannot be turned back into an account without the salt, which only the database owner can read (`lotline_private.gallery_secrets`). Changing the salt resets every reader's hidden-author list, so leave it alone.
 - RLS is on for the new tables with no policies, and no role has table grants. `lotline_report_plan` is executable by signed-in members; `lotline_report_plan_as_guest`, `lotline_hide_published_plan` and `lotline_unhide_published_plan` only by the service role. The database owner (the SQL editor) can run everything.
 
 ## Known limits
 
 - Unsharing a plan deletes its published row and every report on it. If the author shares the same plan again it comes back visible, and hiding it again takes three new reporters or an operator. Readers who chose **Hide plans from this author** keep that choice, because the author key is per account, not per share. To stop a repeat offender, hide the new row with the operator SQL below.
-- Three distinct reporters hide a plan, and guests count as reporters, so three connections with different addresses can hide any plan until an operator restores it. Restoring marks those reports reviewed, so the same reporters cannot hide it again.
+- Three distinct reporters hide a plan, and guests count as reporters, so three connections with different addresses can hide any plan until an operator restores it. Accounts created in the last 24 hours do not count, so a batch of fresh accounts cannot. Restoring marks those reports reviewed, so the same reporters cannot hide it again.
 
 ## Operator SQL
 

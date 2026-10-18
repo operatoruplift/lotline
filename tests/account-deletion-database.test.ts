@@ -22,7 +22,7 @@ async function purchaseRecord(owner: string, intentHash: string) {
 
 beforeAll(async () => {
   db = await migratedDatabase();
-  await db.exec(`insert into auth.users (id) values ('${alice}'), ('${bruno}');`);
+  await db.exec(`insert into auth.users (id, created_at) values ('${alice}', now() - interval '2 days'), ('${bruno}', now() - interval '2 days');`);
 }, 120_000);
 afterAll(async () => { await db.close(); });
 

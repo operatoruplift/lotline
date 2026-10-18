@@ -6,7 +6,7 @@ Added 28 September 2026 behind `LOTLINE_GALLERY_ENABLED` (off by default). With 
 
 - **`/plans`**: a leaderboard of plans members chose to share, ordered by **Most copied** (ranked) or **Newest**, 24 at a time. Each compact row shows the rank, the plan name, "by <display name>" or "by a Lotline member", the copy count, the three largest weights on one line with "+N", a split bar and a **Copy** button. Tapping a row opens the full split in a sheet (a bottom sheet on phones, a side panel on wide screens) with **Copy into my plan** and **Copy link**; the open plan is kept in the URL as `?plan=<id>`, so the view can be reopened.
 - **`/plans/<id>`**: the shareable page, with the same detail as the sheet. **Copy link** always copies this address. Link previews carry the plan name and its largest weights only.
-- **Copy**: opens the planner's existing shared-plan review dialog with the reader's own draft budget (1,000 USDC when there is none). Nothing changes until they apply it, and nothing is bought. A signed-in member's copy is counted in the background, once per member and never for the author; a guest's copy opens but is not counted.
+- **Copy**: opens the planner's existing shared-plan review dialog with the reader's own draft budget (1,000 USDC when there is none). Nothing changes until they apply it, and nothing is bought. A signed-in member's copy is counted in the background, once per member, never for the author and not for an account created in the last 24 hours (that copy is remembered, so it is not counted later either); a guest's copy opens but is not counted.
 - **Share to community**: beside each saved cloud plan, with an optional display name (2–32 letters, numbers, spaces, dots, dashes or underscores, no links). Members can share up to five plans, see each one's copy count, and **Stop sharing** at any time. Deleting the saved plan removes the shared copy.
 
 ### Following (copy trading for plans)
@@ -32,9 +32,9 @@ Public pages never show a budget, an owner identity, an email, a wallet, a balan
 | `lotline_publish_plan(plan_id, display_name)` | the saved plan's owner | Share or rename; five per member |
 | `lotline_unpublish_plan(plan_id)` | the owner | Stop sharing |
 | `lotline_update_published_plan(published_id, plan_id)` | the owner of both | Point a shared plan at another of their saved plans; keeps the id, display name and copy count and sets `split_updated_at` |
-| `lotline_record_plan_copy(id)` | signed-in members | Count once per member; never the author |
+| `lotline_record_plan_copy(id)` | signed-in members | Count once per member; never the author or an account under a day old |
 | `lotline_my_published_plans()` | signed-in members | Their own shares and counts |
-| `lotline_report_plan(id, reason)` | signed-in members | Report a plan once; three reporters hide it |
+| `lotline_report_plan(id, reason)` | signed-in members | Report a plan once; three reporters hide it (accounts under a day old are stored but not counted) |
 | `lotline_report_plan_as_guest(id, reason, reporter)` | the server (service role) | The same for a guest, as a salted hash |
 | `lotline_hide_published_plan(id)`, `lotline_unhide_published_plan(id)` | the service role or the owner | Operator moderation |
 

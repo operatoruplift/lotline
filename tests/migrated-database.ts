@@ -8,7 +8,7 @@ import { readFile, readdir } from 'node:fs/promises';
 export async function migratedDatabase(): Promise<PGlite> {
   const db = new PGlite();
   await db.exec(`create role anon; create role authenticated; create role service_role bypassrls;
-    create schema auth; create table auth.users (id uuid primary key);
+    create schema auth; create table auth.users (id uuid primary key, created_at timestamptz not null default now());
     create function auth.uid() returns uuid language sql stable as
     $$ select nullif(current_setting('request.jwt.claim.sub', true), '')::uuid $$;
     grant usage on schema auth to anon, authenticated;
