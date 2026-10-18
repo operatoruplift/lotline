@@ -4,6 +4,7 @@ import { formatUsdc, MAX_BUDGET_RAW, parseBudget, parsePercent, validatePlan } f
 import { MAX_PLAN_ASSETS } from '@/lib/domain/limits';
 import { XSTOCK_MINTS } from '@/lib/domain/assets';
 import { CRYPTO_MINTS } from '@/lib/domain/crypto-assets';
+import { planNameSchema } from '@/lib/domain/plan-name';
 
 // Issuer-confirmed xStocks and the pinned crypto (the database allowlist matches,
 // supabase/migrations/20260929160000_crypto_plan_mints.sql). Live estimates still reverify the catalog.
@@ -14,7 +15,8 @@ const allocations = z.array(z.object({ mint: z.string().refine(value => (PLAN_MI
   .refine(items => new Set(items.map(item => item.mint)).size === items.length)
   .refine(items => items.reduce((sum, item) => sum + Number(item.bps), 0) === 10_000);
 
-export const cloudPlanInput = z.object({ name: z.string().trim().min(1).max(60).regex(/^[^\u0000-\u001f\u007f]+$/), budget_raw: rawBudget, allocations }).strict();
+// The name follows the display-name rules (lib/domain/plan-name.ts): a shared plan shows it to other members.
+export const cloudPlanInput = z.object({ name: planNameSchema, budget_raw: rawBudget, allocations }).strict();
 export const planId = z.uuid();
 export const cloudPlanRecord = cloudPlanInput.extend({ id: planId, created_at: z.iso.datetime({ offset: true }) });
 export type CloudPlan = z.infer<typeof cloudPlanRecord>;

@@ -36,7 +36,7 @@ Next.js normalizes loopback IP URLs to `localhost`. Lotline restores the actual 
 
 ## Stored data
 
-Each row contains the authenticated user ID, a generated plan ID, a name, exact integer micro-USDC as text, up to ten issuer-confirmed mint IDs with basis-point weights as text, and a creation timestamp. The database checks canonical decimal strings, the maximum budget of 1,000,000 USDC, mint allowlisting, unique assets, and weights totaling 10,000 basis points. Wallet addresses, token balances, quotes, and projections are never uploaded to this table.
+Each row contains the authenticated user ID, a generated plan ID, a name, exact integer micro-USDC as text, up to ten issuer-confirmed mint IDs with basis-point weights as text, and a creation timestamp. The database checks canonical decimal strings, the maximum budget of 1,000,000 USDC, mint allowlisting, unique assets, weights totaling 10,000 basis points, and a name of 1 to 60 characters with no links and no invisible formatting characters (`20261017100000_plan_name_rules.sql`; the same rules as display names, because a shared plan shows its name to other members). Wallet addresses, token balances, quotes, and projections are never uploaded to this table.
 
 Each account can keep 20 plans. A per-user transaction lock serializes the count check. Read and delete policies require `auth.uid() = user_id`; create also requires ownership. Application queries add the owner filter as a second check. A loaded plan gets fresh quotes only when the user asks for them; cloud storage never makes an old quote look current.
 

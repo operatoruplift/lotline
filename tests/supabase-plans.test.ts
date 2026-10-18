@@ -97,3 +97,13 @@ describe('auth and request boundaries', () => {
     for (const url of ['http://project.supabase.co', 'https://user:pass@project.supabase.co', 'file:///secret', 'https://project.supabase.co/path']) { vi.stubEnv('NEXT_PUBLIC_SUPABASE_URL', url); expect(supabaseConfig()).toBeNull(); }
   });
 });
+
+describe('plan name rules', () => {
+  it('refuse links, invisible characters and overlong names the way the database does', () => {
+    for (const name of ['see https://spam.test', 'www.spam', 'buy.xyz', 'a\u202Eb', 'zero\u200Bwidth', 'soft\u00ADhyphen', 'tab\there', 'a'.repeat(61), '', '   ']) {
+      expect(cloudPlanInput.safeParse({ ...input(), name }).success, JSON.stringify(name)).toBe(false);
+    }
+    expect(cloudPlanInput.parse({ ...input(), name: '  Núcleo tech 2026  ' }).name).toBe('Núcleo tech 2026');
+    expect(basketToCloudPlan({ ...DEFAULT_BASKET, budget: '10' }, 'visit https://spam.test')).toBeNull();
+  });
+});

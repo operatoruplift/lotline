@@ -28,6 +28,8 @@ describe('community plan shape', () => {
       { ...plan(), budget_raw: '250000000' },
       { ...plan(), user_id: '00000000-0000-4000-8000-00000000000a' },
       plan({ display_name: 'x' }),
+      plan({ name: 'visit https://spam.test' }),
+      plan({ name: 'bidi\u202Ename' }),
     ]) expect(galleryPlanSchema.safeParse(bad).success).toBe(false);
   });
   it('opens with the reader’s budget and shows the largest weights first', () => {

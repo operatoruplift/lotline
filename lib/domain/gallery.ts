@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import { XSTOCK_MINTS } from './assets';
 import { CRYPTO_MINTS } from './crypto-assets';
+import { planNameSchema } from './plan-name';
 import type { Basket } from './types';
 
 /**
@@ -17,7 +18,8 @@ const knownMints = new Set<string>([...XSTOCK_MINTS, ...CRYPTO_MINTS]);
 const allocation = z.object({ mint: z.string().refine(value => knownMints.has(value)), bps: z.string().regex(/^(0|[1-9]\d{0,4})$/) }).strict();
 export const galleryPlanSchema = z.object({
   id: z.uuid(),
-  name: z.string().min(1).max(60),
+  // The headline, byline and link preview show this name, so it passes the plan-name rules or the plan is not shown.
+  name: planNameSchema,
   display_name: z.string().min(2).max(32).nullable(),
   allocations: z.array(allocation).min(1).max(10)
     .refine(items => new Set(items.map(item => item.mint)).size === items.length)

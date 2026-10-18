@@ -51,6 +51,13 @@ describe('saved plan mints', () => {
     await db.exec(await readFile(new URL('../supabase/migrations/20260929160000_crypto_plan_mints.sql', import.meta.url), 'utf8'));
     expect(await definition()).toBe(before);
   });
+
+  it('hold plan names to the display-name rules: no links, no invisible characters, trimmed', async () => {
+    for (const name of ['see https://spam.test', 'www.spam', 'buy.xyz', 'a\u202Eb', 'zero\u200Bwidth', 'tag\u{E0041}x', ' padded', 'a'.repeat(61)]) {
+      await expect(savePlan(chen, name), JSON.stringify(name)).rejects.toMatchObject({ code: '23514' });
+    }
+    expect(await savePlan(chen, 'Núcleo tech 2026')).toBeTruthy();
+  });
 });
 
 describe('community plan gallery', () => {
