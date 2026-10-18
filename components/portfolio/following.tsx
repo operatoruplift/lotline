@@ -15,6 +15,8 @@ import styles from './portfolio.module.css';
 
 type Latest = { state: 'loading' } | { state: 'ready'; plan: GalleryPlan } | { state: 'gone' } | { state: 'unavailable' };
 const SHOWN_CHANGES = 4;
+/** A plan that is no longer shared may have been hidden after reports, so its stored name and author are not repeated. */
+const GONE_PLAN_LABEL = 'A plan that is no longer shared';
 const day = new Intl.DateTimeFormat('en-GB', { day: 'numeric', month: 'short', timeZone: 'UTC' });
 
 async function readLatest(id: string, signal: AbortSignal): Promise<Latest> {
@@ -37,14 +39,14 @@ function describe(change: SplitChange): string {
 function FollowedRow({ item, latest }: { item: FollowedPlan; latest: Latest }) {
   const router = useRouter();
   const plan = latest.state === 'ready' ? latest.plan : null;
-  const name = plan?.name ?? item.name;
+  const gone = latest.state === 'gone';
+  const name = gone ? GONE_PLAN_LABEL : (plan?.name ?? item.name);
   const who = (plan ? plan.display_name : item.displayName) ?? 'Its member';
   const changes = plan ? splitChanges(item.allocations, plan.allocations) : [];
-  const stop = <button type="button" className={styles.textButton} onClick={() => unfollowOnDevice(item.id)} aria-label={`Stop following ${name}`}>Stop following</button>;
+  const stop = <button type="button" className={styles.textButton} onClick={() => unfollowOnDevice(item.id)} aria-label={`Stop following ${gone ? 'this plan' : name}`}>Stop following</button>;
   return <li className={styles.followItem} data-changed={changes.length ? '' : undefined}>
     <div className={styles.followHead}>
-      <Link href={`/plans/${item.id}`}><strong>{name}</strong></Link>
-      <span>by {who}</span>
+      {gone ? <strong>{name}</strong> : <><Link href={`/plans/${item.id}`}><strong>{name}</strong></Link><span>by {who}</span></>}
     </div>
     {latest.state === 'loading' && <p className={styles.followStatus} role="status"><LoaderCircle size={14} className="spinning" aria-hidden="true" />Checking for changes…</p>}
     {latest.state === 'unavailable' && <p className={styles.followStatus}>Couldn’t check for changes just now. Your plan is unaffected.</p>}

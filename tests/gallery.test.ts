@@ -76,7 +76,10 @@ describe('community plan routes', () => {
   it('serves one shared plan or says it is gone', async () => {
     const { GET } = await import('../app/api/gallery/[id]/route');
     mocks.rpc.mockResolvedValueOnce({ data: plan(), error: null });
-    expect(await (await GET(new Request('https://lotline.dev'), { params: Promise.resolve({ id: ID }) })).json()).toEqual({ state: 'success', plan: plan() });
+    const served = await GET(new Request('https://lotline.dev'), { params: Promise.resolve({ id: ID }) });
+    expect(await served.json()).toEqual({ state: 'success', plan: plan() });
+    // Short enough that a plan hidden after reports leaves shared caches within a minute.
+    expect(served.headers.get('cache-control')).toBe('public, max-age=30, s-maxage=30, stale-while-revalidate=60');
     mocks.rpc.mockResolvedValueOnce({ data: null, error: null });
     expect((await GET(new Request('https://lotline.dev'), { params: Promise.resolve({ id: ID }) })).status).toBe(404);
     expect((await GET(new Request('https://lotline.dev'), { params: Promise.resolve({ id: 'not-a-uuid' }) })).status).toBe(400);

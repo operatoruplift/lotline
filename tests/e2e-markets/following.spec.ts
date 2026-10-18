@@ -78,9 +78,13 @@ test('a followed plan that stops being shared says so and can be let go', async 
 
   author.gone = true;
   await page.goto('/portfolio');
-  const item = page.getByRole('region', { name: 'Following' }).getByRole('listitem').filter({ hasText: 'Big tech core' });
+  // The stored name and author are not repeated: the plan may have been hidden after reports.
+  const item = page.getByRole('region', { name: 'Following' }).getByRole('listitem').filter({ hasText: 'No longer shared' });
+  await expect(item).toContainText('A plan that is no longer shared');
   await expect(item).toContainText('No longer shared. Your plan is unaffected.');
-  await item.getByRole('button', { name: 'Stop following Big tech core' }).click();
+  await expect(item).not.toContainText('Big tech core');
+  await expect(item).not.toContainText('Alice');
+  await item.getByRole('button', { name: 'Stop following this plan' }).click();
   await expect(page.getByRole('region', { name: 'Following' })).toHaveCount(0);
 });
 
