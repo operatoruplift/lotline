@@ -86,3 +86,7 @@
 
 /* The Turnstile widget (components/captcha.tsx); flexible size is 65px tall. */
 .captcha { margin:18px 0 0; min-height:65px; }
+
+/* A Solana wallet without Sign in with Solana: named, with what to do, never a button. */
+.walletUnsupported { display:flex; align-items:center; gap:12px; margin:0; padding:12px 14px; border:1px dashed #576b4955; border-radius:12px; color:#354438; font-size:12px; line-height:1.6; }
+.walletUnsupported img { flex:none; border-radius:7px; }

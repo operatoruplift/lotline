@@ -1,11 +1,12 @@
-import { createClient } from '@supabase/supabase-js';
 import type { Wallet, WalletAccount } from '@wallet-standard/base';
-import { describe, expect, it } from 'vitest';
-import { canSignIn, isWalletRejection, SIGN_IN_STATEMENT, signInMessage, signInProof, walletSignInMessage, type SignInRequest } from '@/lib/client/wallet-sign-in';
+import { describe, expect, it, vi } from 'vitest';
+import { canSignIn, isSolanaWallet, isWalletRejection, SIGN_IN_STATEMENT, signInNonce, signInProof, walletSignInMessage, type SignInRequest } from '@/lib/client/wallet-sign-in';
 import { shortAddress, walletAddress } from '@/lib/supabase/wallet-identity';
 
 const address = '7xKXtg2CW87d97TXJSDpbD5jBkheTqA83TZRuJosgAsU';
-const request: SignInRequest = { domain: 'lotline.dev', uri: 'https://lotline.dev/sign-in', issuedAt: '2026-09-29T08:00:00.000Z' };
+const request: SignInRequest = { domain: 'lotline.dev', uri: 'https://lotline.dev/sign-in', issuedAt: '2026-09-29T08:00:00.000Z', nonce: 'a1b2c3d4e5f60718' };
+/** The text a Sign in with Solana wallet writes from Lotline's input, in the Wallet Standard helper's field order. */
+const walletText = (input: Record<string, string>) => [`${input.domain} wants you to sign in with your Solana account:`, address, '', input.statement, '', `URI: ${input.uri}`, `Version: ${input.version}`, `Nonce: ${input.nonce}`, `Issued At: ${input.issuedAt}`].join('\n');
 const never = new AbortController().signal;
 
 async function keypair() {
@@ -20,54 +21,47 @@ function wallet(features: Record<string, unknown>, chains = ['solana:mainnet']):
 const account = (chains = ['solana:mainnet'], features = ['solana:signMessage']): WalletAccount => ({ address, publicKey: new Uint8Array(32), chains, features } as unknown as WalletAccount);
 
 describe('wallet sign-in proof', () => {
-  it('accepts wallets that can prove an address on Solana, and only those', () => {
+  it('accepts only wallets that implement Sign in with Solana on a Solana chain', () => {
     const connect = { 'standard:connect': { version: '1.0.0', connect: async () => ({ accounts: [] }) } };
     const sign = { 'solana:signMessage': { version: '1.0.0', signMessage: async () => [] } };
-    expect(canSignIn(wallet({ 'solana:signIn': { version: '1.0.0', signIn: async () => [] } }))).toBe(true);
-    expect(canSignIn(wallet({ ...connect, ...sign }))).toBe(true);
+    const signIn = { 'solana:signIn': { version: '1.0.0', signIn: async () => [] } };
+    expect(canSignIn(wallet(signIn))).toBe(true);
+    expect(canSignIn(wallet({ ...connect, ...sign }))).toBe(false);
     expect(canSignIn(wallet(sign))).toBe(false);
-    expect(canSignIn(wallet({ ...connect, ...sign }, ['ethereum:1']))).toBe(false);
+    expect(canSignIn(wallet(signIn, ['ethereum:1']))).toBe(false);
+    // Still listed, so the page can say why it cannot be used.
+    expect(isSolanaWallet(wallet({ ...connect, ...sign }))).toBe(true);
+    expect(isSolanaWallet(wallet(signIn, ['ethereum:1']))).toBe(false);
   });
 
-  it('prefers Sign in with Solana and sends exactly the text the wallet signed', async () => {
+  it('sends the page, the time, the statement and the nonce, and forwards exactly the text the wallet signed', async () => {
     const { keys, sign } = await keypair();
-    const inputs: unknown[] = [];
+    const inputs: Record<string, string>[] = [];
     const proof = await signInProof(wallet({ 'solana:signIn': { version: '1.0.0', signIn: async (...given: Record<string, string>[]) => {
       inputs.push(...given);
       // A wallet writes its own text, here with a chain ID Lotline did not ask for.
-      const signedMessage = new TextEncoder().encode(`${signInMessage({ ...request, address })}\nChain ID: mainnet`);
+      const signedMessage = new TextEncoder().encode(`${walletText(given[0])}\nChain ID: mainnet`);
       return [{ account: account(), signedMessage, signature: await sign(signedMessage) }];
     } } }), request, never);
     expect(inputs).toEqual([{ ...request, statement: SIGN_IN_STATEMENT, version: '1' }]);
+    expect(proof.message).toContain(`Nonce: ${request.nonce}`);
     expect(proof.message.endsWith('Chain ID: mainnet')).toBe(true);
     expect(await verified(keys, proof)).toBe(true);
   });
 
-  it('otherwise connects, picks the Solana account that can sign, and signs the Lotline text', async () => {
-    const { keys, sign } = await keypair();
-    const signed: { account: WalletAccount; message: Uint8Array }[] = [];
-    const proof = await signInProof(wallet({
-      'standard:connect': { version: '1.0.0', connect: async () => ({ accounts: [account(['ethereum:1']), account(['solana:mainnet'], []), account()] }) },
-      'solana:signMessage': { version: '1.0.0', signMessage: async (input: { account: WalletAccount; message: Uint8Array }) => { signed.push(input); return [{ signedMessage: input.message, signature: await sign(input.message) }]; } },
-    }), request, never);
-    expect(signed).toHaveLength(1);
-    expect(signed[0].account.features).toEqual(['solana:signMessage']);
-    expect(proof.message).toBe(signInMessage({ ...request, address }));
-    expect(await verified(keys, proof)).toBe(true);
+  it('refuses a wallet without Sign in with Solana without connecting to it or asking it to sign', async () => {
+    const connect = vi.fn(async () => ({ accounts: [account()] }));
+    const signMessage = vi.fn(async () => []);
+    const proof = signInProof(wallet({ 'standard:connect': { version: '1.0.0', connect }, 'solana:signMessage': { version: '1.0.0', signMessage } }), request, never);
+    await expect(proof).rejects.toThrow('Sign in with Solana');
+    expect(connect).not.toHaveBeenCalled();
+    expect(signMessage).not.toHaveBeenCalled();
   });
 
-  it('writes the same text as Supabase’s own client, so Supabase Auth parses it', async () => {
-    let written = '';
-    const auth = createClient('https://auth-fixture.invalid', 'sb_publishable_fixture', {
-      auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false },
-      global: { fetch: async () => Response.json({ code: 'fixture', message: 'fixture' }, { status: 400 }) },
-    }).auth;
-    await auth.signInWithWeb3({
-      chain: 'solana', statement: SIGN_IN_STATEMENT,
-      wallet: { publicKey: { toBase58: () => address }, signMessage: async (bytes: Uint8Array) => { written = new TextDecoder().decode(bytes); return new Uint8Array(64); } },
-      options: { url: request.uri, signInWithSolana: { issuedAt: request.issuedAt } },
-    });
-    expect(signInMessage({ ...request, address })).toBe(written);
+  it('makes a fresh nonce for every attempt', () => {
+    const nonces = Array.from({ length: 50 }, signInNonce);
+    expect(new Set(nonces).size).toBe(50);
+    for (const nonce of nonces) expect(nonce).toMatch(/^[0-9a-f]{16}$/);
   });
 
   it('stops waiting on a prompt someone walked away from', async () => {
@@ -75,11 +69,6 @@ describe('wallet sign-in proof', () => {
     const pending = signInProof(wallet({ 'solana:signIn': { version: '1.0.0', signIn: () => new Promise(() => undefined) } }), request, controller.signal);
     controller.abort(new Error('cancelled'));
     await expect(pending).rejects.toThrow('cancelled');
-  });
-
-  it('refuses a wallet that shares no Solana account able to sign', async () => {
-    const proof = signInProof(wallet({ 'standard:connect': { version: '1.0.0', connect: async () => ({ accounts: [account(['ethereum:1'])] }) }, 'solana:signMessage': { version: '1.0.0', signMessage: async () => [] } }), request, never);
-    await expect(proof).rejects.toThrow('no Solana account');
   });
 });
 

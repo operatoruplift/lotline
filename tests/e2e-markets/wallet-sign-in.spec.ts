@@ -97,18 +97,20 @@ test('a wallet signs one message, Supabase Auth gets exactly that text, and the 
   expect((await context.cookies()).some(cookie => cookie.name.startsWith('sb-auth-fixture-auth-token'))).toBe(true);
 });
 
-test('a wallet that can only sign messages connects and signs the Lotline text', async ({ page }) => {
+test('a wallet without Sign in with Solana is listed as unsupported and never asked to sign', async ({ page }) => {
   await wallets(page, [{ name: 'Message Wallet', behaviour: 'sign-message' }]);
   const grants = await auth(page, () => ({ status: 200, json: fixtureSession() }));
   await page.goto('/sign-up');
   const section = page.getByRole('region', { name: 'Create an account with a Solana wallet' });
   await expect(page.getByText('Email sign-up opens once delivery is set up.', { exact: false })).toBeVisible();
   await expect(page.getByText('Signup and recovery emails aren’t available yet.')).toHaveCount(0);
-  await section.getByRole('button', { name: 'Continue with Message Wallet' }).click();
-  await expect(page).toHaveURL(/\/app$/);
-  const signed = await page.evaluate(() => (window as unknown as { lotlineSigned: string[] }).lotlineSigned);
-  expect(grants.map(grant => grant.message)).toEqual(signed);
-  expect(signed[0]).toContain(`\n${SIGN_IN_STATEMENT}\n\nVersion: 1\nURI: `);
+  const list = section.getByRole('list', { name: 'Wallets in this browser' });
+  await expect(list.getByText('Message Wallet')).toBeVisible();
+  await expect(list).toContainText('doesn’t support Sign in with Solana yet');
+  await expect(list.getByRole('button')).toHaveCount(0);
+  await expect(page).toHaveURL(/\/sign-up$/);
+  expect(grants).toHaveLength(0);
+  expect(await page.evaluate(() => (window as unknown as { lotlineSigned: string[] }).lotlineSigned)).toEqual([]);
 });
 
 test('declining, a switched-off provider and a prompt left open all leave the page usable', async ({ page }) => {

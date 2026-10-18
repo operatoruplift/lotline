@@ -6,7 +6,7 @@ Added 29 September 2026 behind the server flag `LOTLINE_WALLET_SIGN_IN_ENABLED`.
 
 - **Sign in with a Solana wallet** on `/sign-in`, and **Create an account with a Solana wallet** on `/sign-up`, above the email form. Every wallet that registers with the page through the Wallet Standard is listed: browser extensions such as Phantom, Solflare and Backpack, and, on Android and Seeker, wallet apps through Mobile Wallet Adapter, which the layout already registers.
 - One signature, never a transaction. The wallet signs a Sign in with Solana message that names the page, the time and this statement: *"Sign in to Lotline. This proves you hold this wallet; it sends no transaction and moves no funds."* The first signature creates the account, so no email is needed.
-- A wallet that supports Sign in with Solana writes and checks the message itself, with its dedicated prompt. Otherwise the wallet connects and signs the same text as a plain message.
+- Only a wallet that implements Sign in with Solana (`solana:signIn`) can sign in: it writes and checks the message itself, with its dedicated prompt, and Lotline adds a fresh nonce to every attempt. A Solana wallet without it is still listed, with a note to update it or use one that does; it is never connected or asked to sign a page-written message.
 - A declined prompt, a switched-off provider, a rate limit or a clock far enough off to fail verification each get their own message. A prompt left open can be cancelled, and it never blocks another sign-in, because the wallet signs outside the account request queue and only the short request to Supabase Auth goes through it.
 - Signed in, the planner's account panel reads "Signed in as wallet 7xKX…gAsU".
 
@@ -14,7 +14,7 @@ Added 29 September 2026 behind the server flag `LOTLINE_WALLET_SIGN_IN_ENABLED`.
 
 `lib/client/wallet-sign-in.ts` asks the wallet for a proof: the exact text it signed and the Ed25519 signature. `components/wallet-sign-in.tsx` sends both to Supabase Auth with `signInWithWeb3({ chain: 'solana', message, signature })`, through the same serialized account transport as email sign-in, so an abandoned attempt can never save a session. Supabase Auth checks the signature, that the message's URI is an allowed redirect URL and its domain matches, and that it was issued within the last ten minutes. It then records the identity as `web3:solana:<address>`. `/api/auth/session` returns that address as `wallet`.
 
-The message text matches, byte for byte, the one Supabase's own client writes (a unit test compares them), so Supabase Auth's parser accepts it.
+Lotline no longer writes the message. The wallet writes it from the page's domain and address, the time, the statement and a 16-character nonce Lotline makes for the attempt (Sign in with Solana's own replay guard; Supabase Auth also refuses a message issued more than ten minutes earlier), so the text Supabase Auth parses is always the wallet's own.
 
 ## Turning it on
 
@@ -31,8 +31,8 @@ Wallet accounts carry no email and cost nothing to create, which Supabase's own 
 
 ## Tests
 
-- `tests/wallet-sign-in.test.ts`: which wallets qualify; a Sign in with Solana wallet's own text is sent unchanged; a message-only wallet connects, picks the Solana account that can sign, and signs the Lotline text (both verified with a real Ed25519 key); parity with Supabase's client text; an unanswered prompt ends on cancel; the wallet identity and error messages.
+- `tests/wallet-sign-in.test.ts`: only Sign in with Solana wallets qualify; the input Lotline sends, nonce included, and the wallet's own text going to Supabase unchanged (verified with a real Ed25519 key); a message-only wallet is refused without being connected or asked to sign; fresh nonces; an unanswered prompt ends on cancel; the wallet identity and error messages.
 - `tests/auth-transport.test.ts`: the web3 grant is scoped like a password sign-in, so an abandoned attempt saves no session.
 - `tests/supabase-api.test.ts`: the session route adds the wallet address only for a Solana wallet identity.
-- `tests/e2e-markets/wallet-sign-in.spec.ts` (flag on): sign-in and sign-up through a Sign in with Solana wallet and a message-only wallet, the exact text and signature Supabase Auth receives, the session cookie and the account panel, declining, a switched-off provider, a prompt left open then cancelled, no wallet, and an axe check at 390px.
+- `tests/e2e-markets/wallet-sign-in.spec.ts` (flag on): sign-in through a Sign in with Solana wallet, a message-only wallet listed as unsupported and never asked to sign, the exact text and signature Supabase Auth receives, the session cookie and the account panel, declining, a switched-off provider, a prompt left open then cancelled, no wallet, and an axe check at 390px.
 - `tests/e2e/markets-flag.spec.ts` (flag off): both pages are unchanged.

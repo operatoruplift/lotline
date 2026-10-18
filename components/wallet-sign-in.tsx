@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { getWallets } from '@wallet-standard/app';
 import type { Wallet } from '@wallet-standard/base';
 import { ArrowRight, LoaderCircle } from 'lucide-react';
-import { canSignIn, signInProof, walletSignInMessage } from '@/lib/client/wallet-sign-in';
+import { canSignIn, isSolanaWallet, signInNonce, signInProof, UNSUPPORTED_WALLET_NOTE, walletSignInMessage } from '@/lib/client/wallet-sign-in';
 import { captchaSiteKey } from '@/lib/supabase/captcha';
 import { runBrowserAuth } from '@/lib/supabase/client';
 import { Captcha } from './captcha';
@@ -17,12 +17,12 @@ const copy = {
   'sign-up': { title: 'Create an account with a Solana wallet', text: 'Sign one message to prove the address, and your account is ready. No email, and nothing is sent on-chain.', action: 'Continue with' },
 };
 
-/** Wallets registered with this page, kept current as extensions and Mobile Wallet Adapter register. Null until first read. */
-function useSignInWallets(): readonly Wallet[] | null {
+/** Solana wallets registered with this page, kept current as extensions and Mobile Wallet Adapter register. Null until first read. */
+function useSolanaWallets(): readonly Wallet[] | null {
   const [wallets, setWallets] = useState<readonly Wallet[] | null>(null);
   useEffect(() => {
     const registry = getWallets();
-    const read = () => setWallets(registry.get().filter(canSignIn));
+    const read = () => setWallets(registry.get().filter(isSolanaWallet));
     queueMicrotask(read);
     const offRegister = registry.on('register', read);
     const offUnregister = registry.on('unregister', read);
@@ -34,7 +34,7 @@ function useSignInWallets(): readonly Wallet[] | null {
 /** Sign in with Solana through Supabase Auth: one signed message, never a transaction. */
 export function WalletSignIn({ mode }: { mode: 'sign-in' | 'sign-up' }) {
   const router = useRouter();
-  const wallets = useSignInWallets();
+  const wallets = useSolanaWallets();
   const [attempt, setAttempt] = useState<Attempt>({ phase: 'idle' });
   const pending = useRef<AbortController | null>(null);
   const text = copy[mode];
@@ -58,7 +58,7 @@ export function WalletSignIn({ mode }: { mode: 'sign-in' | 'sign-up' }) {
     setAttempt({ phase: 'wallet', wallet: wallet.name });
     try {
       // The wallet signs outside the account queue, so a prompt left open can never hold up another sign-in.
-      const proof = await signInProof(wallet, { domain: window.location.host, uri: window.location.href, issuedAt: new Date().toISOString() }, controller.signal);
+      const proof = await signInProof(wallet, { domain: window.location.host, uri: window.location.href, issuedAt: new Date().toISOString(), nonce: signInNonce() }, controller.signal);
       if (controller.signal.aborted) return;
       setAttempt({ phase: 'verifying', wallet: wallet.name });
       const result = await runBrowserAuth(controller.signal, auth => auth.signInWithWeb3({ chain: 'solana', message: proof.message, signature: proof.signature, options: { captchaToken: captcha } }));
@@ -80,6 +80,7 @@ export function WalletSignIn({ mode }: { mode: 'sign-in' | 'sign-up' }) {
   }
 
   const busy = attempt.phase === 'wallet' || attempt.phase === 'verifying';
+  const locked = busy || (Boolean(captchaKey) && !captchaToken);
   return <section className={styles.wallet} aria-labelledby="wallet-sign-in-title" data-auth-reveal="1">
     <h2 id="wallet-sign-in-title">{text.title}</h2>
     <p>{text.text}</p>
@@ -88,12 +89,15 @@ export function WalletSignIn({ mode }: { mode: 'sign-in' | 'sign-up' }) {
       : wallets.length === 0 ? <p className={styles.walletEmpty}>No Solana wallet found in this browser. Install one, such as Phantom, Solflare or Backpack, then reload this page. On Android, a Solana wallet app connects through Mobile Wallet Adapter.</p>
         : <ul className={styles.wallets} aria-label="Wallets in this browser">
           {wallets.map(wallet => {
+            /* Wallets supply their icon as a data URI, which the image optimizer does not handle. */
+            /* eslint-disable-next-line @next/next/no-img-element */
+            const icon = <img src={wallet.icon} alt="" width={28} height={28} />;
+            // A wallet without Sign in with Solana is named, with what to do, and never asked to sign.
+            if (!canSignIn(wallet)) return <li key={wallet.name} className={styles.walletUnsupported}>{icon}<span><strong>{wallet.name}</strong> {UNSUPPORTED_WALLET_NOTE}</span></li>;
             const active = busy && attempt.wallet === wallet.name;
             return <li key={wallet.name}>
-              <button type="button" className={styles.walletButton} onClick={() => void signIn(wallet)} disabled={busy || (Boolean(captchaKey) && !captchaToken)} aria-busy={active || undefined}>
-                {/* Wallets supply their icon as a data URI, which the image optimizer does not handle. */}
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={wallet.icon} alt="" width={28} height={28} />
+              <button type="button" className={styles.walletButton} onClick={() => void signIn(wallet)} disabled={locked} aria-busy={active || undefined}>
+                {icon}
                 <span>{text.action} {wallet.name}</span>
                 {active ? <LoaderCircle className={styles.spin} size={17} aria-hidden="true" /> : <ArrowRight size={17} aria-hidden="true" />}
               </button>
