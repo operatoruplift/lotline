@@ -6,7 +6,9 @@ import { getWallets } from '@wallet-standard/app';
 import type { Wallet } from '@wallet-standard/base';
 import { ArrowRight, LoaderCircle } from 'lucide-react';
 import { canSignIn, signInProof, walletSignInMessage } from '@/lib/client/wallet-sign-in';
+import { captchaSiteKey } from '@/lib/supabase/captcha';
 import { runBrowserAuth } from '@/lib/supabase/client';
+import { Captcha } from './captcha';
 import styles from './auth.module.css';
 
 type Attempt = { phase: 'idle' } | { phase: 'wallet' | 'verifying'; wallet: string } | { phase: 'failed'; message: string };
@@ -36,12 +38,20 @@ export function WalletSignIn({ mode }: { mode: 'sign-in' | 'sign-up' }) {
   const [attempt, setAttempt] = useState<Attempt>({ phase: 'idle' });
   const pending = useRef<AbortController | null>(null);
   const text = copy[mode];
+  // CAPTCHA plumbing, on only with NEXT_PUBLIC_SUPABASE_CAPTCHA_SITE_KEY: the web3 grant then carries a Turnstile token.
+  const captchaKey = captchaSiteKey();
+  const [captchaToken, setCaptchaToken] = useState<string | null>(null);
+  const [captchaRound, setCaptchaRound] = useState(0);
+  // Supabase Auth accepts a token once; after an attempt the next one needs a fresh token.
+  const spendCaptcha = () => { if (captchaKey) { setCaptchaToken(null); setCaptchaRound(round => round + 1); } };
 
   // Leaving the page abandons the attempt: a late signature or response can no longer start a session.
   useEffect(() => () => pending.current?.abort(), []);
 
   async function signIn(wallet: Wallet) {
     if (pending.current) return;
+    if (captchaKey && !captchaToken) { setAttempt({ phase: 'failed', message: 'Finish the verification first, then choose your wallet.' }); return; }
+    const captcha = captchaToken ?? undefined;
     const controller = new AbortController();
     pending.current = controller;
     const fail = (message: string) => { if (pending.current === controller) pending.current = null; setAttempt({ phase: 'failed', message }); };
@@ -51,7 +61,8 @@ export function WalletSignIn({ mode }: { mode: 'sign-in' | 'sign-up' }) {
       const proof = await signInProof(wallet, { domain: window.location.host, uri: window.location.href, issuedAt: new Date().toISOString() }, controller.signal);
       if (controller.signal.aborted) return;
       setAttempt({ phase: 'verifying', wallet: wallet.name });
-      const result = await runBrowserAuth(controller.signal, auth => auth.signInWithWeb3({ chain: 'solana', message: proof.message, signature: proof.signature }));
+      const result = await runBrowserAuth(controller.signal, auth => auth.signInWithWeb3({ chain: 'solana', message: proof.message, signature: proof.signature, options: { captchaToken: captcha } }));
+      spendCaptcha();
       if (controller.signal.aborted) return;
       if (result.error) { fail(walletSignInMessage(result.error, result.error)); return; }
       // Stay busy while the planner loads with the new session.
@@ -72,13 +83,14 @@ export function WalletSignIn({ mode }: { mode: 'sign-in' | 'sign-up' }) {
   return <section className={styles.wallet} aria-labelledby="wallet-sign-in-title" data-auth-reveal="1">
     <h2 id="wallet-sign-in-title">{text.title}</h2>
     <p>{text.text}</p>
+    {captchaKey && <Captcha siteKey={captchaKey} round={captchaRound} onToken={setCaptchaToken} />}
     {wallets === null ? <p className={styles.walletStatus} role="status"><LoaderCircle className={styles.spin} size={15} aria-hidden="true" />Looking for wallets in this browser…</p>
       : wallets.length === 0 ? <p className={styles.walletEmpty}>No Solana wallet found in this browser. Install one, such as Phantom, Solflare or Backpack, then reload this page. On Android, a Solana wallet app connects through Mobile Wallet Adapter.</p>
         : <ul className={styles.wallets} aria-label="Wallets in this browser">
           {wallets.map(wallet => {
             const active = busy && attempt.wallet === wallet.name;
             return <li key={wallet.name}>
-              <button type="button" className={styles.walletButton} onClick={() => void signIn(wallet)} disabled={busy} aria-busy={active || undefined}>
+              <button type="button" className={styles.walletButton} onClick={() => void signIn(wallet)} disabled={busy || (Boolean(captchaKey) && !captchaToken)} aria-busy={active || undefined}>
                 {/* Wallets supply their icon as a data URI, which the image optimizer does not handle. */}
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img src={wallet.icon} alt="" width={28} height={28} />

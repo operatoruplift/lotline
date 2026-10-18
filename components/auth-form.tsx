@@ -5,8 +5,10 @@ import { useRouter } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
 import { ArrowRight, Check, LoaderCircle, ShieldCheck } from 'lucide-react';
 import { runBrowserAuth } from '@/lib/supabase/client';
+import { captchaSiteKey } from '@/lib/supabase/captcha';
 import { authEmailEnabled, supabaseConfig } from '@/lib/supabase/config';
 import { BrandMark } from './brand-mark';
+import { Captcha } from './captcha';
 import { LiquidGlass } from './liquid-glass';
 import { WalletSignIn } from './wallet-sign-in';
 import { SignedInAccount } from './account/signed-in-account';
@@ -43,6 +45,11 @@ export function AuthForm({ mode, confirmationError = false, walletSignIn = false
   const emailUnavailable = !emailEnabled && (mode === 'sign-up' || mode === 'reset-password');
   // Operator-flagged; without it the forms below render exactly as before.
   const wallet = walletSignIn && configured && (mode === 'sign-in' || mode === 'sign-up');
+  // CAPTCHA plumbing, on only with NEXT_PUBLIC_SUPABASE_CAPTCHA_SITE_KEY: every password sign-in,
+  // sign-up and recovery request then carries a Turnstile token. Choosing a new password needs none.
+  const captchaKey = configured && mode !== 'update-password' ? captchaSiteKey() : null;
+  const [captchaToken, setCaptchaToken] = useState<string | null>(null);
+  const [captchaRound, setCaptchaRound] = useState(0);
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState(confirmationError ? 'That confirmation or reset link expired, was already used, or was opened in a different browser. Sign in or request a fresh reset link in this browser.' : '');
   const [failed, setFailed] = useState(confirmationError);
@@ -86,6 +93,8 @@ export function AuthForm({ mode, confirmationError = false, walletSignIn = false
     const email = String(data.get('email') ?? '').trim();
     const password = String(data.get('password') ?? '');
     if ((mode === 'sign-up' || mode === 'update-password') && password !== data.get('confirm-password')) { setFailed(true); setMessage('The passwords don’t match yet.'); return; }
+    if (captchaKey && !captchaToken) { setFailed(true); setMessage('Finish the verification below, then try again.'); return; }
+    const captcha = captchaToken ?? undefined;
     scope.controller?.abort();
     const controller = new AbortController();
     scope.controller = controller;
@@ -95,9 +104,9 @@ export function AuthForm({ mode, confirmationError = false, walletSignIn = false
     setBusy(true); setFailed(false); setMessage('');
     try {
       const origin = window.location.origin;
-      const result = await runBrowserAuth(controller.signal, async auth => mode === 'sign-in' ? auth.signInWithPassword({ email, password })
-        : mode === 'sign-up' ? auth.signUp({ email, password, options: { emailRedirectTo: `${origin}/auth/callback` } })
-          : mode === 'reset-password' ? auth.resetPasswordForEmail(email, { redirectTo: `${origin}/auth/callback?next=/auth/update-password` })
+      const result = await runBrowserAuth(controller.signal, async auth => mode === 'sign-in' ? auth.signInWithPassword({ email, password, options: { captchaToken: captcha } })
+        : mode === 'sign-up' ? auth.signUp({ email, password, options: { emailRedirectTo: `${origin}/auth/callback`, captchaToken: captcha } })
+          : mode === 'reset-password' ? auth.resetPasswordForEmail(email, { redirectTo: `${origin}/auth/callback?next=/auth/update-password`, captchaToken: captcha })
             : auth.updateUser({ password }));
       if (!current()) return;
       if (result.error) { setFailed(true); setMessage(authErrorMessage(result.error.code, result.error.status)); return; }
@@ -106,7 +115,13 @@ export function AuthForm({ mode, confirmationError = false, walletSignIn = false
       setDone(true);
       setMessage(mode === 'sign-up' ? 'If this email can create an account, a confirmation link will arrive in your inbox. Open it in this browser to finish, then sign in.' : 'If an account uses this email, a reset link will arrive in your inbox. Open it in this browser to choose a new password.');
     } catch { if (current()) { setFailed(true); setMessage('The account service could not be reached. Check your connection and try again.'); } }
-    finally { if (current()) { scope.controller = null; scope.submitting = false; setBusy(false); } }
+    finally {
+      if (current()) {
+        scope.controller = null; scope.submitting = false; setBusy(false);
+        // Supabase Auth accepts a token once; the next attempt needs a fresh one.
+        if (captchaKey) { setCaptchaToken(null); setCaptchaRound(round => round + 1); }
+      }
+    }
   }
 
   return <LiquidGlass>
@@ -128,7 +143,8 @@ export function AuthForm({ mode, confirmationError = false, walletSignIn = false
               {mode !== 'reset-password' && <label htmlFor="auth-password" data-auth-reveal="2">{mode === 'update-password' ? 'New password' : 'Password'}<input required id="auth-password" name="password" type="password" autoComplete={mode === 'sign-in' ? 'current-password' : 'new-password'} minLength={mode === 'sign-in' ? 1 : 12} maxLength={128} aria-describedby={mode === 'sign-in' ? undefined : 'password-help'} disabled={busy || done} />{mode !== 'sign-in' && <small id="password-help">At least 12 characters. A memorable phrase works well.</small>}</label>}
               {(mode === 'sign-up' || mode === 'update-password') && <label htmlFor="auth-confirm" data-auth-reveal="3">Confirm password<input required id="auth-confirm" name="confirm-password" type="password" autoComplete="new-password" minLength={12} maxLength={128} disabled={busy || done} /></label>}
               {mode === 'sign-in' && <Link className={styles.forgot} href="/auth/reset-password" data-auth-reveal="3">Forgot password?</Link>}
-              {!done && <button className={styles.primary} type="submit" disabled={busy} data-auth-reveal="4">{busy ? <><LoaderCircle className={styles.spin} size={17} /> One moment…</> : <>{content[mode].action}<ArrowRight size={17} /></>}</button>}
+              {captchaKey && <Captcha siteKey={captchaKey} round={captchaRound} onToken={setCaptchaToken} />}
+              {!done && <button className={styles.primary} type="submit" disabled={busy || (Boolean(captchaKey) && !captchaToken)} data-auth-reveal="4">{busy ? <><LoaderCircle className={styles.spin} size={17} /> One moment…</> : <>{content[mode].action}<ArrowRight size={17} /></>}</button>}
             </form></>}
       {message && <div className={failed ? styles.error : styles.success} role={failed ? 'alert' : 'status'}>{!failed && <Check size={18} />}{message}</div>}
       {!account && <><div className={styles.switchLink} data-auth-reveal="5">{mode === 'sign-in' ? emailEnabled ? <>New to Lotline? <Link href="/sign-up">Create an account</Link></> : <>New to Lotline? <Link href="/app?mode=example">Try the guest planner</Link></> : <>Already have an account? <Link href="/sign-in">Sign in</Link></>}</div>

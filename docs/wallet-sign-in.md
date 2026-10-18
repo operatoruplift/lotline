@@ -27,7 +27,7 @@ Until step 1 is done, a signature is answered with "Wallet sign-in isn't switche
 
 ## Know before switching it on
 
-Wallet accounts carry no email and cost nothing to create, which Supabase's own guide flags as a route to automated sign-ups. Community plans count each account's copy once, so with both flags on, someone with many wallets could raise a plan's copy count. Keep the Web3 rate limit low. Before relying on copy counts, consider CAPTCHA protection. It needs a widget on both forms, because Supabase then requires a CAPTCHA token on every sign-in.
+Wallet accounts carry no email and cost nothing to create, which Supabase's own guide flags as a route to automated sign-ups. Community plans count each account's copy once, so with both flags on, someone with many wallets could raise a plan's copy count. Keep the Web3 rate limit low. Reports and copies from accounts under a day old carry no weight ([community moderation](community-moderation.md)), and the CAPTCHA plumbing is in place: set `NEXT_PUBLIC_SUPABASE_CAPTCHA_SITE_KEY` and follow the order in [accounts](accounts.md#captcha-cloudflare-turnstile) before turning captcha protection on in Supabase, because Supabase then requires a token on every sign-in.
 
 ## Tests
 

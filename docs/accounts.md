@@ -20,6 +20,16 @@ Enable email/password authentication and keep email confirmation enabled. Add th
 
 Supabase’s default SMTP service is limited and is not a substitute for a production email provider. Configure a real custom SMTP sender for unrestricted public signup and password-reset delivery. If sending fails, Lotline reports the failure and leaves guest planning available. It does not bypass email verification. No OAuth provider is advertised before it is configured.
 
+### CAPTCHA (Cloudflare Turnstile)
+
+Email and wallet accounts cost nothing to create, so every password sign-in, sign-up, recovery request and wallet grant can carry a Cloudflare Turnstile token. The plumbing is off until `NEXT_PUBLIC_SUPABASE_CAPTCHA_SITE_KEY` is set: with it unset nothing loads, no token is sent and the forms are unchanged. Do these in order, because once Supabase requires a token a deployment without the site key locks everyone out:
+
+1. In the Cloudflare dashboard, create a Turnstile widget in **Managed** mode for `lotline.dev` and the Vercel aliases, and keep its site key and secret key.
+2. Set `NEXT_PUBLIC_SUPABASE_CAPTCHA_SITE_KEY` to the site key in Vercel and redeploy. The sign-in, sign-up and reset pages then render the widget, `signInWithPassword`, `signUp`, `resetPasswordForEmail` and `signInWithWeb3` carry `captchaToken`, and the Content-Security-Policy admits `https://challenges.cloudflare.com` for scripts and frames (`tests/security-headers.test.ts`). Supabase ignores the token while captcha protection is off, so this step is safe on its own.
+3. In Supabase under **Authentication → Attack Protection**, enable **Captcha protection**, choose **Turnstile by Cloudflare** and paste the secret key. From then on Supabase Auth rejects any sign-in without a token.
+
+Each token is accepted once; the forms fetch a fresh one after every attempt. `tests/captcha.test.ts` covers the key check.
+
 ## Flow
 
 - `/sign-up` registers an email and password and requests confirmation using PKCE.

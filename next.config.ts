@@ -1,8 +1,8 @@
 import type { NextConfig } from 'next';
 
 /**
- * The browser talks only to this origin and, when accounts are configured, to
- * Supabase. Everything else — Jupiter quotes, RPC reads — happens server-side,
+ * The browser talks only to this origin, when accounts are configured to
+ * Supabase, and when CAPTCHA is on to Cloudflare Turnstile. Everything else — Jupiter quotes, RPC reads — happens server-side,
  * so connect-src can stay tight. The Supabase origin is derived rather than
  * hardcoded so a project change cannot silently break sign-in.
  */
@@ -17,12 +17,15 @@ function contentSecurityPolicy(): string {
   // Mobile Wallet Adapter (Seeker, Android) associates with the wallet app over
   // a WebSocket to localhost on an ephemeral port; nothing else leaves the origin.
   const connect = ["'self'", supabaseOrigin, 'ws://localhost:*'].filter(Boolean).join(' ');
+  // Cloudflare Turnstile, only while the CAPTCHA site key is set (the same check as
+  // lib/supabase/captcha.ts): its script, and the frame its challenge runs in.
+  const turnstile = /^[0-9A-Za-z_-]{1,100}$/.test(process.env.NEXT_PUBLIC_SUPABASE_CAPTCHA_SITE_KEY?.trim() ?? '') ? ' https://challenges.cloudflare.com' : '';
   return [
     "default-src 'self'",
     // Next.js ships an inline bootstrap script; styles are inlined by the build.
     // Turbopack development code uses eval for its source maps. Production
     // scripts never need this exception.
-    `script-src 'self' 'unsafe-inline'${process.env.NODE_ENV === 'development' ? " 'unsafe-eval'" : ''}`,
+    `script-src 'self' 'unsafe-inline'${process.env.NODE_ENV === 'development' ? " 'unsafe-eval'" : ''}${turnstile}`,
     "style-src 'self' 'unsafe-inline'",
     "img-src 'self' data: blob:",
     "media-src 'self'",
@@ -31,6 +34,7 @@ function contentSecurityPolicy(): string {
     "worker-src 'self' blob:",
     "manifest-src 'self'",
     `connect-src ${connect}`,
+    ...(turnstile ? [`frame-src${turnstile}`] : []),
     "frame-ancestors 'none'",
     "base-uri 'self'",
     "form-action 'self'",

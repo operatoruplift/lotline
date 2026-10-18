@@ -83,3 +83,6 @@
 .divider::before,.divider::after { content:''; flex:1; height:1px; background:#30463129; }
 .walletNote { margin:18px 0 0; color:#3b4c3d; font-size:12px; line-height:1.7; text-align:center; }
 @media (prefers-reduced-motion:reduce) { .walletButton,.walletButton > svg:last-child { transition:none; } .walletButton:active:not(:disabled) { transform:none; } }
+
+/* The Turnstile widget (components/captcha.tsx); flexible size is 65px tall. */
+.captcha { margin:18px 0 0; min-height:65px; }
