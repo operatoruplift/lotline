@@ -12,3 +12,6 @@ export function accountLabel(user?: Partial<AccountUser> | null): string {
 
 /** What a member reads once their account is gone. */
 export const ACCOUNT_DELETED_MESSAGE = 'Your account and its saved data were deleted. You are signed out. Your draft on this device is unchanged.';
+
+/** Deleting needs a sign-in from the last ten minutes, not just a live session; both delete buttons say so. */
+export const ACCOUNT_REAUTH_MESSAGE = 'For your security, sign out and sign in again, then delete your account within ten minutes of signing in.';

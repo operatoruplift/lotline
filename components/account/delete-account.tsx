@@ -2,7 +2,7 @@
 
 import { useEffect, useId, useRef, useState } from 'react';
 import { LoaderCircle, TriangleAlert } from 'lucide-react';
-import { ACCOUNT_DELETED_MESSAGE } from '@/lib/client/account';
+import { ACCOUNT_DELETED_MESSAGE, ACCOUNT_REAUTH_MESSAGE } from '@/lib/client/account';
 import styles from './account.module.css';
 
 type Step = 'closed' | 'confirm' | 'deleting';
@@ -38,9 +38,11 @@ export function DeleteAccount({ disabled = false, onDeleted, onSessionEnded }: {
       setError('The deletion could not be confirmed. Check your connection, then refresh to see whether you are still signed in.'); setStep('confirm');
       return;
     }
-    const data = await response.json().catch(() => null) as { state?: string; message?: string } | null;
+    const data = await response.json().catch(() => null) as { state?: string; code?: string; message?: string } | null;
     if (!mounted.current) return;
     if (response.status === 401) { onSessionEnded(); return; }
+    // Deleting needs a sign-in from the last ten minutes, not just a live session.
+    if (response.status === 403 && data?.code === 'reauth_required') { setError(ACCOUNT_REAUTH_MESSAGE); setStep('confirm'); return; }
     if (!response.ok || data?.state !== 'deleted') {
       setError(data?.message ?? 'Your account could not be deleted right now. Nothing was removed. Please try again.'); setStep('confirm');
       return;

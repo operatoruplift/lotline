@@ -54,7 +54,7 @@ Each account can keep 20 plans. A per-user transaction lock serializes the count
 
 Added 7 October 2026 for the Solana dApp Store Publisher Policy. A signed-in member can delete their account from **Account** (`/sign-in`, which shows a signed-in member their account instead of a second sign-in) or from the planner's account panel. **Delete account** opens an in-page confirmation that says what goes and that Solana transactions stay. **Delete my account** calls `DELETE /api/account`, then the browser signs out locally and shows a confirmation.
 
-The route refuses another origin, allows 5 attempts per connection every 10 minutes (in the instance and in the shared bucket, keyed by a salted hash), revalidates the session with `auth.getUser()`, and deletes only that user with the admin API (`SUPABASE_SECRET_KEY`). It answers `configuration-required` without the secret key, and a failed deletion says nothing was removed.
+The route refuses another origin, allows 5 attempts per connection every 10 minutes (in the instance and in the shared bucket, keyed by a salted hash), revalidates the session with `auth.getUser()`, requires that the session signed in within the last ten minutes (the newest `amr` timestamp in the access token, read after `getUser` has validated it; otherwise 403 with code `reauth_required`, and both delete buttons tell the member to sign out and sign in again first), and deletes only that user with the admin API (`SUPABASE_SECRET_KEY`). It answers `configuration-required` without the secret key, and a failed deletion says nothing was removed and logs only the error's class, status and code, never the account.
 
 Every table that references `auth.users` uses `ON DELETE CASCADE`, so one delete removes:
 
