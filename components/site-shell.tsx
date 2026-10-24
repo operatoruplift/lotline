@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { ArrowUpRight } from 'lucide-react';
+import { AccountLink } from './account-link';
 import { Brand } from './brand';
 import { DecorativeVideo } from './decorative-video';
 import { Reveal } from './reveal';
@@ -20,7 +21,7 @@ export function SiteHeader({ active, dataMode, markets = false, community = fals
       </div>
       <div className={styles.utilities}>
         <Link href="/how-it-works" className="nav-link">How it works</Link>
-        <Link href="/sign-in" className="nav-link account-link" aria-current={active === 'account' ? 'page' : undefined}>Sign in</Link>
+        <AccountLink className="nav-link account-link" current={active === 'account'} />
         {network}
       </div>
     </nav>
@@ -32,7 +33,7 @@ export function SiteHeader({ active, dataMode, markets = false, community = fals
       {markets && <Link href="/markets" className={active === 'markets' ? 'nav-link active' : 'nav-link'} aria-current={active === 'markets' ? 'page' : undefined}>Markets</Link>}
       {community && <Link href="/plans" className={active === 'community' ? 'nav-link active' : 'nav-link'} aria-current={active === 'community' ? 'page' : undefined}>Community</Link>}
       <Link href={active === 'pre-ipo' ? '/app' : '/pre-ipo'} className="nav-link">{active === 'pre-ipo' ? 'xStocks' : 'Pre-IPO'}</Link>
-      <Link href="/sign-in" className="nav-link account-link">Sign in</Link>
+      <AccountLink className="nav-link account-link" current={active === 'account'} />
       {active === 'app' || active === 'pre-ipo' || active === 'markets' || active === 'community' || active === 'portfolio' ? network : <Link className="header-cta" href="/app">Make a plan <ArrowUpRight size={15} /></Link>}
     </nav>
   </div></header>;
