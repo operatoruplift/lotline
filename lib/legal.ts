@@ -3,7 +3,7 @@
  * use the same operator name, date format and contact rule.
  */
 export const OPERATOR = 'Operator Uplift';
-export const LEGAL_UPDATED = { iso: '2026-10-07', label: '7 October 2026' } as const;
+export const LEGAL_UPDATED = { iso: '2026-10-24', label: '24 October 2026' } as const;
 export const SUPPORT_ISSUES_URL = 'https://github.com/operatoruplift/lotline/issues';
 
 export type SupportContact = { kind: 'email' | 'issues'; label: string; href: string };

@@ -71,7 +71,7 @@ Try it without an account or a wallet: Example mode uses synthetic balances and 
 
 Until `NEXT_PUBLIC_SUPPORT_EMAIL` is set, the privacy and terms pages send people to https://github.com/operatoruplift/lotline/issues. Use the same support address in the Portal and in that variable. Check that both legal pages load on https://lotline.dev before you submit.
 
-The description says email sign-in works. Keep that sentence only if `NEXT_PUBLIC_AUTH_EMAIL_ENABLED` is `true` in production; otherwise delete it before pasting, because the sign-in page hides the email form while the flag is off.
+The description says email sign-in works. While `NEXT_PUBLIC_AUTH_EMAIL_ENABLED` is off in production, `/sign-in` still shows the email and password form, so existing email accounts can sign in, but `/sign-up` and `/auth/reset-password` show a notice instead of a form: nobody can create an email account or reset a password. Keep the sentence only if the flag is `true`; otherwise reword it to say that existing email accounts can sign in and that wallet sign-in creates new accounts.
 
 ## Other fields
 

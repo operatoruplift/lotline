@@ -42,7 +42,7 @@ const sections: LegalSection[] = [
     <ul>
       <li><strong>Vercel</strong> hosts lotline.dev and runs our server. It may keep request logs, including IP addresses, under its own policy.</li>
       <li><strong>Supabase</strong> stores accounts, the records above and our rate-limit counts.</li>
-      <li><strong>Our Solana RPC provider</strong> receives a public wallet address when you load balances, and transaction signatures when a purchase receipt is checked. It also serves public token and price accounts. The address you paste to load balances is held in our server’s memory for at most 15 seconds, to avoid repeat requests, and is never saved.</li>
+      <li><strong>Our Solana RPC provider</strong> receives a public wallet address when you load balances, and transaction signatures when a purchase receipt is checked. It also serves public token and price accounts. The address you paste to load balances travels to our server as a query parameter, is held in our server’s memory for at most 15 seconds to avoid repeat requests, and is not stored by Lotline; like any request, it may appear in our host’s request logs.</li>
       <li><strong>Jupiter</strong> receives token addresses and USDC amounts for estimates, with no wallet, and token searches for Markets. For a restricted-launch purchase it receives your wallet’s public address and your signed transaction.</li>
       <li><strong>GeckoTerminal</strong> receives a token’s public address to return its price history for charts.</li>
       <li><strong>Pyth</strong> receives public price-feed IDs for reference prices.</li>
@@ -53,8 +53,8 @@ const sections: LegalSection[] = [
   { id: 'rate-limits', title: 'Rate limits and your IP address', body: <>
     <p>To keep live data and accounts available, our server counts requests from each connection. It reads your IP address from our host’s network header. Two counts are kept:</p>
     <ul>
-      <li>A short count over a one to ten minute window, keyed by the IP address. It stays in our server’s memory, is never written to disk, and is dropped when the server needs the room or restarts.</li>
-      <li>A shared count in Supabase, keyed by a salted hash of the IP address (HMAC-SHA-256 with a server secret), never the address itself. Counts older than a day are removed during routine cleanup.</li>
+      <li>A short count over a one to ten minute window, keyed by the IP address (an IPv6 address is shortened to its /64 network first). It stays in our server’s memory, is never written to disk, and is dropped when the server needs the room or restarts.</li>
+      <li>A shared count in Supabase, keyed by a salted hash of the IP address (HMAC-SHA-256 with a dedicated server secret; IPv6 by its /64 network), never the address itself. Counts older than a day are removed during routine cleanup.</li>
     </ul>
   </> },
   { id: 'device', title: 'On your device', body: <>
@@ -108,7 +108,7 @@ const sections: LegalSection[] = [
     </ul>
   </> },
   { id: 'security', title: 'Security', body: <>
-    <p>Lotline is served only over HTTPS with a strict content security policy. Account records are protected by row-level security, so each account reaches only its own data, and shared records are reachable only through checked database functions. Changes must come from this site. Server keys never reach the browser. No system is perfectly secure, so keep your wallet and email account protected too.</p>
+    <p>Lotline is served only over HTTPS with a content security policy that limits scripts, frames and connections to this site, to Supabase and, when CAPTCHA is on, to Cloudflare Turnstile; the framework’s own inline scripts are allowed. Account records are protected by row-level security, so each account reaches only its own data, and shared records are reachable only through checked database functions. Changes must come from this site. Server keys never reach the browser. No system is perfectly secure, so keep your wallet and email account protected too.</p>
   </> },
   { id: 'age', title: 'Adults only', body: <>
     <p>Lotline is for adults aged 18 or over. It is not directed at children, and we do not knowingly collect data from anyone under 18. If you think a child has made an account, contact us and we will delete it.</p>

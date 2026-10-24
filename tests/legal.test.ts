@@ -5,7 +5,7 @@ import sitemap from '../app/sitemap';
 describe('legal pages', () => {
   it('name the operator and the shared update date', () => {
     expect(OPERATOR).toBe('Operator Uplift');
-    expect(LEGAL_UPDATED).toEqual({ iso: '2026-10-07', label: '7 October 2026' });
+    expect(LEGAL_UPDATED).toEqual({ iso: '2026-10-24', label: '24 October 2026' });
   });
 
   it('show the configured support email, or the GitHub Issues page when there is none', () => {

@@ -6,7 +6,7 @@ This document describes current source behavior. The redesign and contribution f
 
 ## Configuration
 
-Set `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` at build time. The key must be a current `sb_publishable_` key. The public client deliberately rejects secret and legacy service-role keys. No privileged key is used for auth or cloud-plan requests.
+Set `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` at build time. The key must be a current `sb_publishable_` key. The public client deliberately rejects secret and legacy service-role keys. Sign-in and cloud-plan requests use the member's own session. `SUPABASE_SECRET_KEY` is used on the server only, for account deletion, guest reports, the shared rate buckets and the retention cron; it never reaches the browser.
 
 For an authorized new database, apply the account and catalog migrations in `supabase/migrations/` in timestamp order:
 

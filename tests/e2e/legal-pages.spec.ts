@@ -12,7 +12,7 @@ for (const { path, heading, must } of pages) {
     expect(response?.status()).toBe(200);
     const main = page.locator('main#main');
     await expect(main.getByRole('heading', { level: 1, name: heading })).toBeVisible();
-    await expect(main.getByText('Last updated: 7 October 2026 · Operator Uplift')).toBeVisible();
+    await expect(main.getByText('Last updated: 24 October 2026 · Operator Uplift')).toBeVisible();
     for (const text of must) await expect(main).toContainText(text);
     // No support email is configured here, so contact falls back to the repository's issues.
     await expect(main.getByRole('link', { name: /GitHub Issues/ })).toHaveAttribute('href', 'https://github.com/operatoruplift/lotline/issues');
