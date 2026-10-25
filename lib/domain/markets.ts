@@ -241,6 +241,29 @@ export interface ChartResponse {
   pool: { address: string; name: string } | null;
   fetchedAt: string;
   message?: string;
+  /** Set when the failure is passing (a busy or unreachable source), so asking again can succeed. */
+  retryable?: boolean;
+}
+
+const CHART_MESSAGE_MAX = 200;
+
+/**
+ * What the asset sheet shows for one chart answer. A refusal that arrives before
+ * any chart exists (Lotline's read limit, an outage) names no asset, so only its
+ * message is kept; status 0 means no answer arrived at all. Only a busy or
+ * failing source, or no answer, is worth asking again.
+ */
+export function chartFromResponse(status: number, body: unknown, mint: string, range: ChartRange, now = new Date()): ChartResponse {
+  const unavailable = (message: string, retryable: boolean): ChartResponse =>
+    ({ state: 'unavailable', mint, range, points: [], source: 'GeckoTerminal', pool: null, fetchedAt: now.toISOString(), message, ...(retryable ? { retryable } : {}) });
+  if (status < 200 || status > 299) {
+    const message = typeof body === 'object' && body !== null && 'message' in body ? body.message : undefined;
+    return unavailable(typeof message === 'string' && message.length <= CHART_MESSAGE_MAX ? message : 'The price history could not be loaded.', status === 0 || status === 429 || status >= 500);
+  }
+  const data = body as ChartResponse | null;
+  const valid = typeof data === 'object' && data !== null && data.mint === mint && data.range === range && Array.isArray(data.points) &&
+    data.points.every(point => Number.isFinite(point?.t) && Number.isFinite(point?.c) && point.c > 0);
+  return valid ? data : unavailable('The price history could not be verified.', false);
 }
 
 const currency = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 2, maximumFractionDigits: 2 });

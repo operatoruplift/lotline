@@ -147,7 +147,7 @@ describe('price history', () => {
     // A mint no other test charts: the pool and chart caches are module-level.
     const SPYX_MINT = 'XsoCS1TfEyfFhfvj8EtZ528L3CaKBDBRqRapnBbDF2W';
     const unverified = await readChart(SPYX_MINT, '30d', { fetch, now: () => NOW, run: operation => operation(), scale: async () => { throw new Error('rpc down'); } });
-    expect(unverified).toMatchObject({ state: 'unavailable', points: [], message: expect.stringMatching(/display units could not be verified/) });
+    expect(unverified).toMatchObject({ state: 'unavailable', points: [], message: expect.stringMatching(/display units could not be verified/), retryable: true });
   });
   it('turns candles into ascending closes inside the window and drops bad ones', () => {
     const hour = 3_600;
@@ -172,10 +172,20 @@ describe('price history', () => {
     expect(fetch.mock.calls[2][0]).toContain('/ohlcv/day?aggregate=1&limit=30');
     const noPool = await readChart(NVDAX, '1d', { ...deps, fetch: vi.fn(async () => ({ data: [] })) });
     expect(noPool).toMatchObject({ state: 'unavailable', points: [], message: expect.stringMatching(/No pool/) });
+    // Facts about the market, not failures: asking again within the hour gives the same answer.
+    expect(noPool).not.toHaveProperty('retryable');
+    const AMZNX = 'Xs3eBt7uRfJX8QUs4suhyU8p2M6DoUDrJyWBa8LLZsg';
+    const quiet = vi.fn(async (url: string) => url.includes('/tokens/') ? { data: [pool(DEEP, AMZNX, USDC, '291288.30')] } : { data: { attributes: { ohlcv_list: [[at(4), 1, 1, 1, 230, 1]] } } });
+    const sparse = await readChart(AMZNX, '1d', { ...deps, fetch: quiet });
+    expect(sparse).toMatchObject({ state: 'unavailable', message: expect.stringMatching(/Not enough recent trades/) });
+    expect(sparse).not.toHaveProperty('retryable');
   });
-  it('says when the chart source is rate limited', async () => {
+  it('says when the chart source is rate limited or failing, and that asking again can work', async () => {
     const limited = vi.fn(async () => { throw new ServiceError('unavailable', 'rate limited', 'rate-limited', 429); });
     const MSFTX = 'XspzcW1PRtgf6Wj92HCiZdjzKCyFekVD8P5Ueh3dRMX';
-    expect(await readChart(MSFTX, '1d', { fetch: limited, now: () => NOW, run: operation => operation(), scale: async () => null })).toMatchObject({ state: 'unavailable', message: 'The chart source is busy. Try again in a minute.' });
+    expect(await readChart(MSFTX, '1d', { fetch: limited, now: () => NOW, run: operation => operation(), scale: async () => null })).toMatchObject({ state: 'unavailable', message: 'The chart source is busy. Try again in a minute.', retryable: true });
+    const TSLAX = 'XsDoVfqeBukxuZHWhdvWHBhgEHjGNst4MLodqsJHzoB';
+    const failing = vi.fn(async () => { throw new Error('socket hang up'); });
+    expect(await readChart(TSLAX, '1d', { fetch: failing, now: () => NOW, run: operation => operation(), scale: async () => null })).toMatchObject({ state: 'unavailable', message: 'The price history is temporarily unavailable.', retryable: true });
   });
 });

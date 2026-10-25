@@ -93,7 +93,7 @@
 .rangeTabs button { min-height: 32px; padding: 4px 12px; border: 0; border-radius: 7px; background: transparent; font-size: 11px; font-weight: 600; color: #43574a; }
 .rangeTabs button[aria-pressed='true'] { background: var(--white); color: var(--forest); box-shadow: 0 1px 3px #153c3418; }
 .chartArea { min-height: 142px; margin-top: 12px; display: flex; align-items: center; }
-.chartState { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--muted); }
+.chartState { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; font-size: 12px; color: var(--muted); }
 .chart { margin: 0; width: 100%; color: var(--muted); }
 .chart[data-direction='up'] { color: #2f7d5f; }
 .chart[data-direction='down'] { color: var(--down); }
@@ -107,8 +107,8 @@
 .identity { margin-top: 22px; display: grid; gap: 14px; }
 .identity dd { margin: 5px 0 0; font-size: 12.5px; line-height: 1.6; color: #3c4a40; display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
 .identity code { font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace; font-size: 11.5px; overflow-wrap: anywhere; }
-.copyButton { min-height: 32px; padding: 4px 10px; border: 1px solid var(--line); border-radius: 7px; background: var(--white); font-size: 11px; gap: 5px; color: var(--ink); }
-.copyButton:hover { border-color: var(--forest); color: var(--forest); }
+.copyButton, .retryButton { min-height: 32px; padding: 4px 10px; border: 1px solid var(--line); border-radius: 7px; background: var(--white); font-size: 11px; gap: 5px; color: var(--ink); }
+.copyButton:hover, .retryButton:hover { border-color: var(--forest); color: var(--forest); }
 .sheetNote { margin-top: 20px; padding: 12px 14px; border-radius: 10px; background: var(--soft); font-size: 11.5px; line-height: 1.7; color: #3c4a40; }
 .sheetActions { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin-top: 20px; }
 .textLink { display: inline-flex; align-items: center; gap: 6px; min-height: 44px; font-size: 12px; font-weight: 550; color: var(--forest); }
@@ -143,7 +143,7 @@
   .sheetBody { max-height: 90dvh; padding: 10px 20px calc(24px + env(safe-area-inset-bottom)); }
   .sheetGrip { display: block; width: 38px; height: 4px; margin: 0 auto 14px; border-radius: 4px; background: var(--line); }
   .closeButton { width: 44px; min-height: 44px; }
-  .rangeTabs button, .copyButton, .status button { min-height: 44px; }
+  .rangeTabs button, .copyButton, .retryButton, .status button { min-height: 44px; }
 }
 /* Phones: fixed columns so long names truncate instead of widening the page. */
 @media (max-width: 600px) {
