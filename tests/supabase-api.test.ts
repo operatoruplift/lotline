@@ -1,21 +1,25 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { NextRequest } from 'next/server';
-const mock = vi.hoisted(() => ({ server: vi.fn(), getUser: vi.fn(), from: vi.fn(), exchange: vi.fn() }));
+const mock = vi.hoisted(() => ({ server: vi.fn(), getUser: vi.fn(), from: vi.fn(), exchange: vi.fn(), limit: vi.fn() }));
 vi.mock('@/lib/supabase/server', () => ({ serverSupabase: mock.server }));
+vi.mock('@/lib/server/read-limits', async original => ({ ...(await original<typeof import('@/lib/server/read-limits')>()), enforceReadRateLimit: mock.limit }));
 import { DELETE, GET, POST } from '@/app/api/plans/route';
 import { GET as session } from '@/app/api/auth/session/route';
 import { GET as callback } from '@/app/auth/callback/route';
+import { ServiceError } from '@/lib/server/common';
 import { PLAN_MINTS } from '@/lib/supabase/plans';
 
 const userId = 'f11a42f7-94c9-4131-aacc-8c689a294ab6';
 const planId = 'ccf2689b-66a7-45c0-8d7f-ebdf84c7e2e7';
 const plan = { name: 'Next contribution', budget_raw: '10000001', allocations: [{ mint: PLAN_MINTS[0], bps: '10000' }] };
 function request(body: unknown = plan, origin = 'https://lotline.test') { return new Request('https://lotline.test/api/plans', { method: 'POST', headers: { origin, 'Content-Type': 'application/json' }, body: JSON.stringify(body) }); }
+const sessionRequest = () => new Request('https://lotline.test/api/auth/session', { headers: { 'x-real-ip': '203.0.113.7' } });
 
 beforeEach(() => {
   vi.clearAllMocks();
   mock.server.mockResolvedValue({ auth: { getUser: mock.getUser, exchangeCodeForSession: mock.exchange }, from: mock.from });
   mock.getUser.mockResolvedValue({ data: { user: { id: userId, email: 'reader@example.test' } }, error: null });
+  mock.limit.mockResolvedValue(undefined);
 });
 
 describe('cloud plan route authorization', () => {
@@ -74,16 +78,26 @@ describe('cloud plan route authorization', () => {
 describe('verified session and email callbacks', () => {
   it('sanitizes the account response', async () => {
     mock.getUser.mockResolvedValue({ data: { user: { id: userId, email: 'reader@example.test', user_metadata: { role: 'admin' }, identities: ['private'] } }, error: null });
-    expect(await (await session()).json()).toEqual({ state: 'signed-in', user: { id: userId, email: 'reader@example.test' } });
+    expect(await (await session(sessionRequest())).json()).toEqual({ state: 'signed-in', user: { id: userId, email: 'reader@example.test' } });
   });
   it('adds the wallet address for an account that signed in with Solana', async () => {
     const address = '7xKXtg2CW87d97TXJSDpbD5jBkheTqA83TZRuJosgAsU';
     mock.getUser.mockResolvedValue({ data: { user: { id: userId, user_metadata: { custom_claims: { address } }, identities: [{ id: `web3:solana:${address}`, provider: 'web3', identity_data: { sub: `web3:solana:${address}` } }] } }, error: null });
-    expect(await (await session()).json()).toEqual({ state: 'signed-in', user: { id: userId, wallet: address } });
+    expect(await (await session(sessionRequest())).json()).toEqual({ state: 'signed-in', user: { id: userId, wallet: address } });
   });
   it('distinguishes unavailable Auth from a guest', async () => {
     mock.getUser.mockRejectedValue(new Error('network'));
-    expect((await session()).status).toBe(503);
+    expect((await session(sessionRequest())).status).toBe(503);
+  });
+  it('tells a connection past its session budget to wait before asking Auth anything', async () => {
+    mock.limit.mockRejectedValueOnce(new ServiceError('unavailable', 'Too many requests from this connection. Wait a moment, then retry.', 'rate-limited'));
+    const limited = await session(sessionRequest());
+    expect(limited.status).toBe(429);
+    expect(limited.headers.get('retry-after')).toBe('60');
+    expect(limited.headers.get('cache-control')).toBe('no-store');
+    expect(await limited.json()).toEqual({ state: 'unavailable', user: null });
+    expect(mock.getUser).not.toHaveBeenCalled();
+    expect(mock.limit).toHaveBeenCalledWith(expect.any(Request), expect.objectContaining({ scope: 'session-read' }));
   });
   it('cannot use next for an open redirect', async () => {
     mock.exchange.mockResolvedValue({ error: null });

@@ -349,6 +349,10 @@ async function until<T>(promise: Promise<T>, maxMs = 30_000): Promise<T> {
 async function keyless(fetcher: ReturnType<typeof keylessFetcher>, mints = [mapping.mint], at = lazerNow) {
   vi.resetModules(); vi.setSystemTime(at);
   vi.stubEnv('PYTH_API_KEY', ''); vi.stubEnv('SOLANA_RPC_URL', 'https://rpc.example'); vi.stubGlobal('fetch', fetcher);
+  // Receiver addresses are derived with WebCrypto, which runs on the real thread pool. Derive them
+  // before `until` starts moving the fake clock, so a busy pool cannot age the readings under test.
+  const onchain = await import('../lib/server/pyth-onchain');
+  await Promise.all([onchain.receiverAddress(PYTH_USDC_FEED_ID, onchain.PYTH_SPONSORED_SHARD), ...PYTH_FEEDS.filter(feed => mints.some(mint => mint === feed.mint)).map(feed => onchain.receiverAddress(feed.underlying, onchain.PYTH_EQUITY_SHARD))]);
   const { getMarketReferences } = await import('../lib/server/pyth');
   const response = await until(getMarketReferences(mints));
   expect(marketReferenceResponseSchema.safeParse(response).success).toBe(true);

@@ -1,0 +1,28 @@
+/* Account controls: the signed-in panel on /sign-in and account deletion, wherever an account is shown. */
+.deleteOpen { min-height: 44px; padding: 8px 0; border: 0; background: transparent; color: #8b3430; font-size: 12px; font-weight: 600; cursor: pointer; white-space: nowrap; text-decoration: underline; text-decoration-color: #8b343055; text-underline-offset: 3px; }
+.deleteOpen:hover { text-decoration-color: currentColor; }
+.deleteOpen:disabled { opacity: .55; cursor: not-allowed; }
+.confirm { display: grid; gap: 10px; margin-top: 14px; padding: 16px; border: 1px solid #e3c4b6; border-radius: 12px; background: #fff7f2; color: #3d2621; text-align: left; }
+.confirm:focus-visible { outline: 2px solid #8b3430; outline-offset: 3px; }
+.confirm h3 { display: flex; align-items: center; gap: 8px; margin: 0; color: #6f2622; font-size: 14px; font-weight: 650; letter-spacing: -.01em; }
+.confirm p { margin: 0; color: #4f3a33; font-size: 12px; line-height: 1.7; }
+.confirmError { padding: 10px 12px; border-radius: 9px; background: #fde8df; color: #8b3430 !important; }
+.confirmActions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 4px; }
+.danger, .keep { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 44px; padding: 10px 16px; border-radius: 10px; font: inherit; font-size: 13px; font-weight: 600; cursor: pointer; }
+.danger { border: 1px solid #8b3430; background: #8b3430; color: #fff; }
+.danger:hover:not(:disabled) { background: #6f2622; }
+.keep { border: 1px solid #d8c7bd; background: #fffdfb; color: #3d2621; }
+.keep:hover:not(:disabled) { border-color: #3d2621; }
+.danger:disabled, .keep:disabled { opacity: .6; cursor: not-allowed; }
+.danger:focus-visible, .keep:focus-visible, .deleteOpen:focus-visible { outline: 2px solid #08150c; outline-offset: 3px; }
+.spin { animation: spin 1s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.account { display: grid; gap: 14px; margin-top: 28px; text-align: left; }
+.signedInAs { margin: 0; padding: 14px 15px; border: 1px solid #576b4940; border-radius: 12px; background: #fdf5ebd9; color: #15291b; font-size: 13px; line-height: 1.6; overflow-wrap: anywhere; }
+.signedInAs strong { font-weight: 650; }
+.accountActions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 18px; }
+.planner { display: inline-flex; align-items: center; justify-content: center; gap: 9px; min-height: 50px; padding: 13px 20px; border-radius: 12px; background: #08150c; color: #fff; font-size: 13px; font-weight: 600; }
+.planner:hover { background: #1a2e1f; }
+.signOut { min-height: 44px; padding: 8px 0; border: 0; background: transparent; color: #243e2b; font-size: 12px; font-weight: 600; cursor: pointer; text-decoration: underline; text-underline-offset: 3px; }
+.signOut:disabled { opacity: .55; cursor: not-allowed; }
+@media (prefers-reduced-motion: reduce) { .spin { animation: none; } }

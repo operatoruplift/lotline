@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { ArrowUpRight } from 'lucide-react';
+import { AccountLink } from './account-link';
 import { Brand } from './brand';
 import { DecorativeVideo } from './decorative-video';
 import { Reveal } from './reveal';
@@ -20,7 +21,7 @@ export function SiteHeader({ active, dataMode, markets = false, community = fals
       </div>
       <div className={styles.utilities}>
         <Link href="/how-it-works" className="nav-link">How it works</Link>
-        <Link href="/sign-in" className="nav-link account-link" aria-current={active === 'account' ? 'page' : undefined}>Sign in</Link>
+        <AccountLink className="nav-link account-link" current={active === 'account'} />
         {network}
       </div>
     </nav>
@@ -32,7 +33,7 @@ export function SiteHeader({ active, dataMode, markets = false, community = fals
       {markets && <Link href="/markets" className={active === 'markets' ? 'nav-link active' : 'nav-link'} aria-current={active === 'markets' ? 'page' : undefined}>Markets</Link>}
       {community && <Link href="/plans" className={active === 'community' ? 'nav-link active' : 'nav-link'} aria-current={active === 'community' ? 'page' : undefined}>Community</Link>}
       <Link href={active === 'pre-ipo' ? '/app' : '/pre-ipo'} className="nav-link">{active === 'pre-ipo' ? 'xStocks' : 'Pre-IPO'}</Link>
-      <Link href="/sign-in" className="nav-link account-link">Sign in</Link>
+      <AccountLink className="nav-link account-link" current={active === 'account'} />
       {active === 'app' || active === 'pre-ipo' || active === 'markets' || active === 'community' || active === 'portfolio' ? network : <Link className="header-cta" href="/app">Make a plan <ArrowUpRight size={15} /></Link>}
     </nav>
   </div></header>;
@@ -42,7 +43,7 @@ export function SiteFooter() {
   return <footer className={`site-footer ${styles.footer}`} data-design="heritage-grove">
     <div className={styles.footerCopy}>
       <div><Reveal effect="footer"><Brand /></Reveal><Reveal effect="footer" delay={80}><h2>A clearer<br /><em>next step.</em></h2></Reveal><Reveal effect="footer" delay={160}><p>A little clarity for your next contribution.</p></Reveal></div>
-      <div className={styles.footerRight}><Reveal effect="footer" delay={160}><nav aria-label="Footer navigation"><Link href="/how-it-works">How it works</Link><Link href="/demo">Demo</Link><Link href="/brand-kit">Brand kit</Link><Link href="/privacy">Privacy & storage</Link><a href="#install-lotline">Install app</a><a href="https://github.com/operatoruplift/lotline" target="_blank" rel="noopener noreferrer">GitHub <ArrowUpRight size={12} aria-hidden="true" /><span className="sr-only"> (opens in a new tab)</span></a></nav></Reveal><Reveal effect="footer" delay={240}><p>Made for Solana. Planning only.<br />You review every trade.</p></Reveal></div>
+      <div className={styles.footerRight}><Reveal effect="footer" delay={160}><nav aria-label="Footer navigation"><Link href="/how-it-works">How it works</Link><Link href="/demo">Demo</Link><Link href="/brand-kit">Brand kit</Link><Link href="/privacy">Privacy</Link><Link href="/terms">Terms</Link><a href="#install-lotline">Install app</a><a href="https://github.com/operatoruplift/lotline" target="_blank" rel="noopener noreferrer">GitHub <ArrowUpRight size={12} aria-hidden="true" /><span className="sr-only"> (opens in a new tab)</span></a></nav></Reveal><Reveal effect="footer" delay={240}><p>Made for Solana. Planning only.<br />You review every trade.</p></Reveal></div>
     </div>
     <Reveal className={styles.footerMedia} effect="fade"><DecorativeVideo src="/media/design/footer-landscape.mp4" poster="/media/design/footer-landscape-poster.jpg" label="Footer landscape" /></Reveal>
   </footer>;

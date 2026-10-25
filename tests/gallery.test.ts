@@ -1,8 +1,10 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { galleryPlanSchema, galleryPlanToBasket, leadingWeights, type GalleryPlan } from '../lib/domain/gallery';
+import { ServiceError } from '../lib/server/common';
 
-const mocks = vi.hoisted(() => ({ server: vi.fn(), rpc: vi.fn(), getUser: vi.fn() }));
+const mocks = vi.hoisted(() => ({ server: vi.fn(), rpc: vi.fn(), getUser: vi.fn(), limit: vi.fn() }));
 vi.mock('../lib/supabase/server', () => ({ serverSupabase: mocks.server }));
+vi.mock('../lib/server/read-limits', async original => ({ ...(await original<typeof import('../lib/server/read-limits')>()), enforceReadRateLimit: mocks.limit }));
 
 const AAPLX = 'XsbEhLAtcf6HdfpFZ5xEMdqW8nfAvcsP5bdudRLJzJp';
 const MSFTX = 'XspzcW1PRtgf6Wj92HCiZdjzKCyFekVD8P5Ueh3dRMX';
@@ -26,6 +28,8 @@ describe('community plan shape', () => {
       { ...plan(), budget_raw: '250000000' },
       { ...plan(), user_id: '00000000-0000-4000-8000-00000000000a' },
       plan({ display_name: 'x' }),
+      plan({ name: 'visit https://spam.test' }),
+      plan({ name: 'bidi\u202Ename' }),
     ]) expect(galleryPlanSchema.safeParse(bad).success).toBe(false);
   });
   it('opens with the reader’s budget and shows the largest weights first', () => {
@@ -41,6 +45,7 @@ describe('community plan routes', () => {
     vi.stubEnv('LOTLINE_GALLERY_ENABLED', 'true');
     mocks.server.mockResolvedValue({ rpc: mocks.rpc, auth: { getUser: mocks.getUser } });
     mocks.getUser.mockResolvedValue({ data: { user: { id: 'member' } }, error: null });
+    mocks.limit.mockResolvedValue(undefined);
   });
   afterEach(() => { vi.unstubAllEnvs(); vi.clearAllMocks(); });
 
@@ -71,10 +76,22 @@ describe('community plan routes', () => {
   it('serves one shared plan or says it is gone', async () => {
     const { GET } = await import('../app/api/gallery/[id]/route');
     mocks.rpc.mockResolvedValueOnce({ data: plan(), error: null });
-    expect(await (await GET(new Request('https://lotline.dev'), { params: Promise.resolve({ id: ID }) })).json()).toEqual({ state: 'success', plan: plan() });
+    const served = await GET(new Request('https://lotline.dev'), { params: Promise.resolve({ id: ID }) });
+    expect(await served.json()).toEqual({ state: 'success', plan: plan() });
+    // Short enough that a plan hidden after reports leaves shared caches within a minute.
+    expect(served.headers.get('cache-control')).toBe('public, max-age=30, s-maxage=30, stale-while-revalidate=60');
     mocks.rpc.mockResolvedValueOnce({ data: null, error: null });
     expect((await GET(new Request('https://lotline.dev'), { params: Promise.resolve({ id: ID }) })).status).toBe(404);
     expect((await GET(new Request('https://lotline.dev'), { params: Promise.resolve({ id: 'not-a-uuid' }) })).status).toBe(400);
+    // A connection past its budget is told to wait, before the database is asked; the refusal is never cached.
+    mocks.limit.mockRejectedValueOnce(new ServiceError('unavailable', 'Too many requests from this connection. Wait a moment, then retry.', 'rate-limited'));
+    const limited = await GET(new Request('https://lotline.dev'), { params: Promise.resolve({ id: ID }) });
+    expect(limited.status).toBe(429);
+    expect(limited.headers.get('retry-after')).toBe('60');
+    expect(limited.headers.get('cache-control')).toBe('no-store');
+    expect(await limited.json()).toEqual({ state: 'unavailable', message: 'Too many requests from this connection. Wait a moment, then retry.' });
+    expect(mocks.rpc).toHaveBeenCalledTimes(2);
+    expect(mocks.limit).toHaveBeenLastCalledWith(expect.any(Request), expect.objectContaining({ scope: 'gallery-read' }));
   });
 
   it('counts copies for signed-in members only and refuses other origins', async () => {

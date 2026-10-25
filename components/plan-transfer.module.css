@@ -4,14 +4,14 @@
 .shareButton:hover,.keepButton:hover { background:#edf3e8; }
 .shareButton:disabled { cursor:not-allowed; opacity:.55; }
 .shareButton:focus-visible,.keepButton:focus-visible,.applyButton:focus-visible,.transfer:focus-visible { outline:2px solid #416f3f; outline-offset:4px; }
-.hint,.message { font-size:11px; line-height:1.65; color:#52634e; margin:9px 0 0; }
+.hint,.message { font-size:12px; line-height:1.65; color:#52634e; margin:9px 0 0; }
 .message:empty { display:none; }
 .message { color:#315c3a; }
 .error { color:#903b32; }
 .dialog { width:min(530px, calc(100vw - 32px)); max-height:calc(100dvh - 40px); margin:auto; padding:0; border:1px solid #d3deca; border-radius:20px; color:#233524; background:#fffefb; box-shadow:0 24px 90px #17351f33; }
 .dialog::backdrop { background:#12291ccc; backdrop-filter:blur(4px); }
 .dialogBody { padding:30px; }
-.eyebrow { display:flex; align-items:center; gap:7px; font-size:10px; font-weight:700; letter-spacing:.13em; color:#547147; }
+.eyebrow { display:flex; align-items:center; gap:7px; font-size:11px; font-weight:700; letter-spacing:.13em; color:#547147; }
 .dialog h2 { font-size:27px; line-height:1.2; font-weight:550; letter-spacing:-.04em; margin:16px 0 12px; }
 .dialog p { font-size:12px; line-height:1.75; color:#566650; margin:0; }
 .summary { display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:15px; padding:20px 0; }

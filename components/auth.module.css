@@ -1,4 +1,4 @@
-.eyebrow { color:#3a503c; font-size:10px; font-weight:700; letter-spacing:.15em; }
+.eyebrow { color:#3a503c; font-size:11px; font-weight:700; letter-spacing:.15em; }
 .formCard { padding:38px 40px 28px; color:#08150c; }
 .formHeading { text-align:center; }
 .brand { display:inline-flex; align-items:center; justify-content:center; gap:9px; min-height:44px; color:#08150c; font-size:23px; font-weight:650; letter-spacing:-1px; margin-bottom:25px; }
@@ -58,6 +58,8 @@
 .planActions { display:flex; gap:16px; flex-shrink:0; }
 .cloud .error,.cloud .success { margin-top:15px; }
 .cloud .accountEmail { overflow-wrap:anywhere; }
+.accountFooter { display:flex; flex-wrap:wrap; align-items:flex-start; justify-content:space-between; gap:0 18px; margin-top:6px; }
+.accountFooter > :last-child:not(button) { flex-basis:100%; }
 @media (max-width:780px) { .formCard { padding:34px 32px 25px; } }
 @media (max-width:420px) { .formCard { padding:29px 24px 23px; } .formCard h1 { font-size:31px; } .brand { margin-bottom:20px; } .cloud { padding:19px; } .saveForm { align-items:stretch; flex-direction:column; } .planList li { align-items:flex-start; } }
 @media (prefers-reduced-motion:reduce) { .spin { animation:none; } }
@@ -81,3 +83,10 @@
 .divider::before,.divider::after { content:''; flex:1; height:1px; background:#30463129; }
 .walletNote { margin:18px 0 0; color:#3b4c3d; font-size:12px; line-height:1.7; text-align:center; }
 @media (prefers-reduced-motion:reduce) { .walletButton,.walletButton > svg:last-child { transition:none; } .walletButton:active:not(:disabled) { transform:none; } }
+
+/* The Turnstile widget (components/captcha.tsx); flexible size is 65px tall. */
+.captcha { margin:18px 0 0; min-height:65px; }
+
+/* A Solana wallet without Sign in with Solana: named, with what to do, never a button. */
+.walletUnsupported { display:flex; align-items:center; gap:12px; margin:0; padding:12px 14px; border:1px dashed #576b4955; border-radius:12px; color:#354438; font-size:12px; line-height:1.6; }
+.walletUnsupported img { flex:none; border-radius:7px; }

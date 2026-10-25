@@ -1,30 +1,40 @@
-import { SolanaSignIn, SolanaSignMessage, type SolanaSignInFeature, type SolanaSignMessageFeature } from '@solana/wallet-standard-features';
+import { SolanaSignIn, type SolanaSignInFeature } from '@solana/wallet-standard-features';
 import type { Wallet } from '@wallet-standard/base';
-import { StandardConnect, type StandardConnectFeature } from '@wallet-standard/features';
 
 /**
  * Shown in the wallet's sign-in prompt and stored with the account. Sign in
  * with Solana allows one line, and most wallets refuse to sign without one.
  */
 export const SIGN_IN_STATEMENT = 'Sign in to Lotline. This proves you hold this wallet; it sends no transaction and moves no funds.';
+/** Shown beside a Solana wallet that cannot sign in, after its name. */
+export const UNSUPPORTED_WALLET_NOTE = 'doesn’t support Sign in with Solana yet. Update it, or use a wallet that does, such as Phantom, Solflare or Backpack.';
 
 const isSolanaChain = (chain: string) => chain.startsWith('solana:');
-type Features = Partial<SolanaSignInFeature & SolanaSignMessageFeature & StandardConnectFeature>;
+type Features = Partial<SolanaSignInFeature>;
+const NONCE_BYTES = 8;
 
-/** Where and when the proof is made. Supabase Auth rejects a URI it does not allow and a message older than ten minutes. */
-export interface SignInRequest { domain: string; uri: string; issuedAt: string }
+/** Where and when the proof is made, with a nonce for this attempt. Supabase Auth rejects a URI it does not allow and a message older than ten minutes. */
+export interface SignInRequest { domain: string; uri: string; issuedAt: string; nonce: string }
 /** What Supabase Auth verifies: the exact text the wallet signed and its Ed25519 signature. */
 export interface SignInProof { message: string; signature: Uint8Array }
 
-/** A wallet can sign in with Sign in with Solana, or by connecting and signing a message. */
-export function canSignIn(wallet: Wallet): boolean {
-  const features = wallet.features as Features;
-  return wallet.chains.some(isSolanaChain) && (!!features[SolanaSignIn] || (!!features[StandardConnect] && !!features[SolanaSignMessage]));
+/** A wallet on a Solana chain, whether or not it can sign in. */
+export function isSolanaWallet(wallet: Wallet): boolean {
+  return wallet.chains.some(isSolanaChain);
 }
 
-/** The Sign in with Solana text, in the field order Supabase Auth's own client writes. */
-export function signInMessage({ domain, uri, issuedAt, address }: SignInRequest & { address: string }): string {
-  return [`${domain} wants you to sign in with your Solana account:`, address, '', SIGN_IN_STATEMENT, '', 'Version: 1', `URI: ${uri}`, `Issued At: ${issuedAt}`].join('\n');
+/**
+ * Only Sign in with Solana qualifies. The wallet then writes the message
+ * itself, checks the page's domain and shows its dedicated prompt; a page-written
+ * message signed as plain bytes gave the wallet nothing to check.
+ */
+export function canSignIn(wallet: Wallet): boolean {
+  return isSolanaWallet(wallet) && Boolean((wallet.features as Features)[SolanaSignIn]);
+}
+
+/** A fresh nonce for one attempt: sixteen hex characters, which Sign in with Solana accepts (eight or more alphanumerics). */
+export function signInNonce(): string {
+  return Array.from(crypto.getRandomValues(new Uint8Array(NONCE_BYTES)), byte => byte.toString(16).padStart(2, '0')).join('');
 }
 
 function untilAborted<T>(pending: Promise<T>, signal: AbortSignal): Promise<T> {
@@ -37,29 +47,15 @@ function untilAborted<T>(pending: Promise<T>, signal: AbortSignal): Promise<T> {
 }
 
 /**
- * Asks the wallet to prove its address. Sign in with Solana is preferred: the
- * wallet then checks the page's domain itself and shows a dedicated prompt.
- * Otherwise it connects and signs the same text as a message. A prompt someone
- * walks away from never settles, so the signal ends the wait without it.
+ * Asks the wallet to prove its address with Sign in with Solana. A prompt
+ * someone walks away from never settles, so the signal ends the wait without it.
  */
 export async function signInProof(wallet: Wallet, request: SignInRequest, signal: AbortSignal): Promise<SignInProof> {
-  const features = wallet.features as Features;
-  const signIn = features[SolanaSignIn];
-  if (signIn) {
-    const [output] = await untilAborted(signIn.signIn({ ...request, statement: SIGN_IN_STATEMENT, version: '1' }), signal);
-    if (!output) throw new Error('The wallet returned no signature.');
-    return { message: new TextDecoder().decode(output.signedMessage), signature: output.signature };
-  }
-  const connect = features[StandardConnect];
-  const signMessage = features[SolanaSignMessage];
-  if (!connect || !signMessage) throw new Error('This wallet cannot sign in.');
-  const { accounts } = await untilAborted(connect.connect(), signal);
-  const account = accounts.find(item => item.chains.some(isSolanaChain) && item.features.includes(SolanaSignMessage));
-  if (!account) throw new Error('The wallet shared no Solana account that can sign a message.');
-  const message = signInMessage({ ...request, address: account.address });
-  const [output] = await untilAborted(signMessage.signMessage({ account, message: new TextEncoder().encode(message) }), signal);
+  const signIn = (wallet.features as Features)[SolanaSignIn];
+  if (!signIn || !isSolanaWallet(wallet)) throw new Error('This wallet does not support Sign in with Solana.');
+  const [output] = await untilAborted(signIn.signIn({ ...request, statement: SIGN_IN_STATEMENT, version: '1' }), signal);
   if (!output) throw new Error('The wallet returned no signature.');
-  return { message, signature: output.signature };
+  return { message: new TextDecoder().decode(output.signedMessage), signature: output.signature };
 }
 
 /** Wallets report a declined prompt in their own words; these cover the common ones. */

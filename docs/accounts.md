@@ -6,7 +6,7 @@ This document describes current source behavior. The redesign and contribution f
 
 ## Configuration
 
-Set `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` at build time. The key must be a current `sb_publishable_` key. The public client deliberately rejects secret and legacy service-role keys. No privileged key is used for auth or cloud-plan requests.
+Set `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` at build time. The key must be a current `sb_publishable_` key. The public client deliberately rejects secret and legacy service-role keys. Sign-in and cloud-plan requests use the member's own session. `SUPABASE_SECRET_KEY` is used on the server only, for account deletion, guest reports, the shared rate buckets and the retention cron; it never reaches the browser.
 
 For an authorized new database, apply the account and catalog migrations in `supabase/migrations/` in timestamp order:
 
@@ -19,6 +19,16 @@ The account API needs explicit SELECT, INSERT, and DELETE grants for the authent
 Enable email/password authentication and keep email confirmation enabled. Add the deployed origin’s `/auth/callback` and `/auth/callback?next=/auth/update-password` to the Auth redirect allowlist. Add equivalent local URLs only for development. On a shared project preserve the existing Site URL and existing allowlist entries. Set `NEXT_PUBLIC_AUTH_EMAIL_ENABLED=true` only after a custom SMTP sender has delivered both a confirmation and a recovery message. Until then, `/sign-up` and `/auth/reset-password` deliberately explain that guest planning is ready while existing-user sign-in remains available.
 
 Supabase’s default SMTP service is limited and is not a substitute for a production email provider. Configure a real custom SMTP sender for unrestricted public signup and password-reset delivery. If sending fails, Lotline reports the failure and leaves guest planning available. It does not bypass email verification. No OAuth provider is advertised before it is configured.
+
+### CAPTCHA (Cloudflare Turnstile)
+
+Email and wallet accounts cost nothing to create, so every password sign-in, sign-up, recovery request and wallet grant can carry a Cloudflare Turnstile token. The plumbing is off until `NEXT_PUBLIC_SUPABASE_CAPTCHA_SITE_KEY` is set: with it unset nothing loads, no token is sent and the forms are unchanged. Do these in order, because once Supabase requires a token a deployment without the site key locks everyone out:
+
+1. In the Cloudflare dashboard, create a Turnstile widget in **Managed** mode for `lotline.dev` and the Vercel aliases, and keep its site key and secret key.
+2. Set `NEXT_PUBLIC_SUPABASE_CAPTCHA_SITE_KEY` to the site key in Vercel and redeploy. The sign-in, sign-up and reset pages then render the widget, `signInWithPassword`, `signUp`, `resetPasswordForEmail` and `signInWithWeb3` carry `captchaToken`, and the Content-Security-Policy admits `https://challenges.cloudflare.com` for scripts and frames (`tests/security-headers.test.ts`). Supabase ignores the token while captcha protection is off, so this step is safe on its own.
+3. In Supabase under **Authentication → Attack Protection**, enable **Captcha protection**, choose **Turnstile by Cloudflare** and paste the secret key. From then on Supabase Auth rejects any sign-in without a token.
+
+Each token is accepted once; the forms fetch a fresh one after every attempt. `tests/captcha.test.ts` covers the key check.
 
 ## Flow
 
@@ -36,9 +46,28 @@ Next.js normalizes loopback IP URLs to `localhost`. Lotline restores the actual 
 
 ## Stored data
 
-Each row contains the authenticated user ID, a generated plan ID, a name, exact integer micro-USDC as text, up to ten issuer-confirmed mint IDs with basis-point weights as text, and a creation timestamp. The database checks canonical decimal strings, the maximum budget of 1,000,000 USDC, mint allowlisting, unique assets, and weights totaling 10,000 basis points. Wallet addresses, token balances, quotes, and projections are never uploaded to this table.
+Each row contains the authenticated user ID, a generated plan ID, a name, exact integer micro-USDC as text, up to ten issuer-confirmed mint IDs with basis-point weights as text, and a creation timestamp. The database checks canonical decimal strings, the maximum budget of 1,000,000 USDC, mint allowlisting, unique assets, weights totaling 10,000 basis points, and a name of 1 to 60 characters with no links and no invisible formatting characters (`20261017100000_plan_name_rules.sql`; the same rules as display names, because a shared plan shows its name to other members). Wallet addresses, token balances, quotes, and projections are never uploaded to this table.
 
 Each account can keep 20 plans. A per-user transaction lock serializes the count check. Read and delete policies require `auth.uid() = user_id`; create also requires ownership. Application queries add the owner filter as a second check. A loaded plan gets fresh quotes only when the user asks for them; cloud storage never makes an old quote look current.
+
+## Deleting an account
+
+Added 7 October 2026 for the Solana dApp Store Publisher Policy. A signed-in member can delete their account from **Account** (`/sign-in`, which shows a signed-in member their account instead of a second sign-in) or from the planner's account panel. **Delete account** opens an in-page confirmation that says what goes and that Solana transactions stay. **Delete my account** calls `DELETE /api/account`, then the browser signs out locally and shows a confirmation.
+
+The route refuses another origin, allows 5 attempts per connection every 10 minutes (in the instance and in the shared bucket, keyed by a salted hash), revalidates the session with `auth.getUser()`, requires that the session signed in within the last ten minutes (the newest `amr` timestamp in the access token, read after `getUser` has validated it; otherwise 403 with code `reauth_required`, and both delete buttons tell the member to sign out and sign in again first), and deletes only that user with the admin API (`SUPABASE_SECRET_KEY`). It answers `configuration-required` without the secret key, and a failed deletion says nothing was removed and logs only the error's class, status and code, never the account.
+
+Every table that references `auth.users` uses `ON DELETE CASCADE`, so one delete removes:
+
+| Table | How it goes |
+| --- | --- |
+| `lotline_contribution_plans` | `user_id` cascade |
+| `lotline_published_plans` | `user_id` cascade, and with its saved plan |
+| `lotline_plan_copies` | `user_id` cascade, and with the shared plan |
+| `lotline_plan_reports` | `reporter_id` cascade, and with the shared plan |
+| `lotline_contribution_schedules`, `lotline_contribution_occurrences` | `user_id` cascade, then `schedule_id` cascade |
+| `lotline_execution_runs`, `_legs`, `_attempts`, `_events` | `user_id` cascade, then `run_id` and `leg_id` cascade |
+
+One link used to stop it: a reminder occurrence that started a run referenced the run with no delete action, so deleting an account with both failed. `20261007090000_account_deletion.sql` makes that link `ON DELETE SET NULL`. Copy totals on other members' plans stay (they name no one), as do guest records, which are not linked to the account. On-chain transactions are public and permanent. `tests/account-deletion-database.test.ts` deletes a user with every kind of record in isolated PostgreSQL and checks what goes and what stays; `tests/account-route.test.ts` and `tests/e2e/account-deletion.spec.ts` cover the route and the flow.
 
 ## Verification
 

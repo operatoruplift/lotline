@@ -3,6 +3,7 @@ import { XSTOCK_REGISTRY } from '@/lib/domain/assets';
 import { RAILS_FRESHNESS_MS, RAILS_MAX_ITEMS, THIN_VENUE_TRADES, impliedUsdcPerUnit, priceDifferenceBps, underlyingOf, type RailComparison, type RailsResponse } from '@/lib/domain/rails';
 import { backpackStockMarkets, backpackTicker } from '@/lib/server/backpack';
 import { addressSchema, isBoundedRaw, MAX_USDC_RAW, readSmallJson, safeMessage, ServiceError } from '@/lib/server/common';
+import { enforceReadRateLimit, readFailure } from '@/lib/server/read-limits';
 import { httpStatus, noStore } from '@/lib/server/requests';
 
 export const dynamic = 'force-dynamic';
@@ -21,6 +22,8 @@ const registry = new Map(XSTOCK_REGISTRY.map(asset => [asset.mint, asset]));
 /** Venue prices for the same underlyings, as a comparison beside the Jupiter estimate. */
 export async function POST(request: Request) {
   const fetchedAt = new Date().toISOString();
+  try { await enforceReadRateLimit(request); }
+  catch (error) { return Response.json({ state: 'unavailable', items: [], fetchedAt, message: safeMessage(error) } satisfies RailsResponse, readFailure(error, 503)); }
   const parsed = requestSchema.safeParse(await readSmallJson(request).catch(() => null));
   if (!parsed.success) return Response.json({ state: 'invalid-input', items: [], fetchedAt, message: 'Choose up to ten unique xStocks with their estimates.' } satisfies RailsResponse, { status: 400, headers: noStore });
   try {

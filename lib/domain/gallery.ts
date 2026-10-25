@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import { XSTOCK_MINTS } from './assets';
 import { CRYPTO_MINTS } from './crypto-assets';
+import { planNameSchema } from './plan-name';
 import type { Basket } from './types';
 
 /**
@@ -17,7 +18,8 @@ const knownMints = new Set<string>([...XSTOCK_MINTS, ...CRYPTO_MINTS]);
 const allocation = z.object({ mint: z.string().refine(value => knownMints.has(value)), bps: z.string().regex(/^(0|[1-9]\d{0,4})$/) }).strict();
 export const galleryPlanSchema = z.object({
   id: z.uuid(),
-  name: z.string().min(1).max(60),
+  // The headline, byline and link preview show this name, so it passes the plan-name rules or the plan is not shown.
+  name: planNameSchema,
   display_name: z.string().min(2).max(32).nullable(),
   allocations: z.array(allocation).min(1).max(10)
     .refine(items => new Set(items.map(item => item.mint)).size === items.length)
@@ -26,8 +28,20 @@ export const galleryPlanSchema = z.object({
   published_at: z.string().refine(value => Number.isFinite(Date.parse(value))),
   // When the author last pointed the share at a newer split; absent or null until then.
   split_updated_at: z.string().refine(value => Number.isFinite(Date.parse(value))).nullable().optional(),
+  // The same salted key for every plan one author shares, so a reader can hide them on
+  // this device. It never names the account. Absent until the moderation migration runs.
+  author_key: z.string().regex(/^[a-f0-9]{24}$/).optional(),
 }).strict();
 export type GalleryPlan = z.infer<typeof galleryPlanSchema>;
+/** Why a reader reports a shared plan. Three distinct reporters hide it until an operator reviews it. */
+export const REPORT_REASONS = ['spam', 'misleading', 'offensive', 'other'] as const;
+export type ReportReason = (typeof REPORT_REASONS)[number];
+export const REPORT_REASON_LABELS: Record<ReportReason, string> = {
+  spam: 'Spam or advertising',
+  misleading: 'Misleading name or split',
+  offensive: 'Offensive name',
+  other: 'Something else',
+};
 export type GalleryResponse = { state: 'success'; plans: GalleryPlan[]; sort: GallerySort; page: number; hasMore: boolean } | { state: 'unavailable' | 'configuration-required'; message: string };
 
 /** A shared plan opened in the planner keeps the reader's own budget. */

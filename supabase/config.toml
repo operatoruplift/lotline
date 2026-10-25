@@ -3,6 +3,9 @@ project_id = "lotline"
 
 [auth]
 site_url = "https://lotline.dev"
+# Only the production host and the two aliases attached to the Vercel project. A retired
+# deployment or a local port on this list would let a sign-in link land somewhere Lotline
+# no longer controls; add a local callback to a development project, never here.
 additional_redirect_urls = [
   "https://lotline.dev",
   "https://lotline.dev/auth/callback",
@@ -13,12 +16,6 @@ additional_redirect_urls = [
   "https://lotlinesolana.vercel.app",
   "https://lotlinesolana.vercel.app/auth/callback",
   "https://lotlinesolana.vercel.app/auth/callback?next=/auth/update-password",
-  "https://lotline-omega.vercel.app/auth/callback",
-  "https://lotline-omega.vercel.app/auth/callback?next=/auth/update-password",
-  "http://localhost:3000/auth/callback",
-  "http://localhost:3000/auth/callback?next=/auth/update-password",
-  "http://127.0.0.1:3000/auth/callback",
-  "http://127.0.0.1:3000/auth/callback?next=/auth/update-password",
 ]
 minimum_password_length = 12
 

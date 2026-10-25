@@ -104,6 +104,11 @@ android {
         compose = true
         buildConfig = true
     }
+    // Lotline is English only. AndroidX libraries bring translations for about
+    // 85 locales, and the APK would declare every one of them to the dApp Store.
+    androidResources {
+        localeFilters += listOf("en")
+    }
 }
 
 dependencies {

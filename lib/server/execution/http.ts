@@ -1,12 +1,13 @@
 import 'server-only';
 import { createClient } from '@supabase/supabase-js';
-import { createHash, createHmac, randomBytes } from 'node:crypto';
+import { createHash, randomBytes } from 'node:crypto';
 import { serverSupabase } from '@/lib/supabase/server';
 import { cookies } from 'next/headers';
 import { executionConfig, publicExecutionConfig } from './config';
 import { noStore } from '@/lib/server/requests';
 import { isSameOriginMutation } from '@/lib/supabase/plans';
 import { ServiceError } from '@/lib/server/common';
+import { clientAddress, hashedLabel } from '@/lib/server/client-address';
 
 const EXECUTION_CAPABILITY_COOKIE = 'lotline_execution_capability';
 const EXECUTION_CAPABILITY_BYTES = 32;
@@ -58,9 +59,9 @@ const GUEST_RATE_MAX_KEYS = 2_048;
 /** A small per-instance abuse guard for unauthenticated execution journal writes. */
 export async function enforceExecutionRateLimit(owner: ExecutionOwner, request: Request) {
   if (owner.kind !== 'guest') return;
-  // Prefer the platform-normalized address. Never trust a client-supplied
-  // forwarded chain; when absent, the shared global bucket still applies.
-  const ip = request.headers.get('x-real-ip')?.trim() || 'edge-unknown';
+  // The platform-normalized address, with IPv6 collapsed to its /64 (client-address.ts).
+  // When it is absent, the shared global bucket still applies.
+  const ip = clientAddress(request);
   const key = createHash('sha256').update(`${owner.capabilityHash}:${ip}`).digest('hex');
   const now = Date.now();
   if (guestRateWindows.size >= GUEST_RATE_MAX_KEYS) {
@@ -89,10 +90,13 @@ export async function enforceExecutionRateLimit(owner: ExecutionOwner, request: 
     if (error) throw new ServiceError('configuration-required', 'Guest execution limits are not available until the latest journal migration is applied.');
     return data === true;
   };
-  const ipHash = createHmac('sha256', secret).update(`ip:${ip}`).digest('hex');
-  const globalHash = createHmac('sha256', secret).update('guest-global').digest('hex');
-  if (!(await consume(ipHash, GUEST_RATE_LIMIT))) throw new ServiceError('unavailable', 'This network has reached the contribution activity limit. Try again in a minute.');
+  const ipHash = hashedLabel(`ip:${ip}`);
+  const globalHash = hashedLabel('guest-global');
+  if (!ipHash || !globalHash) throw new ServiceError('configuration-required', 'Guest execution limits are not configured.');
+  // The global bucket first, so a client cycling through addresses cannot drain it
+  // by passing a fresh per-address bucket each time.
   if (!(await consume(globalHash, GUEST_GLOBAL_RATE_LIMIT))) throw new ServiceError('unavailable', 'Guest contribution traffic is temporarily full. Try again in a minute.');
+  if (!(await consume(ipHash, GUEST_RATE_LIMIT))) throw new ServiceError('unavailable', 'This network has reached the contribution activity limit. Try again in a minute.');
 }
 
 export function json(body: unknown, status = 200) {

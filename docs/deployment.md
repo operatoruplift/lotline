@@ -44,6 +44,10 @@ The September 11–12 setup records list `SOLANA_RPC_URL`, `NEXT_PUBLIC_SUPABASE
 
 Optional Tokens.xyz context remains disabled unless both `TOKENS_XYZ_ENABLED=true` and server-only `TOKENS_XYZ_API_KEY` are configured. Approved `assets:read` access, applicable display terms and key-specific quotas must be established before public activation. Its implementation and missing activation requirements are in [tokens-enrichment.md](tokens-enrichment.md).
 
+## Scheduled retention
+
+`vercel.json` schedules `GET /api/cron/retention` once a day (03:17 UTC). Vercel sends `Authorization: Bearer <CRON_SECRET>` when that variable is set; the route compares it in constant time, answers 401 to anything else and 503 until the secret exists. Each run calls `lotline_prune_guest_execution_runs()` up to ten times (at most 100 stale guest runs each), deletes shared rate-bucket rows older than an hour from `lotline_guest_execution_ip_limits`, and deletes `lotline_execution_daily_limits` rows older than thirty days, all through the service-role client, and reports the counts. The insert trigger `lotline_limit_guest_execution_runs()` cannot be called directly; the counters it keeps are what this prunes. Set `CRON_SECRET` (a long random string) in Vercel with the first deployment that carries the file. `tests/cron-retention.test.ts` covers the 401, the unconfigured 503 and the deletions.
+
 ## Supabase
 
 All seven repository migrations are aligned with and applied to the linked Lotline project:
