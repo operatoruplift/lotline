@@ -1,6 +1,12 @@
 {
   "name": "lotline",
   "version": "1.0.0",
+  "description": "A read-only xStocks contribution planner for Solana: exact USDC splits, live estimates and exportable plans.",
+  "homepage": "https://lotline.dev",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/operatoruplift/lotline.git"
+  },
   "private": true,
   "scripts": {
     "brand:generate": "node scripts/generate-brand-assets.mjs",
