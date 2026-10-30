@@ -353,9 +353,12 @@ Meteora's official SDK is the source of the bonding-curve quote, and it is built
     <td width="33%"><b>Check it</b><br><sub><a href="docs/deployment.md">Deployment status and history</a><br><a href="docs/releases/2026-10-01/release.md">Launch film and mainnet readiness, 1 October 2026</a><br><a href="docs/contribution-release-20260920.md">Contribution release, 20 September 2026</a><br><a href="docs/integration-verification.md">Integration history</a></sub></td>
   </tr>
   <tr valign="top">
-    <td><b>Show it</b><br><sub><a href="docs/video-release.md">Films, narration, captions and transcripts</a><br><a href="docs/stocklana-demo-script.md">115-second demo script</a><br><a href="docs/brand.md">Brand identity</a> and <a href="https://lotline.dev/brand-kit">downloadable brand kit</a><br><a href="docs/design-direction.md">Design direction</a> and <a href="docs/design-media.md">media provenance</a></sub></td>
+    <td><b>Show it</b><br><sub><a href="docs/video-release.md">Films, narration, captions and transcripts</a><br><a href="docs/technical-video.md">Technical walkthrough</a> and <a href="docs/video/README.md">pitch production source</a><br><a href="docs/stocklana-demo-script.md">115-second demo script</a><br><a href="https://lotline.dev/brand-kit">Downloadable brand kit</a></sub></td>
+    <td><b>Design it</b><br><sub><a href="docs/brand.md">Brand identity</a><br><a href="docs/design-direction.md">Design direction and references</a><br><a href="docs/redesign-delivery.md">Redesign delivery and local checks</a><br><a href="docs/design-media.md">Media provenance</a> and <a href="docs/screenshots/">historical screenshots</a></sub></td>
     <td><b>Ship it</b><br><sub><a href="docs/seeker-and-pwa.md">Seeker, Android and PWA</a><br><a href="docs/dapp-store/listing.md">dApp Store listing kit</a><br><a href="docs/dependency-review-20260926.md">Dependency review</a><br><a href="docs/tokens-enrichment.md">Tokens.xyz context</a></sub></td>
-    <td><b>Submit it</b><br><sub><a href="docs/stocklana-submission.md">Stocklana submission draft</a><br><a href="docs/stocklana-check.md">Dated requirements recheck</a><br><a href="docs/usability-test-guide.md">Human usability-test guide</a><br><a href="docs/finish-report-20260919.md">19 September continuation</a> (historical)</sub></td>
+  </tr>
+  <tr valign="top">
+    <td colspan="3"><b>Submit it</b><br><sub><a href="docs/stocklana-submission.md">Stocklana submission draft</a> &nbsp;·&nbsp; <a href="docs/stocklana-check.md">Dated requirements recheck</a> &nbsp;·&nbsp; <a href="docs/usability-test-guide.md">Human usability-test guide</a> &nbsp;·&nbsp; <a href="docs/finish-report-20260919.md">19 September continuation</a> (historical, superseded by the 20 September release)</sub></td>
   </tr>
 </table>
 
